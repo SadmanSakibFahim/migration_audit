@@ -33,7 +33,7 @@ def build_parser():
     run_parser.add_argument(
         "--migration",
         required=True,
-        help="Migration description (source → target)"
+        help="Migration description (source -> target)"
     )
 
     run_parser.add_argument(
@@ -41,6 +41,12 @@ def build_parser():
         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
         default="INFO",
         help="Logging verbosity (default: INFO)"
+    )
+
+    run_parser.add_argument(
+        "--ignore-invalid-rows",
+        action="store_true",
+        help="Ignore invalid rows during audit. Invalid rows will be logged and exported to invalid_data subfolder."
     )
 
     return parser
@@ -63,9 +69,15 @@ def main():
         logger = get_logger(__name__)
 
         logger.info(f"Running audit with log level: {args.log_level}")
+        
+        if args.ignore_invalid_rows:
+            logger.info("Invalid row filtering enabled. Invalid rows will be excluded from audit.")
 
         try:
-            results = run_audit(config_path=args.config)
+            results = run_audit(
+                config_path=args.config,
+                ignore_invalid_rows=args.ignore_invalid_rows
+            )
         except AuditError as e:
             logger.error(f"Audit failed: {e}")
             exit(1)

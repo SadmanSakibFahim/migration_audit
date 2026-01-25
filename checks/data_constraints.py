@@ -1,11 +1,12 @@
 from core.result import TestResult
 import pandas as pd
 from core.enums import CheckStatus
+from typing import Dict, List
 
 # This function checks whether each primary key
 # has data in each column without which the data is incomplete.
 
-def check_data_constraints(df: pd.DataFrame, columns: list[str], name: str) -> TestResult:
+def check_data_constraints(df: pd.DataFrame, columns: Dict[str, List[str]], name: str) -> TestResult:
     issues = []
     total_rows = len(df)
 
