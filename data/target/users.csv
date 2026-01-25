@@ -16,7 +16,7 @@ id,first_name,last_name,email,date_of_birth,date_onboarded,age,tenure_days,statu
 15,Daniel,Anderson,daniel.anderson@email.com,1987-07-14,2021-04-15,37,1760,active,CA
 16,Barbara,Thomas,barbara.thomas@email.com,1991-09-22,2021-05-20,33,1735,active,US
 17,Matthew,Taylor,matthew.taylor@email.com,1986-05-11,2021-06-15,38,1710,active,AU
-18,Susan,Moore,susan.moore@email.com,1989-02-28,2021-07-10,35,1685,inactive,US
+18,Susan,Moore,susan.moore@email.com,1989-02-28,2021-07-  10,35,1685,inactive,US
 19,Anthony,Jackson,anthony.jackson@email.com,1984-10-04,2021-08-15,41,1660,active,DE
 20,Jessica,Martin,jessica.martin@email.com,1993-04-16,2021-09-20,31,1635,active,FR
 21,Mark,Lee,mark.lee@email.com,1985-12-30,2021-10-15,39,1610,active,US
