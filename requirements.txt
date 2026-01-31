@@ -2,3 +2,5 @@ pandas
 pyyaml
 python-docx
 pytest
+pytest-cov
+sqlalchemy
