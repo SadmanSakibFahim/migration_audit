@@ -85,3 +85,7 @@ class TableConfig(BaseModel):
 class AuditConfig(BaseModel):
     tables: Dict[str, TableConfig]
     tolerances: ToleranceConfig = Field(default_factory=ToleranceConfig)
+    chunk_size: Optional[int] = Field(
+        default=None, 
+        description="If set, enables incremental (chunked) processing for large files."
+    )

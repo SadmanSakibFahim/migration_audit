@@ -1,15 +1,17 @@
 # This checks verifies aggregate values in specified columns
 # between source and target datasets within a given tolerance.
 
-# add type hints all over the code
 from core.result import TestResult
 from core.enums import CheckStatus
 import pandas as pd
 
-# add type hints all over the code
 def check_sum(src_df: pd.DataFrame, tgt_df: pd.DataFrame, column: str, name: str, tolerance: float) -> TestResult:
-    src_sum = src_df[column].dropna().sum()
-    tgt_sum = tgt_df[column].dropna().sum()
+    # Use to_numeric with coerce to avoid crash on strings, but junk check will catch it separately
+    src_vals = pd.to_numeric(src_df[column], errors='coerce').dropna()
+    tgt_vals = pd.to_numeric(tgt_df[column], errors='coerce').dropna()
+    
+    src_sum = src_vals.sum()
+    tgt_sum = tgt_vals.sum()
 
     if src_sum == 0:
         return TestResult(
@@ -44,8 +46,11 @@ def check_sum(src_df: pd.DataFrame, tgt_df: pd.DataFrame, column: str, name: str
         )
     
 def check_avg(src_df: pd.DataFrame, tgt_df: pd.DataFrame, column: str, name: str, tolerance: float) -> TestResult:
-    src_avg = src_df[column].dropna().mean()
-    tgt_avg = tgt_df[column].dropna().mean()
+    src_vals = pd.to_numeric(src_df[column], errors='coerce').dropna()
+    tgt_vals = pd.to_numeric(tgt_df[column], errors='coerce').dropna()
+    
+    src_avg = src_vals.mean() if not src_vals.empty else 0
+    tgt_avg = tgt_vals.mean() if not tgt_vals.empty else 0
 
     if src_avg == 0:
         return TestResult(
@@ -80,8 +85,11 @@ def check_avg(src_df: pd.DataFrame, tgt_df: pd.DataFrame, column: str, name: str
         )
     
 def check_max(src_df: pd.DataFrame, tgt_df: pd.DataFrame, column: str, name: str, tolerance: float) -> TestResult:
-    src_max = src_df[column].dropna().max()
-    tgt_max = tgt_df[column].dropna().max()
+    src_vals = pd.to_numeric(src_df[column], errors='coerce').dropna()
+    tgt_vals = pd.to_numeric(tgt_df[column], errors='coerce').dropna()
+
+    src_max = src_vals.max() if not src_vals.empty else 0
+    tgt_max = tgt_vals.max() if not tgt_vals.empty else 0
 
     if src_max == 0:
         return TestResult(
@@ -116,8 +124,11 @@ def check_max(src_df: pd.DataFrame, tgt_df: pd.DataFrame, column: str, name: str
         )
     
 def check_min(src_df: pd.DataFrame, tgt_df: pd.DataFrame, column: str, name: str, tolerance: float) -> TestResult:
-    src_min = src_df[column].dropna().min()
-    tgt_min = tgt_df[column].dropna().min()
+    src_vals = pd.to_numeric(src_df[column], errors='coerce').dropna()
+    tgt_vals = pd.to_numeric(tgt_df[column], errors='coerce').dropna()
+
+    src_min = src_vals.min() if not src_vals.empty else 0
+    tgt_min = tgt_vals.min() if not tgt_vals.empty else 0
 
     if src_min == 0:
         return TestResult(
@@ -150,10 +161,13 @@ def check_min(src_df: pd.DataFrame, tgt_df: pd.DataFrame, column: str, name: str
             message=f"Min difference exceeds tolerance for column '{column}' in table '{name}'. Source: {src_min}, Target: {tgt_min}, Difference: {pct_diff:.2f}%.",
             details={"pct_difference": pct_diff}
         )
-    
+
 def check_variance(src_df: pd.DataFrame, tgt_df: pd.DataFrame, column: str, name: str, tolerance: float) -> TestResult:
-    src_var = src_df[column].dropna().var()
-    tgt_var = tgt_df[column].dropna().var()
+    src_vals = pd.to_numeric(src_df[column], errors='coerce').dropna()
+    tgt_vals = pd.to_numeric(tgt_df[column], errors='coerce').dropna()
+
+    src_var = src_vals.var() if not src_vals.empty else 0
+    tgt_var = tgt_vals.var() if not tgt_vals.empty else 0
 
     if src_var == 0:
         return TestResult(

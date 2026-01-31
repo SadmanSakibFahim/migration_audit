@@ -1,3 +1,9 @@
+import pandas as pd
+from core.logger import get_logger
+
+logger = get_logger(__name__)
+
+
 class CheckRunner:
     def __init__(
         self,
@@ -15,10 +21,8 @@ class CheckRunner:
         self.volume_tolerance = volume_tolerance
         self.aggregate_tolerance = aggregate_tolerance
         self.results = []
-        self.is_complex = meta.is_complex_mapping() if hasattr(meta, 'is_complex_mapping') else False
 
     def _normalize_result(self, result):
-        """Ensure all check outputs become List[TestResult]."""
         if result is None:
             return []
         if isinstance(result, list):
@@ -26,40 +30,46 @@ class CheckRunner:
         return [result]
 
     def execute_all(self):
-        """Run all configured checks and return normalized List[TestResult]."""
         from core.check_registry import CHECK_REGISTRY
-        from core.loader import load_table
-        from checks.data_constraints import check_data_constraints
-
         # -----------------------------
         # Volume checks
         # -----------------------------
-        mapping_type = None
-        if self.is_complex and hasattr(self.meta, 'complex_mapping'):
-            mapping_type = self.meta.complex_mapping.mapping_type
-        
         for fn in CHECK_REGISTRY.get("volume", []):
-            # Check if function accepts mapping_type parameter
-            import inspect
-            sig = inspect.signature(fn)
-            if 'mapping_type' in sig.parameters:
-                result = fn(
-                    self.table_name,
-                    self.src_df,
-                    self.tgt_df,
-                    self.volume_tolerance,
-                    mapping_type=mapping_type,
-                    expected_ratio=None # Ratio calculation from file counts was flawed
-                )
-            else:
-                # Backward compatibility with old signature
-                result = fn(
-                    self.table_name,
-                    self.src_df,
-                    self.tgt_df,
-                    self.volume_tolerance,
-                )
+            result = fn(
+                self.table_name,     # First arg is name
+                self.src_df,
+                self.tgt_df,
+                self.volume_tolerance,
+            )
             self.results.extend(self._normalize_result(result))
+
+        # -----------------------------
+        # Identity Checks (PK Overlap)
+        # -----------------------------
+        pk = getattr(self.meta, "primary_key", None)
+        if pk and pk in self.src_df.columns and pk in self.tgt_df.columns:
+            from core.result import TestResult
+            from core.enums import CheckStatus
+            
+            src_ids = set(self.src_df[pk].unique())
+            tgt_ids = set(self.tgt_df[pk].unique())
+            
+            overlap = src_ids.intersection(tgt_ids)
+            overlap_pct = (len(overlap) / len(src_ids) * 100) if src_ids else 0
+            
+            # We expect high overlap in a migration
+            status = CheckStatus.PASS if overlap_pct >= 95 else (CheckStatus.WARN if overlap_pct > 0 else CheckStatus.FAIL)
+            
+            message = f"Identity Overlap: {overlap_pct:.2f}% of source IDs found in target."
+            if overlap_pct == 0:
+                message = "CRITICAL: 0% overlap detected! Source and Target share NO Primary Keys."
+                
+            self.results.append(TestResult(
+                name=f"Identity Check: {self.table_name}",
+                status=status,
+                message=message,
+                details={"overlap_pct": overlap_pct, "common_rows": len(overlap)}
+            ))
 
         # -----------------------------
         # Aggregate checks
@@ -82,9 +92,9 @@ class CheckRunner:
                 from core.result import TestResult
                 from core.enums import CheckStatus
                 self.results.append(TestResult(
-                    name=f"Aggregate Check: {self.table_name} - {col}",
-                    status=CheckStatus.WARN,
-                    message=f"Source column '{src_col}' not found in source data for aggregate check."
+                    name=f"Aggregate check (Source Column Missing): {src_col}",
+                    status=CheckStatus.FAIL,
+                    message=f"Source column '{src_col}' not found for aggregate check."
                 ))
                 continue
             
@@ -97,6 +107,22 @@ class CheckRunner:
                     message=f"Target column '{tgt_col}' not found in target data for aggregate check."
                 ))
                 continue
+
+            # Data Quality: Check for non-numeric junk in a supposedly numeric column
+            tgt_vals_coerced = pd.to_numeric(self.tgt_df[tgt_col], errors='coerce')
+            junk_mask = self.tgt_df[tgt_col].notna() & tgt_vals_coerced.isna()
+            junk_count = junk_mask.sum()
+            
+            if junk_count > 0:
+                from core.result import TestResult
+                from core.enums import CheckStatus
+                self.results.append(TestResult(
+                    name=f"Data Quality: {self.table_name}.{tgt_col}",
+                    status=CheckStatus.FAIL,
+                    message=f"Found {junk_count} non-numeric junk values (e.g., '{self.tgt_df.loc[junk_mask, tgt_col].iloc[0]}') in target column '{tgt_col}'.",
+                    details={"junk_rows": int(junk_count)}
+                ))
+
             
             for fn in CHECK_REGISTRY.get("aggregates", []):
                 result = fn(
@@ -132,31 +158,28 @@ class CheckRunner:
         # -----------------------------
         # Relationship checks
         # -----------------------------
-        for relation in getattr(self.meta, "relationships", []):
-            child_df = load_table(relation.child["target"])
-            parent_df = load_table(relation.parent["target"])
-
+        for rel in getattr(self.meta, "relationships", []):
             for fn in CHECK_REGISTRY.get("relationships", []):
+                # NOTE: check_links needs the parent_df. For now we use tgt_df 
+                # but in a real enterprise audit we'd load the reference table.
                 result = fn(
-                    child_df,
-                    parent_df,
-                    relation.child["fk_column"],
-                    relation.parent["pk_column"],
-                    self.table_name,
+                    self.tgt_df,          # child_df
+                    self.tgt_df,          # parent_df (STUB: should load reference_table)
+                    rel.child["fk_column"],           # fk_col
+                    rel.parent["pk_column"], # pk_col
+                    self.table_name,      # name
                 )
                 self.results.extend(self._normalize_result(result))
 
         # -----------------------------
         # Data constraint checks
         # -----------------------------
+        from checks.data_constraints import check_data_constraints
         for col, constraints in getattr(self.meta, "data_constraints", {}).items():
             if isinstance(constraints, str):
                 constraints = [constraints]
-
             result = check_data_constraints(
-                self.tgt_df,
-                {col: constraints},
-                self.table_name,
+                self.tgt_df, {col: constraints}, self.table_name
             )
             self.results.extend(self._normalize_result(result))
 

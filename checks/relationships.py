@@ -1,13 +1,25 @@
 # This check verifies that all foreign key values in the child table
 # have corresponding primary key values in the parent table.
 
-# This check also includes whether there are any nulls in the foreign key column.
-
 import pandas as pd
 from core.result import TestResult
 from core.enums import CheckStatus
 
 def check_links(child_df: pd.DataFrame, parent_df: pd.DataFrame, fk_col: str, pk_col: str, name: str) -> TestResult:
+    # Ensure columns exist before check
+    if fk_col not in child_df.columns:
+        return TestResult(
+            name=f"Foreign Key check (Missing FK): {name}",
+            status=CheckStatus.FAIL,
+            message=f"Foreign key column '{fk_col}' not found in child table '{name}'."
+        )
+    if pk_col not in parent_df.columns:
+         return TestResult(
+            name=f"Foreign Key check (Missing PK): {name}",
+            status=CheckStatus.FAIL,
+            message=f"Primary key column '{pk_col}' not found in parent table."
+        )
+
     null_parents = child_df[child_df[fk_col].isnull()]
     orphans = child_df[~child_df[fk_col].isin(parent_df[pk_col])]
     true_orphans = orphans[orphans[fk_col].notnull()]
@@ -24,7 +36,7 @@ def check_links(child_df: pd.DataFrame, parent_df: pd.DataFrame, fk_col: str, pk
             status=CheckStatus.FAIL,
             message=f"Foreign key check failed for table '{name}'. Found {len(true_orphans)} orphaned foreign keys and {len(null_parents)} null foreign keys in column '{fk_col}'.",
             details={
-                "null_foreign_keys": null_parents.to_dict(orient="records"),
-                "orphaned_foreign_keys": true_orphans.to_dict(orient="records")
+                "orphaned_count": len(true_orphans),
+                "null_count": len(null_parents)
             }
         )

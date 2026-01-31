@@ -12,6 +12,7 @@ from core.check_runner import CheckRunner
 from core.result import TestResult
 from core.config_models import AuditConfig
 from core.row_validator import validate_rows, export_invalid_rows, create_invalid_rows_summary_log
+from core.incremental_runner import IncrementalRunner
 
 logger = get_logger(__name__)
 
@@ -82,6 +83,26 @@ def run_audit(
 
         meta = tables_cfg[table_name]
         logger.info(f"Auditing table: {table_name}")
+
+        # New: Incremental Processing for large files
+        if cfg.chunk_size and not meta.is_complex_mapping():
+            logger.info(f"Using IncrementalRunner for '{table_name}' (Chunk size: {cfg.chunk_size})")
+            try:
+                runner = IncrementalRunner(
+                    table_name=table_name,
+                    meta=meta,
+                    volume_tolerance=volume_tolerance,
+                    aggregate_tolerance=aggregate_tolerance,
+                    chunk_size=cfg.chunk_size
+                )
+                runner.process_source(meta.source)
+                runner.process_target(meta.target)
+                table_results = runner.finalize()
+                all_results.extend(_normalize_results(table_results))
+                continue
+            except Exception as e:
+                logger.error(f"Incremental audit failed for '{table_name}': {e}")
+                logger.info(f"Falling back to standard in-memory audit for '{table_name}'")
 
         try:
             # Handle complex mappings (N:1, 1:N, N:M)
@@ -233,11 +254,25 @@ def run_audit(
                     if tgt_invalid:
                         export_invalid_rows(tgt_invalid, target_path, table_name, is_source=False)
                         logger.info(f"Filtered {len(tgt_invalid)} invalid rows from target '{table_name}'")
-        except DataLoadError:
-            logger.error(f"Skipping table '{table_name}' due to load error.")
+        except DataLoadError as e:
+            from core.enums import CheckStatus
+            logger.error(f"Table '{table_name}' load failed: {e}")
+            all_results.append(TestResult(
+                name=f"Data Load: {table_name}",
+                status=CheckStatus.ERROR,
+                message=f"Critical error loading data: {e}",
+                details={"table": table_name, "error": str(e)}
+            ))
             continue
         except Exception as e:
-            logger.error(f"Unexpected error loading table '{table_name}': {e}")
+            from core.enums import CheckStatus
+            logger.error(f"Unexpected audit error for table '{table_name}': {e}")
+            all_results.append(TestResult(
+                name=f"Audit Error: {table_name}",
+                status=CheckStatus.ERROR,
+                message=f"Unexpected error: {e}",
+                details={"error": str(e)}
+            ))
             continue
 
         logger.info(
@@ -249,6 +284,26 @@ def run_audit(
                 f"Dry-run enabled. Skipping checks for table '{table_name}'."
             )
             continue
+
+        # Schema Validation: Check if columns match before running checks
+        src_cols = set(src_df.columns)
+        tgt_cols = set(tgt_df.columns)
+        
+        # If we have column mappings, we already renamed them, so we check intersection
+        missing_in_target = src_cols - tgt_cols
+        # Extra columns in target are usually fine (surplus), but missing ones are bad.
+        
+        if missing_in_target:
+            from core.enums import CheckStatus
+            msg = f"SCHEMA MISMATCH: Target table '{table_name}' is missing columns: {list(missing_in_target)}"
+            logger.warning(msg)
+            all_results.append(TestResult(
+                name=f"Schema Check: {table_name}",
+                status=CheckStatus.FAIL,
+                message=msg,
+                details={"missing_columns": list(missing_in_target)}
+            ))
+            # Continue to other checks but results will likely have many failures
 
         runner = CheckRunner(
             table_name=table_name,

@@ -9,6 +9,7 @@ class Verdict:
     GO = "GO"
     GO_WITH_WARNINGS = "GO WITH WARNINGS"
     NO_GO = "NO-GO"
+    ERROR = "ERROR"
 
 
 def final_verdict(results):
@@ -33,6 +34,10 @@ def final_verdict(results):
         f"WARN={status_counts.get(CheckStatus.WARN, 0)}, "
         f"FAIL={status_counts.get(CheckStatus.FAIL, 0)}"
     )
+
+    if status_counts.get(CheckStatus.ERROR, 0) > 0:
+        logger.info("Final verdict: ERROR (Connectivity/Infrastructure issue)")
+        return Verdict.ERROR
 
     if status_counts.get(CheckStatus.FAIL, 0) > 0:
         logger.info("Final verdict: NO-GO")

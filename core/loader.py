@@ -2,11 +2,70 @@ import pandas as pd
 from core.logger import get_logger
 from typing import List, Dict, Optional
 from core.config_models import SourceTableConfig, TargetTableConfig, ComplexMappingConfig
+from sqlalchemy import create_engine, inspect
 
 logger = get_logger(__name__)
 
-def load_table(path: str) -> pd.DataFrame:
-    df = pd.read_csv(path)
+def load_table(path: str, chunk_size: Optional[int] = None) -> Any:
+    """
+    Load a table from a CSV file or a database URI.
+    Database format: 'dialect://user:pass@host:port/db/table_name'
+    SQLite example: 'sqlite:///path/to/db.sqlite/table_name'
+    
+    If chunk_size is provided, returns an iterator (generator) of DataFrames.
+    """
+    # Check if path looks like a database URI
+    db_prefixes = ['sqlite://', 'postgresql://', 'mysql://', 'mssql://', 'oracle://']
+    is_db = any(path.startswith(prefix) for prefix in db_prefixes)
+
+    if is_db:
+        try:
+            # For DB URIs, the last part is usually the table name
+            # Format: 'connection_string/table_name'
+            if '/' not in path.replace('://', ''):
+                raise ValueError(f"Invalid DB URI format. Expected 'connection_uri/table_name', got: {path}")
+            
+            # Split from the right once to get the table name
+            base_uri, table_name = path.rsplit('/', 1)
+            
+            logger.info(f"Connecting to database: {base_uri} (table: {table_name})")
+            engine = create_engine(base_uri)
+            
+            # Use pandas read_sql_table
+            if chunk_size:
+                logger.info(f"Loading DB table '{table_name}' in chunks of {chunk_size}")
+                return pd.read_sql_table(table_name, engine, chunksize=chunk_size)
+            
+            df = pd.read_sql_table(table_name, engine)
+            logger.info(f"Successfully loaded {len(df)} rows from DB table '{table_name}'")
+            return df
+        except Exception as e:
+            logger.error(f"Failed to load data from database '{path}': {e}")
+            raise
+
+    # Default to CSV loading
+    import os
+    if not os.path.exists(path):
+        logger.error(f"File not found: {path}")
+        raise FileNotFoundError(f"Data file missing: {path}")
+
+    logger.info(f"Loading CSV from: {path}")
+    try:
+        if chunk_size:
+            # returns TextFileReader iterator
+            return pd.read_csv(path, chunksize=chunk_size)
+
+        df = pd.read_csv(path)
+    except pd.errors.EmptyDataError:
+        logger.warning(f"File '{path}' is empty (no columns/data).")
+        return pd.DataFrame() # Return empty DF with no columns
+    except Exception as e:
+        logger.error(f"Unexpected error loading '{path}': {e}")
+        raise
+    
+    if len(df) == 0:
+        logger.info(f"Loaded empty table from '{path}' (Columns: {list(df.columns)})")
+    
     # Try to convert columns to numeric, but only if they're already numeric-like
     # Don't convert date/string columns that would become NaN
     for col in df.columns:
