@@ -35,16 +35,8 @@ class CheckRunner:
         # Volume checks
         # -----------------------------
         mapping_type = None
-        expected_ratio = None
         if self.is_complex and hasattr(self.meta, 'complex_mapping'):
             mapping_type = self.meta.complex_mapping.mapping_type
-            # Calculate expected ratio based on mapping type
-            if mapping_type == '1:N':
-                # For 1:N, typically expect more target rows
-                expected_ratio = len(self.meta.complex_mapping.targets) / len(self.meta.complex_mapping.sources) if self.meta.complex_mapping.sources else None
-            elif mapping_type == 'N:1':
-                # For N:1, typically expect fewer target rows
-                expected_ratio = len(self.meta.complex_mapping.targets) / len(self.meta.complex_mapping.sources) if self.meta.complex_mapping.sources else None
         
         for fn in CHECK_REGISTRY.get("volume", []):
             # Check if function accepts mapping_type parameter
@@ -57,7 +49,7 @@ class CheckRunner:
                     self.tgt_df,
                     self.volume_tolerance,
                     mapping_type=mapping_type,
-                    expected_ratio=expected_ratio
+                    expected_ratio=None # Ratio calculation from file counts was flawed
                 )
             else:
                 # Backward compatibility with old signature

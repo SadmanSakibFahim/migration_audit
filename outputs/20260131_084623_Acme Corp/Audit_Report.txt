@@ -2,9 +2,9 @@
 MIGRATION VALIDATION & RISK AUDIT
 ================================================================================
 
-Client:  Multimap test
-Migration: Source -> Target
-Audit Date: 2026-01-25
+Client:  Acme Corp
+Migration: Legacy DB -> Cloud SQL
+Audit Date: 2026-01-31
 Auditor: Independent Migration Audit
 
 --------------------------------------------------------------------------------

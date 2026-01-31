@@ -1,5 +1,5 @@
 from docx import Document
-from datetime import date
+from datetime import date, datetime
 from collections import defaultdict
 from core.verdict import final_verdict
 from core.enums import CheckStatus
@@ -205,15 +205,20 @@ def _write_text(content, output_path):
     with open(output_path, 'w') as f:
         f.write('\n'.join(lines))
 
-def build_report(results, output_path, client="Client", migration="Source → Target"):
+def build_report(results, output_path=None, client="Client", migration="Source → Target"):
     """Generate reports in all formats (DOCX, Markdown, and Text).
     
     Args:
         results: List of TestResult objects
-        output_path: Path for the DOCX file (base name)
+        output_path: Path for the DOCX file (base name). If None, defaults to outputs/<timestamp>/Audit_Report.docx
         client: Client name for the report
         migration: Migration description
     """
+    if output_path is None:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        output_dir = os.path.join("outputs", timestamp + '_' + client) # drop spaces and special characters from client and migration
+        os.makedirs(output_dir, exist_ok=True)
+        output_path = os.path.join(output_dir, "Audit_Report.docx")
     # Build report content once
     content = _build_report_content(results, client, migration)
     

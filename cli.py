@@ -20,8 +20,8 @@ def build_parser():
 
     run_parser.add_argument(
         "--out",
-        required=True,
-        help="Output path for audit report (DOCX)"
+        required=False,
+        help="Output path for audit report (DOCX). Defaults to outputs/<timestamp>/Audit_Report.docx"
     )
 
     run_parser.add_argument(

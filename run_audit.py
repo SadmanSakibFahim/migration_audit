@@ -196,8 +196,20 @@ def run_audit(
                     tgt_df = valid_targets[0]
                 else:
                     # Multiple targets - merge them (for 1:N or N:M mappings)
-                    # All split strategies result in concatenation of target files
-                    tgt_df = pd.concat(valid_targets, ignore_index=True)
+                    if meta.complex_mapping.mapping_type == '1:N' and meta.complex_mapping.split_strategy == 'join':
+                        # Join targets on PK for vertical split (normalization)
+                        logger.info(f"Reconstructing normalized target tables using 'join' strategy for '{table_name}'")
+                        tgt_df = valid_targets[0]
+                        for i in range(1, len(valid_targets)):
+                            # Use PK from the target configuration
+                            pk = meta.complex_mapping.targets[i].primary_key
+                            # Perform outer join to ensure we don't lose rows and detect mismatches
+                            tgt_df = pd.merge(tgt_df, valid_targets[i], on=pk, how='outer', suffixes=('', '_dupe'))
+                            # Remove duplicate columns if they appear
+                            tgt_df = tgt_df.loc[:, ~tgt_df.columns.str.endswith('_dupe')]
+                    else:
+                        # Default split strategy (horizontal/sharding): concatenation of target files
+                        tgt_df = pd.concat(valid_targets, ignore_index=True)
             else:
                 # Handle simple mappings (backward compatible)
                 source_path = meta.source if isinstance(meta.source, str) else meta.source[0].path if isinstance(meta.source, list) else None
