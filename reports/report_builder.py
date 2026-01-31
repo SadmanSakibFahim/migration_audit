@@ -205,20 +205,28 @@ def _write_text(content, output_path):
     with open(output_path, 'w') as f:
         f.write('\n'.join(lines))
 
-def build_report(results, output_path=None, client="Client", migration="Source → Target"):
+def build_report(results, output_path=None, client="Client", migration="Source → Target", base_dir="outputs", label=""):
     """Generate reports in all formats (DOCX, Markdown, and Text).
     
     Args:
         results: List of TestResult objects
-        output_path: Path for the DOCX file (base name). If None, defaults to outputs/<timestamp>/Audit_Report.docx
+        output_path: Path for the DOCX file (base name). If None, generated automatically.
         client: Client name for the report
         migration: Migration description
+        base_dir: Base directory for output (default: "outputs")
+        label: Optional label to append to the timestamped folder (e.g., "_test")
     """
     if output_path is None:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_dir = os.path.join("outputs", timestamp + '_' + client) # drop spaces and special characters from client and migration
+        safe_client = client.replace(" ", "_").lower()
+        folder_name = f"{timestamp}_{safe_client}{label}"
+        output_dir = os.path.join(base_dir, folder_name)
         os.makedirs(output_dir, exist_ok=True)
         output_path = os.path.join(output_dir, "Audit_Report.docx")
+    else:
+        # If output_path is provided, ensure its directory exists
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+
     # Build report content once
     content = _build_report_content(results, client, migration)
     

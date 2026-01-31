@@ -1,0 +1,46 @@
+name: Migration Audit CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run unit tests
+      run: |
+        pip install pytest pytest-cov
+        pytest tests/ --doctest-modules --junitxml=test_outputs/junit.xml
+
+    - name: Run Migration Audit (Dry Run/Sample)
+      run: |
+        # Ensure test_outputs directory exists
+        mkdir -p test_outputs
+        # Run audit in --test mode to automatically use timestamped subfolders in test_outputs
+        python cli.py run --config config/audit.yaml --client "CI_Run" --migration "Source -> Target" --log-level INFO --test
+      continue-on-error: false
+
+    - name: Upload CI/CD Artifacts
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: cicd-test-results
+        path: test_outputs/

@@ -49,6 +49,12 @@ def build_parser():
         help="Ignore invalid rows during audit. Invalid rows will be logged and exported to invalid_data subfolder."
     )
 
+    run_parser.add_argument(
+        "--test",
+        action="store_true",
+        help="Run in test mode (CI/CD). Saves results to timestamped subfolders in 'test_outputs' with a '_test' suffix."
+    )
+
     return parser
 
 def main():
@@ -82,14 +88,27 @@ def main():
             logger.error(f"Audit failed: {e}")
             exit(1)
 
-        build_report(
-            results=results,
-            output_path=args.out,
-            client=args.client,
-            migration=args.migration
-        )
+        # Determine output location rules
+        build_args = {
+            "results": results,
+            "output_path": args.out,
+            "client": args.client,
+            "migration": args.migration
+        }
+
+        if args.test:
+            build_args["base_dir"] = "test_outputs"
+            build_args["label"] = "_test"
+
+        build_report(**build_args)
 
         verdict = final_verdict(results)
+        from core.verdict import Verdict
+        
+        if verdict in [Verdict.NO_GO, Verdict.ERROR]:
+            print(f"\nAudit failed. Final verdict: {verdict}\n")
+            exit(1)
+            
         print(f"\nAudit complete. Final verdict: {verdict}\n")
 
 
