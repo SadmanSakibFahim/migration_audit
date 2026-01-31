@@ -30,6 +30,11 @@ jobs:
         pip install pytest pytest-cov
         pytest tests/ --doctest-modules --junitxml=test_outputs/junit.xml
 
+    - name: Run E2E Scenarios (Testing Grounds)
+      run: |
+        python audit_testing_grounds/runner.py --scenario all
+      continue-on-error: false
+
     - name: Run Migration Audit (Dry Run/Sample)
       run: |
         # Ensure test_outputs directory exists

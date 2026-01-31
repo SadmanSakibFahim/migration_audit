@@ -27,15 +27,30 @@ def check_volume(
     src_count = len(src_df)
     tgt_count = len(tgt_df)
 
+    # 1. Handle case where both are empty (Success)
+    if src_count == 0 and tgt_count == 0:
+        return TestResult(
+            name=f"Volume Check: {name}",
+            status=CheckStatus.PASS,
+            message=f"Both source and target datasets for '{name}' are empty. This is considered a consistent migration.",
+            metrics={
+                "src_rows": 0,
+                "tgt_rows": 0,
+                "difference": 0,
+                "tolerance": tolerance_pct
+            }
+        )
+
+    # 2. Handle case where only source is empty (Warning)
     if src_count == 0:
         return TestResult(
             name=f"Volume Check: {name}",
             status=CheckStatus.WARN,
-            message=f"Source data for table '{name}' has zero rows.",
+            message=f"Source data for table '{name}' has zero rows, but target has {tgt_count} rows.",
             metrics={
-                "src_rows": src_count,
+                "src_rows": 0,
                 "tgt_rows": tgt_count,
-                "difference": abs(src_count - tgt_count),
+                "difference": tgt_count,
                 "tolerance": tolerance_pct
             }
         )
@@ -80,7 +95,7 @@ def check_volume(
             msg += f" {comparison_msg}"
         return TestResult(
             name=f"Volume Check: {name}",
-            status=CheckStatus.WARN,
+            status=CheckStatus.PASS,
             message=msg,
             metrics=metrics
         )
