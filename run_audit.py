@@ -1,7 +1,7 @@
 # run_audit.py
 import yaml
 import pandas as pd
-from typing import List
+from typing import List, Optional
 
 from tqdm import tqdm
 
