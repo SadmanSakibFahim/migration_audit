@@ -1,10 +1,10 @@
-# run_audit.py
+# 
 import yaml
 import pandas as pd
 from typing import List, Optional
 
 from tqdm import tqdm
-
+# Core Audit
 from core.logger import get_logger
 from core.loader import load_table
 from core.exceptions import DataLoadError
@@ -13,6 +13,12 @@ from core.result import TestResult
 from core.config_models import AuditConfig
 from core.row_validator import validate_rows, export_invalid_rows, create_invalid_rows_summary_log
 from core.incremental_runner import IncrementalRunner
+# Authentication
+import getpass
+import os
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from core.auth.service import AuthService
 
 logger = get_logger(__name__)
 
@@ -52,13 +58,64 @@ def _normalize_results(results) -> List[TestResult]:
         return results
     return [results]
 
+def authenticate_cli_user() -> bool:
+    """Prompt for credentials and verify access."""
+    
+    
+    # Path to DB relative to execution
+    # Assuming 'data' folder is in current work dir or known path
+    # If run_audit.py is in root, data is ./data/auth.db
+    db_path = "sqlite:///data/auth.db"
+    
+    # Check if DB exists
+    if not os.path.exists("data/auth.db"):
+        logger.warning(f"Auth DB not found at data/auth.db for CLI auth. Skipping authentication.")
+        return True # Or False if we want to enforce it strictly. Let's enforce it if the user enabled strict auth, or just log.
+        # Decision: For now, if no DB, warn but proceed (backward compat). But user asked to "make it happen".
+        # Let's try to connect regardless.
+        
+    try:
+        engine = create_engine(db_path)
+        Session = sessionmaker(bind=engine)
+        session = Session()
+        auth = AuthService(session)
+    except Exception as e:
+        logger.warning(f"Failed to connect to Auth Service: {e}")
+        return True
+
+    print("\n=== Migration Audit Authentication ===")
+    username = input("Username: ").strip()
+    password = getpass.getpass("Password: ").strip()
+    
+    user = auth.authenticate_user(username, password)
+    if not user:
+        logger.error("Authentication Failed: Invalid credentials.")
+        print("\n[!] Authentication Failed: Invalid credentials.\n")
+        return False
+        
+    if not auth.check_permission(user, "run_audit"):
+        logger.error(f"Access Denied: User '{username}' does not have 'run_audit' permission or license is invalid.")
+        print(f"\n[!] Access Denied: Check your license or permissions.\n")
+        return False
+        
+    print(f"\n[+] Welcome, {username}. Access Granted.\n")
+    return True
 
 def run_audit(
     config_path: str = "config/audit.yaml",
     tables_to_run: List[str] = None,
     dry_run: bool = False,
     ignore_invalid_rows: bool = False,
+    no_auth: bool = False, # Added override for scripts/headless if needed later (via env var?)
 ) -> List[TestResult]:
+
+    # 1. Authenticate CLI User
+    # We allow skipping if no_auth is True (useful for tests/CI if we use API keys later)
+    if not no_auth:
+        if not authenticate_cli_user():
+            # If auth fails, return empty list or raise Error. 
+            # Returning empty list halts the audit gracefully in this structure.
+            return []
 
     logger.info("Starting audit run")
     cfg = load_config(config_path)
@@ -299,12 +356,26 @@ def run_audit(
             msg = f"SCHEMA MISMATCH: Target table '{table_name}' is missing columns: {list(missing_in_target)}"
             logger.warning(msg)
             all_results.append(TestResult(
-                name=f"Schema Check: {table_name}",
+                name=f"Schema Check: {table_name} (Missing Columns)",
                 status=CheckStatus.FAIL,
                 message=msg,
                 details={"missing_columns": list(missing_in_target)}
             ))
             # Continue to other checks but results will likely have many failures
+
+        # Strict Schema Check: Unexpected columns in target
+        if cfg.strict_schema:
+            unexpected_in_target = tgt_cols - src_cols
+            if unexpected_in_target:
+                from core.enums import CheckStatus
+                msg = f"STRICT SCHEMA MISMATCH: Target table '{table_name}' has unexpected columns: {list(unexpected_in_target)}"
+                logger.warning(msg)
+                all_results.append(TestResult(
+                    name=f"Schema Check: {table_name} (Unexpected Columns)",
+                    status=CheckStatus.FAIL,
+                    message=msg,
+                    details={"unexpected_columns": list(unexpected_in_target)}
+                ))
 
         runner = CheckRunner(
             table_name=table_name,

@@ -95,3 +95,7 @@ class AuditConfig(BaseModel):
         default=None, 
         description="If set, enables incremental (chunked) processing for large files."
     )
+    strict_schema: bool = Field(
+        default=False,
+        description="If True, audit fails if target has unexpected columns not present in source."
+    )

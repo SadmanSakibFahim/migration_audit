@@ -7,3 +7,12 @@ python-docx
 pyyaml
 sqlalchemy
 tqdm
+xhtml2pdf
+passlib
+argon2-cffi
+python-dotenv
+fastapi
+uvicorn
+python-multipart
+jinja2
+itsdangerous
