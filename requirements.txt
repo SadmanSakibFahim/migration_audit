@@ -1,6 +1,9 @@
+numpy
 pandas
-pyyaml
-python-docx
+pydantic
 pytest
 pytest-cov
+python-docx
+pyyaml
 sqlalchemy
+tqdm
