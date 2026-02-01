@@ -1,6 +1,6 @@
 import pandas as pd
 from core.logger import get_logger
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 from core.config_models import SourceTableConfig, TargetTableConfig, ComplexMappingConfig
 from sqlalchemy import create_engine, inspect
 
