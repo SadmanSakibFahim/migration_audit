@@ -28,10 +28,10 @@ def load_config(config_path: str) -> AuditConfig:
         raise
 
 
-def load_table_safe(path: str, table_name: str) -> "pd.DataFrame":
+def load_table_safe(path: str, table_name: str, query: Optional[str] = None) -> "pd.DataFrame":
     """Load table and wrap exceptions in DataLoadError."""
     try:
-        return load_table(path)
+        return load_table(path, query=query)
     except Exception as e:
         logger.error(f"Failed to load table '{table_name}' from '{path}': {e}")
         raise DataLoadError(
@@ -240,8 +240,9 @@ def run_audit(
                     logger.error(f"Invalid source/target configuration for table '{table_name}'")
                     continue
                 
-                src_df = load_table_safe(source_path, table_name)
-                tgt_df = load_table_safe(target_path, table_name)
+                # Load with custom queries if provided
+                src_df = load_table_safe(source_path, table_name, query=meta.source_query)
+                tgt_df = load_table_safe(target_path, table_name, query=meta.target_query)
                 
                 # Validate and filter invalid rows if requested
                 if ignore_invalid_rows:

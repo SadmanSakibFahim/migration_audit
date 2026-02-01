@@ -4,22 +4,45 @@ from typing import List, Dict, Optional, Any
 from core.config_models import SourceTableConfig, TargetTableConfig, ComplexMappingConfig
 from sqlalchemy import create_engine, inspect
 
+# Database integrations
+from core.db_connection_pool import get_connection_pool
+from core.db_drivers import validate_driver_or_raise
+from core.db_exceptions import DatabaseConnectionError, DatabaseQueryError
+
 logger = get_logger(__name__)
 
-def load_table(path: str, chunk_size: Optional[int] = None) -> Any:
+def load_table(path: str, query: Optional[str] = None, chunk_size: Optional[int] = None) -> Any:
     """
     Load a table from a CSV file or a database URI.
+    
     Database format: 'dialect://user:pass@host:port/db/table_name'
     SQLite example: 'sqlite:///path/to/db.sqlite/table_name'
     
-    If chunk_size is provided, returns an iterator (generator) of DataFrames.
+    Args:
+        path: File path or database URI
+        query: Optional custom SQL query (overrides table name for databases)
+        chunk_size: If provided, returns an iterator (generator) of DataFrames
+    
+    Returns:
+        DataFrame or iterator of DataFrames (if chunk_size is set)
+    
+    Raises:
+        DatabaseConnectionError: If database connection fails
+        DatabaseDriverError: If required database driver is not installed
+        DatabaseQueryError: If custom SQL query fails
+        FileNotFoundError: If CSV file is not found
     """
     # Check if path looks like a database URI
-    db_prefixes = ['sqlite://', 'postgresql://', 'mysql://', 'mssql://', 'oracle://']
+    db_prefixes = ['sqlite://', 'postgresql://', 'postgres://', 'mysql://', 'mssql://', 'sqlserver://', 'oracle://']
     is_db = any(path.startswith(prefix) for prefix in db_prefixes)
 
     if is_db:
+        db_type = "unknown"
         try:
+            # Validate driver is installed
+            db_type, _ = validate_driver_or_raise(path)
+            # logger.debug(f"Database driver validated for {db_type}")
+            
             # For DB URIs, the last part is usually the table name
             # Format: 'connection_string/table_name'
             if '/' not in path.replace('://', ''):
@@ -28,20 +51,50 @@ def load_table(path: str, chunk_size: Optional[int] = None) -> Any:
             # Split from the right once to get the table name
             base_uri, table_name = path.rsplit('/', 1)
             
-            logger.info(f"Connecting to database: {base_uri} (table: {table_name})")
-            engine = create_engine(base_uri)
+            logger.info(f"Connecting to database: {base_uri[:50]}... (table: {table_name})")
             
-            # Use pandas read_sql_table
-            if chunk_size:
-                logger.info(f"Loading DB table '{table_name}' in chunks of {chunk_size}")
-                return pd.read_sql_table(table_name, engine, chunksize=chunk_size)
+            # Get pooled connection
+            pool = get_connection_pool()
+            engine = pool.get_engine(base_uri)
             
-            df = pd.read_sql_table(table_name, engine)
-            logger.info(f"Successfully loaded {len(df)} rows from DB table '{table_name}'")
-            return df
+            # Use custom query if provided, otherwise load table
+            if query:
+                logger.info(f"Executing custom SQL query (length: {len(query)} chars)")
+                logger.debug(f"Query: {query[:200]}...")
+                
+                try:
+                    if chunk_size:
+                        logger.info(f"Loading query results in chunks of {chunk_size}")
+                        return pd.read_sql_query(query, engine, chunksize=chunk_size)
+                    
+                    df = pd.read_sql_query(query, engine)
+                    logger.info(f"Successfully loaded {len(df)} rows from custom query")
+                    return df
+                except Exception as e:
+                    logger.error(f"Custom SQL query failed: {e}")
+                    raise DatabaseQueryError(query=query, uri=base_uri, original_error=e)
+            else:
+                # Load entire table
+                try:
+                    if chunk_size:
+                        logger.info(f"Loading DB table '{table_name}' in chunks of {chunk_size}")
+                        return pd.read_sql_table(table_name, engine, chunksize=chunk_size)
+                    
+                    df = pd.read_sql_table(table_name, engine)
+                    logger.info(f"Successfully loaded {len(df)} rows from DB table '{table_name}'")
+                    return df
+                except Exception as e:
+                    logger.error(f"Failed to load table '{table_name}': {e}")
+                    raise DatabaseConnectionError(uri=base_uri, original_error=e, table_name=table_name)
+                    
+        except (DatabaseConnectionError, DatabaseQueryError):
+            # Re-raise our custom exceptions
+            raise
         except Exception as e:
             logger.error(f"Failed to load data from database '{path}': {e}")
-            raise
+            # Wrap in DatabaseConnectionError for consistency
+            # from core.db_exceptions import DatabaseConnectionError
+            raise DatabaseConnectionError(uri=path, original_error=e)
 
     # Default to CSV loading
     import os
@@ -104,6 +157,7 @@ def load_table(path: str, chunk_size: Optional[int] = None) -> Any:
     return df
 
 
+
 def load_and_merge_sources(
     sources: List[SourceTableConfig],
     mapping_type: str,
@@ -124,7 +178,8 @@ def load_and_merge_sources(
         raise ValueError("No source tables provided")
     
     if len(sources) == 1:
-        df = load_table(sources[0].path)
+        # Load with custom query if provided
+        df = load_table(sources[0].path, query=sources[0].query)
         # Apply column mapping if specified
         if sources[0].column_mapping:
             df = df.rename(columns=sources[0].column_mapping)
@@ -133,7 +188,8 @@ def load_and_merge_sources(
     # Multiple sources - need to merge
     dataframes = []
     for src in sources:
-        df = load_table(src.path)
+        # Load with custom query if provided
+        df = load_table(src.path, query=src.query)
         # Apply column mapping if specified
         if src.column_mapping:
             df = df.rename(columns=src.column_mapping)
@@ -193,7 +249,8 @@ def load_and_merge_targets(
         raise ValueError("No target tables provided")
     
     if len(targets) == 1:
-        df = load_table(targets[0].path)
+        # Load with custom query if provided
+        df = load_table(targets[0].path, query=targets[0].query)
         # Apply column mapping if specified
         if targets[0].column_mapping:
             df = df.rename(columns=targets[0].column_mapping)
@@ -202,7 +259,8 @@ def load_and_merge_targets(
     # Multiple targets - need to merge
     dataframes = []
     for tgt in targets:
-        df = load_table(tgt.path)
+        # Load with custom query if provided
+        df = load_table(tgt.path, query=tgt.query)
         # Apply column mapping if specified
         if tgt.column_mapping:
             df = df.rename(columns=tgt.column_mapping)

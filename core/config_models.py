@@ -19,12 +19,14 @@ class SourceTableConfig(BaseModel):
     path: str
     primary_key: Optional[str] = None  # Optional if not needed for this source
     column_mapping: Optional[Dict[str, str]] = None  # Maps source column -> target column
+    query: Optional[str] = None  # Custom SQL query (overrides table name in path)
 
 class TargetTableConfig(BaseModel):
     """Configuration for a single target table in a mapping."""
     path: str
     primary_key: str
     column_mapping: Optional[Dict[str, str]] = None  # Maps source column -> target column
+    query: Optional[str] = None  # Custom SQL query (overrides table name in path)
 
 class ComplexMappingConfig(BaseModel):
     """Configuration for complex mappings (N:1, 1:N, N:M)."""
@@ -46,6 +48,10 @@ class TableConfig(BaseModel):
     target: Optional[Union[str, List[TargetTableConfig]]] = None
     # Complex mapping configuration (takes precedence if provided)
     complex_mapping: Optional[ComplexMappingConfig] = None
+    
+    # Custom SQL queries for simple mappings
+    source_query: Optional[str] = None
+    target_query: Optional[str] = None
     
     primary_key: str
     aggregates: List[str] = Field(default_factory=list)
