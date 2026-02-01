@@ -82,7 +82,8 @@ def main():
         try:
             results = run_audit(
                 config_path=args.config,
-                ignore_invalid_rows=args.ignore_invalid_rows
+                ignore_invalid_rows=args.ignore_invalid_rows,
+                no_auth=args.test # Bypass auth in CI/Test mode
             )
         except AuditError as e:
             logger.error(f"Audit failed: {e}")
