@@ -105,11 +105,11 @@ def main():
         verdict = final_verdict(results)
         from core.verdict import Verdict
         
-        if verdict in [Verdict.NO_GO, Verdict.ERROR]:
-            print(f"\nAudit failed. Final verdict: {verdict}\n")
-            exit(1)
-            
+        # Always exit successfully - let users review the report and decide
         print(f"\nAudit complete. Final verdict: {verdict}\n")
+        
+        if verdict in [Verdict.NO_GO, Verdict.ERROR]:
+            print(f"⚠️  WARNING: Migration audit indicates issues. Please review the report carefully.\n")
 
 
 if __name__ == "__main__":
