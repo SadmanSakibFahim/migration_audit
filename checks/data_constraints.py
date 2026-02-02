@@ -22,16 +22,20 @@ def check_data_constraints(df: pd.DataFrame, columns: Dict[str, List[str]], name
             if invalid_count > 0:
                 issues.append(f"Column '{column}' has {invalid_count} invalid date values out of {total_rows} rows.")
 
+    display_name = name
+    if len(columns) == 1:
+        display_name = f"{name}.{list(columns.keys())[0]}"
+
     if not issues:
         return TestResult(
-            name=f"Data Constraints Check: {name}",
+            name=f"Data Constraints Check: {display_name}",
             status=CheckStatus.PASS,
             message=f"All data constraints are satisfied for table '{name}'."
         )       
     
     else:
         return TestResult(
-            name=f"Data Constraints Check: {name}",
+            name=f"Data Constraints Check: {display_name}",
             status=CheckStatus.FAIL,
             message=f"Data constraint issues found in table '{name}': " + "; ".join(issues),
             details={"issues": issues}
