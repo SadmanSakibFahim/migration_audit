@@ -164,7 +164,7 @@ def run_audit(
         try:
             # Handle complex mappings (N:1, 1:N, N:M)
             if meta.is_complex_mapping():
-                from core.loader import load_table
+                from core.audit.loader import load_table
                 logger.info(f"Processing complex mapping for '{table_name}': {meta.complex_mapping.mapping_type}")
                 
                 # #region agent log
@@ -313,7 +313,7 @@ def run_audit(
                         export_invalid_rows(tgt_invalid, target_path, table_name, is_source=False)
                         logger.info(f"Filtered {len(tgt_invalid)} invalid rows from target '{table_name}'")
         except DataLoadError as e:
-            from core.enums import CheckStatus
+            from core.audit.enums import CheckStatus
             logger.error(f"Table '{table_name}' load failed: {e}")
             all_results.append(TestResult(
                 name=f"Data Load: {table_name}",
@@ -323,7 +323,7 @@ def run_audit(
             ))
             continue
         except Exception as e:
-            from core.enums import CheckStatus
+            from core.audit.enums import CheckStatus
             logger.error(f"Unexpected audit error for table '{table_name}': {e}")
             all_results.append(TestResult(
                 name=f"Audit Error: {table_name}",
@@ -352,7 +352,7 @@ def run_audit(
         # Extra columns in target are usually fine (surplus), but missing ones are bad.
         
         if missing_in_target:
-            from core.enums import CheckStatus
+            from core.audit.enums import CheckStatus
             msg = f"SCHEMA MISMATCH: Target table '{table_name}' is missing columns: {list(missing_in_target)}"
             logger.warning(msg)
             all_results.append(TestResult(
@@ -367,7 +367,7 @@ def run_audit(
         if cfg.strict_schema:
             unexpected_in_target = tgt_cols - src_cols
             if unexpected_in_target:
-                from core.enums import CheckStatus
+                from core.audit.enums import CheckStatus
                 msg = f"STRICT SCHEMA MISMATCH: Target table '{table_name}' has unexpected columns: {list(unexpected_in_target)}"
                 logger.warning(msg)
                 all_results.append(TestResult(
