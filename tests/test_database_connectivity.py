@@ -7,19 +7,19 @@ Tests connection pooling, custom SQL queries, driver detection, and error handli
 import pytest
 import pandas as pd
 from unittest.mock import Mock, patch, MagicMock
-from core.db_connection_pool import DatabaseConnectionPool, get_connection_pool
-from core.db_drivers import (
+from core.db.connection_pool import DatabaseConnectionPool, get_connection_pool
+from core.db.drivers import (
     detect_db_type,
     check_driver_installed,
     get_installation_command,
     validate_driver_or_raise
 )
-from core.db_exceptions import (
+from core.db.exceptions import (
     DatabaseConnectionError,
     DatabaseDriverError,
     DatabaseQueryError
 )
-from core.loader import load_table
+from core.audit.loader import load_table
 
 
 class TestConnectionPool:
@@ -49,8 +49,8 @@ class TestConnectionPool:
         pool2 = get_connection_pool()
         assert pool1 is pool2, "get_connection_pool should return same instance"
     
-    @patch('core.db_connection_pool.event')
-    @patch('core.db_connection_pool.create_engine')
+    @patch('core.db.connection_pool.event')
+    @patch('core.db.connection_pool.create_engine')
     def test_engine_creation(self, mock_create_engine, mock_event):
         """Test that engine is created with correct parameters."""
         mock_engine = Mock()
@@ -62,8 +62,8 @@ class TestConnectionPool:
         assert mock_create_engine.called
         assert engine == mock_engine
     
-    @patch('core.db_connection_pool.event')
-    @patch('core.db_connection_pool.create_engine')
+    @patch('core.db.connection_pool.event')
+    @patch('core.db.connection_pool.create_engine')
     def test_engine_reuse(self, mock_create_engine, mock_event):
         """Test that same connection string reuses engine."""
         mock_engine = Mock()
@@ -76,8 +76,8 @@ class TestConnectionPool:
         assert engine1 is engine2
         assert mock_create_engine.call_count == 1, "Engine should be created only once"
     
-    @patch('core.db_connection_pool.event')
-    @patch('core.db_connection_pool.create_engine')
+    @patch('core.db.connection_pool.event')
+    @patch('core.db.connection_pool.create_engine')
     def test_different_connections(self, mock_create_engine, mock_event):
         """Test that different connection strings create different engines."""
         mock_engine1 = Mock()
@@ -216,8 +216,8 @@ class TestDatabaseExceptions:
 class TestCustomQueries:
     """Test custom SQL query functionality."""
     
-    @patch('core.loader.get_connection_pool')
-    @patch('core.loader.validate_driver_or_raise')
+    @patch('core.audit.loader.get_connection_pool')
+    @patch('core.audit.loader.validate_driver_or_raise')
     @patch('pandas.read_sql_query')
     def test_load_table_with_custom_query(self, mock_read_sql, mock_validate, mock_pool):
         """Test loading table with custom SQL query."""
@@ -244,8 +244,8 @@ class TestCustomQueries:
         assert call_args[0][0] == query  # First arg should be the query
         assert result.equals(mock_df)
     
-    @patch('core.loader.get_connection_pool')
-    @patch('core.loader.validate_driver_or_raise')
+    @patch('core.audit.loader.get_connection_pool')
+    @patch('core.audit.loader.validate_driver_or_raise')
     @patch('pandas.read_sql_table')
     def test_load_table_without_custom_query(self, mock_read_sql, mock_validate, mock_pool):
         """Test loading table without custom query (default behavior)."""

@@ -1,6 +1,6 @@
 import pandas as pd
 import pytest
-from core.enums import CheckStatus
+from core.audit.enums import CheckStatus
 from checks.mappings import check_mappings
 
 def test_check_mappings_pass():

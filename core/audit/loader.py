@@ -1,13 +1,13 @@
 import pandas as pd
-from core.logger import get_logger
+from core.audit.logger import get_logger
 from typing import List, Dict, Optional, Any
-from core.config_models import SourceTableConfig, TargetTableConfig, ComplexMappingConfig
+from core.audit.config_models import SourceTableConfig, TargetTableConfig, ComplexMappingConfig
 from sqlalchemy import create_engine, inspect
 
 # Database integrations
-from core.db_connection_pool import get_connection_pool
-from core.db_drivers import validate_driver_or_raise
-from core.db_exceptions import DatabaseConnectionError, DatabaseQueryError
+from core.db.connection_pool import get_connection_pool
+from core.db.drivers import validate_driver_or_raise
+from core.db.exceptions import DatabaseConnectionError, DatabaseQueryError
 
 logger = get_logger(__name__)
 

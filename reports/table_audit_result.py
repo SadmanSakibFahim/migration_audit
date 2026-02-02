@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Dict, List
-from core.result import TestResult
-from core.enums import CheckStatus
+from core.audit.result import TestResult
+from core.audit.enums import CheckStatus
 
 
 @dataclass

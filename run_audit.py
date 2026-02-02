@@ -5,14 +5,14 @@ from typing import List, Optional
 
 from tqdm import tqdm
 # Core Audit
-from core.logger import get_logger
-from core.loader import load_table
-from core.exceptions import DataLoadError
-from core.check_runner import CheckRunner
-from core.result import TestResult
-from core.config_models import AuditConfig
-from core.row_validator import validate_rows, export_invalid_rows, create_invalid_rows_summary_log
-from core.incremental_runner import IncrementalRunner
+from core.audit.logger import get_logger
+from core.audit.loader import load_table
+from core.audit.exceptions import DataLoadError
+from core.audit.check_runner import CheckRunner
+from core.audit.result import TestResult
+from core.audit.config_models import AuditConfig
+from core.audit.row_validator import validate_rows, export_invalid_rows, create_invalid_rows_summary_log
+from core.audit.incremental_runner import IncrementalRunner
 # Authentication
 import getpass
 import os

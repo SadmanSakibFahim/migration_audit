@@ -6,8 +6,8 @@ import os
 from typing import Dict, List, Tuple, Optional
 from pathlib import Path
 from datetime import datetime
-from core.logger import get_logger
-from core.config_models import TableConfig, MappingConfig
+from core.audit.logger import get_logger
+from core.audit.config_models import TableConfig, MappingConfig
 
 logger = get_logger(__name__)
 

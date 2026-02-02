@@ -1,6 +1,6 @@
 import pandas as pd
 from checks.volume import check_volume
-from core.enums import CheckStatus
+from core.audit.enums import CheckStatus
 
 def test_volume_exact_match_pass():
     src = pd.DataFrame({"id": [1, 2, 3]})

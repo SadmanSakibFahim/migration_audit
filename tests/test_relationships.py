@@ -1,5 +1,5 @@
 from checks.relationships import check_links
-from core.enums import CheckStatus
+from core.audit.enums import CheckStatus
 import pandas as pd
 
 def test_relationship_no_orphans():

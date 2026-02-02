@@ -5,8 +5,8 @@ Automatically detects missing database drivers and provides installation instruc
 """
 
 from typing import Dict, Optional, Tuple
-from core.logger import get_logger
-from core.db_exceptions import DatabaseDriverError
+from core.audit.logger import get_logger
+from core.db.exceptions import DatabaseDriverError
 
 logger = get_logger(__name__)
 

@@ -2,8 +2,8 @@
 # have corresponding primary key values in the parent table.
 
 import pandas as pd
-from core.result import TestResult
-from core.enums import CheckStatus
+from core.audit.result import TestResult
+from core.audit.enums import CheckStatus
 
 def check_links(child_df: pd.DataFrame, parent_df: pd.DataFrame, fk_column: str, pk_column: str, table_name: str) -> TestResult:
     """

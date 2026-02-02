@@ -68,9 +68,9 @@ def main():
     if args.command == "run":
         from run_audit import run_audit
         from reports.report_builder import build_report
-        from core.verdict import final_verdict
-        from core.exceptions import AuditError
-        from core.logger import get_logger
+        from core.audit.verdict import final_verdict
+        from core.audit.exceptions import AuditError
+        from core.audit.logger import get_logger
 
         logger = get_logger(__name__)
 
@@ -104,7 +104,7 @@ def main():
         build_report(**build_args)
 
         verdict = final_verdict(results)
-        from core.verdict import Verdict
+        from core.audit.verdict import Verdict
         
         # Always exit successfully - let users review the report and decide
         print(f"\nAudit complete. Final verdict: {verdict}\n")

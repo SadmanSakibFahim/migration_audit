@@ -12,9 +12,9 @@ import pandas as pd
 import sqlite3
 import os
 from sqlalchemy import create_engine
-from core.loader import load_table
-from core.db_connection_pool import get_connection_pool
-from core.db_exceptions import DatabaseConnectionError, DatabaseQueryError
+from core.audit.loader import load_table
+from core.db.connection_pool import get_connection_pool
+from core.db.exceptions import DatabaseConnectionError, DatabaseQueryError
 
 # Setup test database path
 TEST_DB_PATH = "test_integration.db"

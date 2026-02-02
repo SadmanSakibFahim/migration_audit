@@ -1,6 +1,6 @@
-from core.result import TestResult
+from core.audit.result import TestResult
 import pandas as pd
-from core.enums import CheckStatus
+from core.audit.enums import CheckStatus
 from typing import Dict, List
 
 # This function checks whether each primary key

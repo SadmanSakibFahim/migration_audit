@@ -1,6 +1,6 @@
-from core.loader import load_table
-from core.result import TestResult
-from core.enums import CheckStatus
+from core.audit.loader import load_table
+from core.audit.result import TestResult
+from core.audit.enums import CheckStatus
 import pandas as pd
 import random
 from typing import List, Dict, Any, Optional

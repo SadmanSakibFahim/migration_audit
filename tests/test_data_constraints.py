@@ -1,6 +1,6 @@
 import pandas as pd
 import pytest
-from core.enums import CheckStatus
+from core.audit.enums import CheckStatus
 from checks.data_constraints import check_data_constraints
 
 def test_constraint_not_null_pass():

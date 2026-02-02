@@ -1,6 +1,6 @@
 from collections import Counter
-from core.logger import get_logger
-from core.enums import CheckStatus
+from core.audit.logger import get_logger
+from core.audit.enums import CheckStatus
 
 logger = get_logger(__name__)
 

@@ -1,8 +1,8 @@
 # This checks whether mapping definitions between source and target datasets
 # are consistent and correctly defined.
 
-from core.result import TestResult
-from core.enums import CheckStatus
+from core.audit.result import TestResult
+from core.audit.enums import CheckStatus
 import pandas as pd
 from typing import List
 

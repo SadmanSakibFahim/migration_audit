@@ -1,8 +1,8 @@
 # This function validates data completeness
 # by comparing row counts between source and target datasets.
 import pandas as pd
-from core.result import TestResult
-from core.enums import CheckStatus
+from core.audit.result import TestResult
+from core.audit.enums import CheckStatus
 from typing import Optional
 
 def check_volume(

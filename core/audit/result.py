@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import Optional, Dict
-from core.enums import CheckStatus
+from core.audit.enums import CheckStatus
 
 @dataclass
 class TestResult:

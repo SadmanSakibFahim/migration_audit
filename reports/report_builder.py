@@ -1,8 +1,8 @@
 from docx import Document
 from datetime import date, datetime
 from collections import defaultdict
-from core.verdict import final_verdict
-from core.enums import CheckStatus
+from core.audit.verdict import final_verdict
+from core.audit.enums import CheckStatus
 import os
 from xhtml2pdf import pisa  # For PDF generation
 

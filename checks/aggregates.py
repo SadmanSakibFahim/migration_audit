@@ -1,8 +1,8 @@
 # This checks verifies aggregate values in specified columns
 # between source and target datasets within a given tolerance.
 
-from core.result import TestResult
-from core.enums import CheckStatus
+from core.audit.result import TestResult
+from core.audit.enums import CheckStatus
 import pandas as pd
 
 def check_sum(src_df: pd.DataFrame, tgt_df: pd.DataFrame, column: str, name: str, tolerance: float) -> TestResult:

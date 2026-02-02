@@ -10,7 +10,7 @@ from sqlalchemy.engine import Engine
 from typing import Dict, Optional
 from contextlib import contextmanager
 import threading
-from core.logger import get_logger
+from core.audit.logger import get_logger
 
 logger = get_logger(__name__)
 

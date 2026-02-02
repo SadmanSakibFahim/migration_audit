@@ -1,6 +1,6 @@
 import pandas as pd
 from checks.aggregates import check_sum
-from core.enums import CheckStatus
+from core.audit.enums import CheckStatus
 
 def test_sum_exact_match():
     src = pd.DataFrame({"amount": [10, 20, 30]})
