@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Request, Depends, BackgroundTasks
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from core.config_models import AuditConfig
-from core.loader import load_table
+from core.audit.config_models import AuditConfig
+from core.audit.loader import load_table
 import yaml
 import os
 

@@ -3,147 +3,200 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard - Migration Audit</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Migration Audit Platform</title>
+
+    <!-- Corporate Vibe Dependencies -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9', // Sky Blue
+                            600: '#0284c7',
+                            800: '#075985',
+                            900: '#0c4a6e', // Deep Navy
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
+        [v-cloak] {
+            display: none;
+        }
+
         body {
-            font-family: sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f8f9fa;
+            background-color: #f1f5f9;
         }
 
-        .navbar {
-            background-color: #343a40;
-            color: white;
-            padding: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .navbar a {
-            color: white;
-            text-decoration: none;
-            margin-left: 1rem;
-        }
-
-        .container {
-            padding: 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            margin-bottom: 2rem;
-        }
-
-        h2 {
-            margin-top: 0;
-        }
-
-        .btn {
-            padding: 0.5rem 1rem;
-            background-color: #28a745;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .btn:hover {
-            background-color: #218838;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
-        }
-
-        th,
-        td {
-            text-align: left;
-            padding: 0.75rem;
-            border-bottom: 1px solid #dee2e6;
-        }
-
-        th {
-            background-color: #e9ecef;
-        }
-
-        .badge {
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            background-color: #6c757d;
-            color: white;
-        }
+        /* Slate 100 */
     </style>
 </head>
 
-<body>
-    <div class="navbar">
-        <div class="brand">Migration Audit Platform</div>
-        <div class="user-menu">
-            <span>Welcome, {{ user.username }} <span class="badge">{{ user.role }}</span></span>
-            <a href="/logout">Logout</a>
-        </div>
-    </div>
+<body class="text-slate-800 font-sans antialiased">
 
-    <div class="container">
-        {% if message %}
-        <div class="card" style="background-color: #d4edda; color: #155724;">
-            {{ message }}
-        </div>
-        {% endif %}
-
-        <div class="card">
-            <h2>Actions</h2>
-            <p>Select tables to audit:</p>
-            <form action="/run-audit" method="post">
-                <div style="margin-bottom: 1rem;">
-                    {% for table in tables %}
-                    <label style="margin-right: 1rem;">
-                        <input type="checkbox" name="tables" value="{{ table }}" checked> {{ table }}
-                    </label>
-                    {% endfor %}
+    <div id="app" v-cloak>
+        <!-- Top Navigation -->
+        <nav class="bg-brand-900 border-b border-brand-800 text-white shadow-lg sticky top-0 z-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-16">
+                    <div class="flex items-center space-x-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-brand-400" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span class="font-bold text-xl tracking-tight">Migration Audit Platform</span>
+                    </div>
+                    <!-- Jinja2 Safe Zone: User info is injected by server -->
+                    <div class="flex items-center space-x-4">
+                        <div class="text-sm text-brand-100">
+                            {{ user.username }} <span class="bg-brand-800 px-2 py-0.5 rounded text-xs ml-1">{{ user.role
+                                }}</span>
+                        </div>
+                    </div>
                 </div>
-                <button type="submit" class="btn">Run Audit Now</button>
-            </form>
-        </div>
+            </div>
+        </nav>
 
-        <div class="card">
-            <h2>Recent Reports</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Run ID / Date</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for report in reports %}
-                    <tr>
-                        <td>{{ report }}</td>
-                        <td>
-                            <a href="#" style="color: #007bff;">View Report</a>
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="2">No reports found.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+            <!-- Live Status Banner -->
+            <div v-if="auditStatus === 'running'"
+                class="mb-8 bg-white rounded-lg shadow-sm border-l-4 border-brand-500 overflow-hidden">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-semibold text-slate-800 flex items-center">
+                            <span class="relative flex h-3 w-3 mr-3">
+                                <span
+                                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-3 w-3 bg-brand-500"></span>
+                            </span>
+                            Audit In Progress...
+                        </h2>
+                        <!-- Fixed Conflict: used v-text for progress -->
+                        <span class="text-sm font-mono text-slate-500" v-text="progress + '%'"></span>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="w-full bg-slate-200 rounded-full h-2.5 mb-4">
+                        <div class="bg-brand-600 h-2.5 rounded-full transition-all duration-500 ease-out"
+                            :style="{ width: progressWidth }"></div>
+                    </div>
+
+                    <!-- Fixed Conflict: used v-text for message -->
+                    <p class="text-slate-600 font-medium" v-text="auditMessage"></p>
+
+                    <!-- Live Logs -->
+                    <div class="mt-4 bg-slate-900 rounded p-4 h-48 overflow-y-auto shadow-inner text-xs font-mono">
+                        <div v-for="(log, i) in logs.slice().reverse()" :key="i"
+                            class="text-slate-300 py-0.5 border-b border-slate-800 last:border-0 hover:text-white">
+                            <span class="text-brand-400 mr-2">></span> <span v-text="log"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+                <!-- Left Column: Controls -->
+                <div class="lg:col-span-1 space-y-8">
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                        <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+                            <h3 class="font-semibold text-slate-700">Audit Scope</h3>
+                            <div class="space-x-2 text-xs">
+                                <button @click="selectAll"
+                                    class="text-brand-600 hover:text-brand-800 font-medium">All</button>
+                                <span class="text-slate-300">|</span>
+                                <button @click="deselectAll" class="text-slate-500 hover:text-slate-700">None</button>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <div v-if="loading" class="animate-pulse space-y-3">
+                                <div class="h-4 bg-slate-200 rounded w-3/4"></div>
+                                <div class="h-4 bg-slate-200 rounded w-1/2"></div>
+                            </div>
+                            <div v-else class="space-y-3 max-h-[400px] overflow-y-auto">
+                                <label v-for="table in tables" :key="table"
+                                    class="flex items-center space-x-3 p-2 hover:bg-slate-50 rounded cursor-pointer transition-colors">
+                                    <input type="checkbox" :value="table" v-model="selectedTables"
+                                        class="h-4 w-4 text-brand-600 focus:ring-brand-500 border-gray-300 rounded">
+                                    <!-- Fixed Conflict: used v-text for table name -->
+                                    <span class="text-slate-700 font-medium" v-text="table"></span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="bg-slate-50 px-6 py-4 border-t border-slate-200">
+                            <button @click="startAudit"
+                                :disabled="auditStatus === 'running' || selectedTables.length === 0"
+                                :class="{'opacity-50 cursor-not-allowed': auditStatus === 'running' || selectedTables.length === 0}"
+                                class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 transition-all">
+                                <span v-if="auditStatus === 'running'">Running...</span>
+                                <span v-else>Run Audit Assessment</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Recent Reports -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200">
+                        <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center">
+                            <h3 class="font-semibold text-slate-800">Recent Audit Reports</h3>
+                            <button @click="fetchReports"
+                                class="text-sm text-brand-600 hover:text-brand-800">Refresh</button>
+                        </div>
+                        <div class="divide-y divide-slate-100">
+                            <div v-for="report in reports" :key="report.id"
+                                class="p-6 hover:bg-slate-50 transition-colors flex items-center justify-between group">
+                                <div class="flex items-center space-x-4">
+                                    <div class="bg-green-100 p-3 rounded-lg text-green-600">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <!-- Fixed Conflict: used v-text -->
+                                        <p class="font-medium text-slate-900" v-text="report.name"></p>
+                                        <p class="text-sm text-slate-500">Date: <span v-text="report.date"></span></p>
+                                    </div>
+                                </div>
+                                <div
+                                    class="flex space-x-3 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                                    <!-- Fixed Conflict: v-bind:href usage is already correct, but just verifying -->
+                                    <a :href="`/outputs/${report.id}/Audit_Report.pdf`" target="_blank"
+                                        class="px-3 py-1 text-xs font-semibold text-slate-600 bg-white border border-slate-300 rounded hover:bg-slate-50">PDF</a>
+                                    <a :href="`/outputs/${report.id}/Audit_Report.html`" target="_blank"
+                                        class="px-3 py-1 text-xs font-semibold text-slate-600 bg-white border border-slate-300 rounded hover:bg-slate-50">HTML</a>
+                                    <button @click="viewReport(report)"
+                                        class="px-4 py-1 text-xs font-semibold text-white bg-brand-600 rounded hover:bg-brand-700 shadow-sm">View
+                                        Report</button>
+                                </div>
+                            </div>
+                            <div v-if="reports.length === 0" class="p-12 text-center text-slate-400">
+                                No reports generated yet.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
     </div>
+
+    <!-- Load Main App Logic -->
+    <script src="/static/js/app.js"></script>
+
 </body>
 
 </html>

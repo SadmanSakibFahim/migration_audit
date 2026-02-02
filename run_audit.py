@@ -106,18 +106,19 @@ def run_audit(
     tables_to_run: List[str] = None,
     dry_run: bool = False,
     ignore_invalid_rows: bool = False,
-    no_auth: bool = False, # Added override for scripts/headless if needed later (via env var?)
+    no_auth: bool = False,
+    progress_callback = None, 
 ) -> List[TestResult]:
 
     # 1. Authenticate CLI User
-    # We allow skipping if no_auth is True (useful for tests/CI if we use API keys later)
     if not no_auth:
         if not authenticate_cli_user():
-            # If auth fails, return empty list or raise Error. 
-            # Returning empty list halts the audit gracefully in this structure.
             return []
 
     logger.info("Starting audit run")
+    if progress_callback:
+        progress_callback("Reading configuration...")
+        
     cfg = load_config(config_path)
 
     tables_cfg = cfg.tables
@@ -140,6 +141,8 @@ def run_audit(
 
         meta = tables_cfg[table_name]
         logger.info(f"Auditing table: {table_name}")
+        if progress_callback:
+            progress_callback(f"Auditing table: {table_name}")
 
         # New: Incremental Processing for large files
         if cfg.chunk_size and not meta.is_complex_mapping():
