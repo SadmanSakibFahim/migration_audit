@@ -76,7 +76,7 @@ class IncrementalRunner:
     def process_target(self, path: str):
         """Iterate through target path in chunks, accumulate metrics and run row-level checks."""
         from checks.data_constraints import check_data_constraints
-        from core.check_registry import CHECK_REGISTRY
+        from core.audit.check_registry import CHECK_REGISTRY
 
         # Reset found map
         self.sampled_ids_found = {id_val: False for id_val in self.src_pk_sample}

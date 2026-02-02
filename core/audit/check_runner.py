@@ -30,7 +30,7 @@ class CheckRunner:
         return [result]
 
     def execute_all(self):
-        from core.check_registry import CHECK_REGISTRY
+        from core.audit.check_registry import CHECK_REGISTRY
         # -----------------------------
         # Volume checks
         # -----------------------------
@@ -48,8 +48,8 @@ class CheckRunner:
         # -----------------------------
         pk = getattr(self.meta, "primary_key", None)
         if pk and pk in self.src_df.columns and pk in self.tgt_df.columns:
-            from core.result import TestResult
-            from core.enums import CheckStatus
+            from core.audit.result import TestResult
+            from core.audit.enums import CheckStatus
             
             src_ids = set(self.src_df[pk].unique())
             tgt_ids = set(self.tgt_df[pk].unique())
@@ -89,8 +89,8 @@ class CheckRunner:
             
             # Check if columns exist in dataframes
             if src_col not in self.src_df.columns:
-                from core.result import TestResult
-                from core.enums import CheckStatus
+                from core.audit.result import TestResult
+                from core.audit.enums import CheckStatus
                 self.results.append(TestResult(
                     name=f"Aggregate check (Source Column Missing): {src_col}",
                     status=CheckStatus.FAIL,
@@ -99,8 +99,8 @@ class CheckRunner:
                 continue
             
             if tgt_col not in self.tgt_df.columns:
-                from core.result import TestResult
-                from core.enums import CheckStatus
+                from core.audit.result import TestResult
+                from core.audit.enums import CheckStatus
                 self.results.append(TestResult(
                     name=f"Aggregate Check: {self.table_name} - {col}",
                     status=CheckStatus.WARN,
@@ -114,8 +114,8 @@ class CheckRunner:
             junk_count = junk_mask.sum()
             
             if junk_count > 0:
-                from core.result import TestResult
-                from core.enums import CheckStatus
+                from core.audit.result import TestResult
+                from core.audit.enums import CheckStatus
                 self.results.append(TestResult(
                     name=f"Data Quality: {self.table_name}.{tgt_col}",
                     status=CheckStatus.FAIL,
