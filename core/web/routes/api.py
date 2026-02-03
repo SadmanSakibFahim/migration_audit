@@ -59,6 +59,45 @@ async def list_reports(request: Request):
             })
     return {"reports": reports}
 
+@router.get("/reports/{report_id}/download")
+async def download_report(request: Request, report_id: str, file: str):
+    """
+    Download a specific file from a report.
+    Applies sanitization if it's a CSV and user is not an Admin (or always, for GDPR).
+    For now, we enforce sanitization for everyone to be safe.
+    """
+    from core.sanitization.masking import DataSanitizer
+    from fastapi.responses import FileResponse
+    import pandas as pd
+    import io
+
+    user = get_current_user(request)
+    if not user:
+        return JSONResponse({"error": "Unauthorized"}, status_code=401)
+
+    file_path = os.path.join("outputs", report_id, file)
+    if not os.path.exists(file_path):
+        return JSONResponse({"error": "File not found"}, status_code=404)
+
+    # If it's a CSV, sanitize it
+    if file.endswith(".csv"):
+        try:
+            df = pd.read_csv(file_path)
+            sanitizer = DataSanitizer()
+            sanitized_df = sanitizer.sanitize(df)
+            
+            stream = io.StringIO()
+            sanitized_df.to_csv(stream, index=False)
+            response = StreamingResponse(iter([stream.getvalue()]), media_type="text/csv")
+            response.headers["Content-Disposition"] = f"attachment; filename=sanitized_{file}"
+            return response
+        except Exception as e:
+            logger.error(f"Error sanitizing file: {e}")
+            return JSONResponse({"error": "Error processing file"}, status_code=500)
+
+    # For other files (PDFs, etc.), serve as is (assuming they are generated safely or generic)
+    return FileResponse(file_path, filename=file)
+
 async def event_generator():
     """Generate SSE events from AUDIT_STATE."""
     while True:

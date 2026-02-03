@@ -1,0 +1,241 @@
+================================================================================
+MIGRATION VALIDATION & RISK AUDIT
+================================================================================
+
+Client:  Compliance test
+Migration: a to b
+Audit Date: 2026-02-03
+Auditor: Independent Migration Audit
+
+--------------------------------------------------------------------------------
+EXECUTIVE SUMMARY
+--------------------------------------------------------------------------------
+Final Verdict: NO-GO
+
+Data Volume Checks: FAIL
+Aggregate Checks: FAIL
+Mapping Checks: FAIL
+Data Constraint Checks: FAIL
+Relationship Checks: FAIL
+
+--------------------------------------------------------------------------------
+DATA VOLUME CHECKS
+--------------------------------------------------------------------------------
+
+Checks Performed:
+  - Volume Check: users
+  - Volume Check: orders
+  - Volume Check: order_items
+  - Volume Check: products
+
+Findings:
+  [FAIL] Row count difference exceeds tolerance for table 'users'. Source: 102, Target: 100, Difference: 1.96%.
+  [FAIL] Row count difference exceeds tolerance for table 'orders'. Source: 102, Target: 100, Difference: 1.96%.
+  [FAIL] Row count difference exceeds tolerance for table 'order_items'. Source: 102, Target: 100, Difference: 1.96%.
+  [FAIL] Row count difference exceeds tolerance for table 'products'. Source: 102, Target: 100, Difference: 1.96%.
+
+Section Verdict: FAIL
+
+--------------------------------------------------------------------------------
+AGGREGATE CHECKS
+--------------------------------------------------------------------------------
+
+Checks Performed:
+  - Sum Check: users - age
+  - Average Check: users - age
+  - Max Check: users - age
+  - Min Check: users - age
+  - Variance Check: users - age
+  - Sum Check: orders - amount
+  - Average Check: orders - amount
+  - Max Check: orders - amount
+  - Min Check: orders - amount
+  - Variance Check: orders - amount
+  - Sum Check: orders - quantity
+  - Average Check: orders - quantity
+  - Max Check: orders - quantity
+  - Min Check: orders - quantity
+  - Variance Check: orders - quantity
+  - Sum Check: order_items - price
+  - Average Check: order_items - price
+  - Max Check: order_items - price
+  - Min Check: order_items - price
+  - Variance Check: order_items - price
+  - Sum Check: order_items - quantity
+  - Average Check: order_items - quantity
+  - Max Check: order_items - quantity
+  - Min Check: order_items - quantity
+  - Variance Check: order_items - quantity
+  - Sum Check: products - price
+  - Average Check: products - price
+  - Max Check: products - price
+  - Min Check: products - price
+  - Variance Check: products - price
+  - Sum Check: products - stock_quantity
+  - Average Check: products - stock_quantity
+  - Max Check: products - stock_quantity
+  - Min Check: products - stock_quantity
+  - Variance Check: products - stock_quantity
+
+Findings:
+  [FAIL] Sum difference exceeds tolerance for column 'age' in table 'users'. Source: 3634, Target: 3559, Difference: 2.06%.
+       Details: {'pct_difference': np.float64(2.0638414969730325)}
+  [WARN] Average difference within tolerance for column 'age' in table 'users'. Source: 35.627450980392155, Target: 35.59, Difference: 0.11%.
+       Details: {'pct_difference': np.float64(0.1051183269124773)}
+  [PASS] Max matches exactly for column 'age' in table 'users'. Source and Target both have max 41.
+       Details: {'pct_difference': np.float64(0.0)}
+  [PASS] Min matches exactly for column 'age' in table 'users'. Source and Target both have min 30.
+       Details: {'pct_difference': np.float64(0.0)}
+  [WARN] Variance difference within tolerance for column 'age' in table 'users'. Source: 9.364783537177246, Target: 9.436262626262627, Difference: 0.76%.
+       Details: {'pct_difference': np.float64(0.7632754008847737)}
+  [FAIL] Sum difference exceeds tolerance for column 'amount' in table 'orders'. Source: 20280.98, Target: 19875.98, Difference: 2.00%.
+       Details: {'pct_difference': np.float64(1.9969449208075745)}
+  [WARN] Average difference within tolerance for column 'amount' in table 'orders'. Source: 198.83313725490197, Target: 198.75979999999998, Difference: 0.04%.
+       Details: {'pct_difference': np.float64(0.03688381922373864)}
+  [PASS] Max matches exactly for column 'amount' in table 'orders'. Source and Target both have max 330.0.
+       Details: {'pct_difference': np.float64(0.0)}
+  [PASS] Min matches exactly for column 'amount' in table 'orders'. Source and Target both have min 50.0.
+       Details: {'pct_difference': np.float64(0.0)}
+  [FAIL] Variance difference exceeds tolerance for column 'amount' in table 'orders'. Source: 6618.199209862164, Target: 6684.8302080404055, Difference: 1.01%.
+       Details: {'pct_difference': np.float64(1.006784414693211)}
+  [FAIL] Sum difference exceeds tolerance for column 'quantity' in table 'orders'. Source: 236, Target: 231, Difference: 2.12%.
+       Details: {'pct_difference': np.float64(2.11864406779661)}
+  [WARN] Average difference within tolerance for column 'quantity' in table 'orders'. Source: 2.3137254901960786, Target: 2.31, Difference: 0.16%.
+       Details: {'pct_difference': np.float64(0.16101694915254947)}
+  [PASS] Max matches exactly for column 'quantity' in table 'orders'. Source and Target both have max 5.
+       Details: {'pct_difference': np.float64(0.0)}
+  [PASS] Min matches exactly for column 'quantity' in table 'orders'. Source and Target both have min 1.
+       Details: {'pct_difference': np.float64(0.0)}
+  [FAIL] Variance difference exceeds tolerance for column 'quantity' in table 'orders'. Source: 1.7025820229081736, Target: 1.7312121212121216, Difference: 1.68%.
+       Details: {'pct_difference': np.float64(1.681569399813412)}
+  [FAIL] Sum difference exceeds tolerance for column 'price' in table 'order_items'. Source: 11173.05, Target: 10933.05, Difference: 2.15%.
+       Details: {'pct_difference': np.float64(2.148025830010606)}
+  [WARN] Average difference within tolerance for column 'price' in table 'order_items'. Source: 109.53970588235293, Target: 109.33049999999999, Difference: 0.19%.
+       Details: {'pct_difference': np.float64(0.19098634661082334)}
+  [PASS] Max matches exactly for column 'price' in table 'order_items'. Source and Target both have max 210.5.
+       Details: {'pct_difference': np.float64(0.0)}
+  [PASS] Min matches exactly for column 'price' in table 'order_items'. Source and Target both have min 50.0.
+       Details: {'pct_difference': np.float64(0.0)}
+  [WARN] Variance difference within tolerance for column 'price' in table 'order_items'. Source: 816.7939771403611, Target: 818.413934090909, Difference: 0.20%.
+       Details: {'pct_difference': np.float64(0.19833115765856713)}
+  [FAIL] Sum difference exceeds tolerance for column 'quantity' in table 'order_items'. Source: 170, Target: 174, Difference: 2.35%.
+       Details: {'pct_difference': np.float64(2.3529411764705883)}
+  [FAIL] Average difference exceeds tolerance for column 'quantity' in table 'order_items'. Source: 1.6666666666666667, Target: 1.74, Difference: 4.40%.
+       Details: {'pct_difference': np.float64(4.399999999999995)}
+  [PASS] Max matches exactly for column 'quantity' in table 'order_items'. Source and Target both have max 4.
+       Details: {'pct_difference': np.float64(0.0)}
+  [WARN] Source min for column 'quantity' in table 'order_items' is zero.
+  [FAIL] Variance difference exceeds tolerance for column 'quantity' in table 'order_items'. Source: 0.5808580858085808, Target: 0.47717171717171736, Difference: 17.85%.
+       Details: {'pct_difference': np.float64(17.850550964187285)}
+  [WARN] Sum difference within tolerance for column 'price' in table 'products'. Source: 10867.98, Target: 10838.0, Difference: 0.28%.
+       Details: {'pct_difference': np.float64(0.2758562308727065)}
+  [FAIL] Average difference exceeds tolerance for column 'price' in table 'products'. Source: 106.54882352941176, Target: 108.38, Difference: 1.72%.
+       Details: {'pct_difference': np.float64(1.7186266445098328)}
+  [PASS] Max matches exactly for column 'price' in table 'products'. Source and Target both have max 999.99.
+       Details: {'pct_difference': np.float64(0.0)}
+  [PASS] Min matches exactly for column 'price' in table 'products'. Source and Target both have min 3.99.
+       Details: {'pct_difference': np.float64(0.0)}
+  [FAIL] Variance difference exceeds tolerance for column 'price' in table 'products'. Source: 26291.31828771113, Target: 26649.21, Difference: 1.36%.
+       Details: {'pct_difference': np.float64(1.3612543440096476)}
+  [FAIL] Sum difference exceeds tolerance for column 'stock_quantity' in table 'products'. Source: 29735, Target: 27935, Difference: 6.05%.
+       Details: {'pct_difference': np.float64(6.053472338994451)}
+  [FAIL] Average difference exceeds tolerance for column 'stock_quantity' in table 'products'. Source: 291.51960784313724, Target: 279.35, Difference: 4.17%.
+       Details: {'pct_difference': np.float64(4.174541785774326)}
+  [PASS] Max matches exactly for column 'stock_quantity' in table 'products'. Source and Target both have max 2000.
+       Details: {'pct_difference': np.float64(0.0)}
+  [PASS] Min matches exactly for column 'stock_quantity' in table 'products'. Source and Target both have min 25.
+       Details: {'pct_difference': np.float64(0.0)}
+  [FAIL] Variance difference exceeds tolerance for column 'stock_quantity' in table 'products'. Source: 86184.05406717143, Target: 78477.60353535356, Difference: 8.94%.
+       Details: {'pct_difference': np.float64(8.94185196464708)}
+
+Section Verdict: FAIL
+
+--------------------------------------------------------------------------------
+MAPPING CHECKS
+--------------------------------------------------------------------------------
+
+Checks Performed:
+  - Mapping Check: users
+  - Mapping Check: users
+  - Mapping Check: orders
+  - Mapping Check: orders
+  - Mapping Check: order_items
+  - Mapping Check: products
+  - Mapping Check: products
+
+Findings:
+  [FAIL] Mapping issues found in table 'users': Column 'status' in table 'users' has invalid values: ['FR' 'JP' 'CN' 'US' 'UK' 'CA' 'AU' 'DE'].
+       Details: {'issues': ["Column 'status' in table 'users' has invalid values: ['FR' 'JP' 'CN' 'US' 'UK' 'CA' 'AU' 'DE']."]}
+  [FAIL] Mapping issues found in table 'users': Column 'country_code' in table 'users' has invalid values: [nan].
+       Details: {'issues': ["Column 'country_code' in table 'users' has invalid values: [nan]."]}
+  [PASS] All mappings are valid for table 'orders'.
+  [PASS] All mappings are valid for table 'orders'.
+  [PASS] All mappings are valid for table 'order_items'.
+  [PASS] All mappings are valid for table 'products'.
+  [PASS] All mappings are valid for table 'products'.
+
+Section Verdict: FAIL
+
+--------------------------------------------------------------------------------
+DATA CONSTRAINT CHECKS
+--------------------------------------------------------------------------------
+
+Checks Performed:
+  - Data Constraints Check: users.first_name
+  - Data Constraints Check: users.last_name
+  - Data Constraints Check: users.email
+  - Data Constraints Check: users.date_of_birth
+  - Data Constraints Check: users.date_onboarded
+  - Data Constraints Check: orders.order_date
+  - Data Constraints Check: orders.amount
+  - Data Constraints Check: orders.user_id
+  - Data Constraints Check: order_items.order_id
+  - Data Constraints Check: order_items.product_id
+  - Data Constraints Check: order_items.quantity
+  - Data Constraints Check: order_items.price
+  - Data Constraints Check: products.product_name
+  - Data Constraints Check: products.price
+  - Data Constraints Check: products.stock_quantity
+
+Findings:
+  [PASS] All data constraints are satisfied for table 'users'.
+  [PASS] All data constraints are satisfied for table 'users'.
+  [PASS] All data constraints are satisfied for table 'users'.
+  [PASS] All data constraints are satisfied for table 'users'.
+  [FAIL] Data constraint issues found in table 'users': Column 'date_onboarded' has 1 invalid date values out of 100 rows.
+       Details: {'issues': ["Column 'date_onboarded' has 1 invalid date values out of 100 rows."]}
+  [PASS] All data constraints are satisfied for table 'orders'.
+  [PASS] All data constraints are satisfied for table 'orders'.
+  [PASS] All data constraints are satisfied for table 'orders'.
+  [PASS] All data constraints are satisfied for table 'order_items'.
+  [PASS] All data constraints are satisfied for table 'order_items'.
+  [PASS] All data constraints are satisfied for table 'order_items'.
+  [PASS] All data constraints are satisfied for table 'order_items'.
+  [PASS] All data constraints are satisfied for table 'products'.
+  [PASS] All data constraints are satisfied for table 'products'.
+  [PASS] All data constraints are satisfied for table 'products'.
+
+Section Verdict: FAIL
+
+--------------------------------------------------------------------------------
+RELATIONSHIP CHECKS
+--------------------------------------------------------------------------------
+
+Checks Performed:
+  - Foreign Key Check: orders
+  - Foreign Key check (Missing FK): orders
+  - Foreign Key Check: order_items
+  - Foreign Key Check: order_items
+
+Findings:
+  [PASS] All foreign key values in 'user_id' of child table 'orders' have matching primary keys in parent table.
+  [FAIL] Foreign key column 'order_id' not found in child table 'orders'.
+  [PASS] All foreign key values in 'order_id' of child table 'order_items' have matching primary keys in parent table.
+  [PASS] All foreign key values in 'product_id' of child table 'order_items' have matching primary keys in parent table.
+
+Section Verdict: FAIL
+
+================================================================================
+FINAL DEPLOYABILITY VERDICT
+================================================================================
+NO-GO

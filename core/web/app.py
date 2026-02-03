@@ -2,6 +2,8 @@ from fastapi import FastAPI, Depends, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 import os
 from dotenv import load_dotenv
 
@@ -9,6 +11,18 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = FastAPI(title="Migration Audit Platform")
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        response.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains"
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;"
+        return response
+
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(TrustedHostMiddleware, allowed_hosts=["*"]) # Restrict this in production
 
 # Session Middleware for Auth (Cookie-based)
 # In prod, SECRET_KEY should be truly secret and random

@@ -83,9 +83,34 @@ def authenticate_cli_user() -> bool:
         logger.warning(f"Failed to connect to Auth Service: {e}")
         return True
 
+    # 1. Try Environment Variables (Non-interactive)
+    env_user = os.getenv("AUDIT_USER")
+    env_pass = os.getenv("AUDIT_PASSWORD")
+    
+    if env_user and env_pass:
+        logger.info(f"Authenticating using environment variables for user '{env_user}'")
+        user = auth.authenticate_user(env_user, env_pass)
+        if not user or not auth.check_permission(user, "run_audit"):
+            logger.error(f"Env Var Auth Failed: Invalid credentials or permission for '{env_user}'")
+            print(f"\n[!] Env Var Auth Failed: Invalid credentials or permission for '{env_user}'\n")
+            return False
+        print(f"\n[+] Authenticated as '{env_user}' (via Env Vars)\n")
+        return True
+
+    # 2. Interactive Prompt
     print("\n=== Migration Audit Authentication ===")
-    username = input("Username: ").strip()
-    password = getpass.getpass("Password: ").strip()
+    try:
+        # flush stdout to ensure prompt appears before input
+        import sys
+        sys.stdout.flush()
+        username = input("Username: ").strip()
+        sys.stdout.flush()
+        password = getpass.getpass("Password: ").strip()
+    except EOFError:
+        logger.error("Authentication failed: Input stream closed (cannot read input).")
+        print("\n[!] Error: Terminal is not interactive or input stream is closed.")
+        print("    Try setting AUDIT_USER and AUDIT_PASSWORD environment variables.")
+        return False
     
     user = auth.authenticate_user(username, password)
     if not user:

@@ -17,9 +17,12 @@ def get_current_user(request: Request):
 
 @router.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request):
+    from core.audit.logger import log_audit_event
     user = get_current_user(request)
     if not user:
         return RedirectResponse(url="/login")
+    
+    log_audit_event("VIEW_DASHBOARD", user_id=user["username"], ip_address=request.client.host, details="User accessed dashboard")
     
     # Load Config to see available tables
     config_path = "config/audit.yaml"
@@ -45,9 +48,12 @@ async def dashboard(request: Request):
 
 @router.post("/run-audit")
 async def run_audit_endpoint(request: Request, background_tasks: BackgroundTasks):
+    from core.audit.logger import log_audit_event
     user = get_current_user(request)
     if not user:
         return RedirectResponse(url="/login")
+        
+    log_audit_event("TRIGGER_AUDIT", user_id=user["username"], ip_address=request.client.host, details="User triggered new audit")
         
     # In a real app, we would read form data for specific tables
     # form = await request.form()

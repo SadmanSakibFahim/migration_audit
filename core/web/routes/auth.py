@@ -35,20 +35,33 @@ async def login(
     password: str = Form(...),
     db: Session = Depends(get_db)
 ):
+    from core.audit.logger import log_audit_event
+    client_ip = request.client.host
+
     auth = AuthService(db)
     user = auth.authenticate_user(username, password)
     
     if not user:
+        log_audit_event("LOGIN_FAILED", user_id=username, ip_address=client_ip, details=f"Failed login attempt for {username}")
         return templates.TemplateResponse("login.html", {"request": request, "error": "Invalid credentials"})
     
     if not auth.check_access(user):
+         log_audit_event("LOGIN_DENIED", user_id=username, ip_address=client_ip, details=f"Access denied for {username} - License issue")
          return templates.TemplateResponse("login.html", {"request": request, "error": "Access Denied: License Expired or Inactive"})
 
     # Set Session
     request.session["user"] = {"username": user.username, "role": user.role, "id": user.id}
+    log_audit_event("LOGIN_SUCCESS", user_id=username, ip_address=client_ip, details=f"User {username} logged in successfully")
     return RedirectResponse(url="/dashboard", status_code=status.HTTP_303_SEE_OTHER)
 
 @router.get("/logout")
 async def logout(request: Request):
+    from core.audit.logger import log_audit_event
+    user = request.session.get("user")
+    user_id = user["username"] if user else "anonymous"
+    client_ip = request.client.host
+    
+    log_audit_event("LOGOUT", user_id=user_id, ip_address=client_ip, details=f"User {user_id} logged out")
+    
     request.session.clear()
     return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)

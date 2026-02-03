@@ -1,0 +1,36 @@
+{"timestamp": "2026-02-03T12:59:48.559526+00:00", "level": "INFO", "logger": "__main__", "message": "Running audit with log level: INFO", "module": "cli", "function": "main"}
+{"timestamp": "2026-02-03T12:59:54.830870+00:00", "level": "INFO", "logger": "run_audit", "message": "Starting audit run", "module": "run_audit", "function": "run_audit"}
+{"timestamp": "2026-02-03T12:59:54.837155+00:00", "level": "INFO", "logger": "run_audit", "message": "Tables to audit: ['users', 'orders', 'order_items', 'products']", "module": "run_audit", "function": "run_audit"}
+{"timestamp": "2026-02-03T12:59:54.842574+00:00", "level": "INFO", "logger": "run_audit", "message": "Auditing table: users", "module": "run_audit", "function": "run_audit"}
+{"timestamp": "2026-02-03T12:59:54.842898+00:00", "level": "INFO", "logger": "core.audit.loader", "message": "Loading CSV from: data/source/users.csv", "module": "loader", "function": "load_table"}
+{"timestamp": "2026-02-03T12:59:54.847361+00:00", "level": "WARNING", "logger": "core.audit.loader", "message": "Column 'tenure_days' in 'data/source/users.csv': Found 17 non-numeric values. Keeping as string/object type to preserve data.", "module": "loader", "function": "load_table"}
+{"timestamp": "2026-02-03T12:59:54.847919+00:00", "level": "INFO", "logger": "core.audit.loader", "message": "Loading CSV from: data/target/users.csv", "module": "loader", "function": "load_table"}
+{"timestamp": "2026-02-03T12:59:54.850328+00:00", "level": "WARNING", "logger": "core.audit.loader", "message": "Column 'tenure_days' in 'data/target/users.csv': Found 15 non-numeric values. Keeping as string/object type to preserve data.", "module": "loader", "function": "load_table"}
+{"timestamp": "2026-02-03T12:59:54.850817+00:00", "level": "INFO", "logger": "run_audit", "message": "users: source_rows=102, target_rows=100", "module": "run_audit", "function": "run_audit"}
+{"timestamp": "2026-02-03T12:59:54.858825+00:00", "level": "INFO", "logger": "run_audit", "message": "users: collected 15 check results", "module": "run_audit", "function": "run_audit"}
+{"timestamp": "2026-02-03T12:59:54.858971+00:00", "level": "INFO", "logger": "run_audit", "message": "Completed audit for table: users", "module": "run_audit", "function": "run_audit"}
+{"timestamp": "2026-02-03T12:59:54.859089+00:00", "level": "INFO", "logger": "run_audit", "message": "Auditing table: orders", "module": "run_audit", "function": "run_audit"}
+{"timestamp": "2026-02-03T12:59:54.859247+00:00", "level": "INFO", "logger": "core.audit.loader", "message": "Loading CSV from: data/source/orders.csv", "module": "loader", "function": "load_table"}
+{"timestamp": "2026-02-03T12:59:54.861529+00:00", "level": "INFO", "logger": "core.audit.loader", "message": "Loading CSV from: data/target/orders.csv", "module": "loader", "function": "load_table"}
+{"timestamp": "2026-02-03T12:59:54.863627+00:00", "level": "INFO", "logger": "run_audit", "message": "orders: source_rows=102, target_rows=100", "module": "run_audit", "function": "run_audit"}
+{"timestamp": "2026-02-03T12:59:54.868662+00:00", "level": "INFO", "logger": "run_audit", "message": "orders: collected 19 check results", "module": "run_audit", "function": "run_audit"}
+{"timestamp": "2026-02-03T12:59:54.868788+00:00", "level": "INFO", "logger": "run_audit", "message": "Completed audit for table: orders", "module": "run_audit", "function": "run_audit"}
+{"timestamp": "2026-02-03T12:59:54.868898+00:00", "level": "INFO", "logger": "run_audit", "message": "Auditing table: order_items", "module": "run_audit", "function": "run_audit"}
+{"timestamp": "2026-02-03T12:59:54.869058+00:00", "level": "INFO", "logger": "core.audit.loader", "message": "Loading CSV from: data/source/order_items.csv", "module": "loader", "function": "load_table"}
+{"timestamp": "2026-02-03T12:59:54.870612+00:00", "level": "INFO", "logger": "core.audit.loader", "message": "Loading CSV from: data/target/order_items.csv", "module": "loader", "function": "load_table"}
+{"timestamp": "2026-02-03T12:59:54.871989+00:00", "level": "INFO", "logger": "run_audit", "message": "order_items: source_rows=102, target_rows=100", "module": "run_audit", "function": "run_audit"}
+{"timestamp": "2026-02-03T12:59:54.876431+00:00", "level": "INFO", "logger": "run_audit", "message": "order_items: collected 19 check results", "module": "run_audit", "function": "run_audit"}
+{"timestamp": "2026-02-03T12:59:54.876554+00:00", "level": "INFO", "logger": "run_audit", "message": "Completed audit for table: order_items", "module": "run_audit", "function": "run_audit"}
+{"timestamp": "2026-02-03T12:59:54.876658+00:00", "level": "INFO", "logger": "run_audit", "message": "Auditing table: products", "module": "run_audit", "function": "run_audit"}
+{"timestamp": "2026-02-03T12:59:54.876911+00:00", "level": "INFO", "logger": "core.audit.loader", "message": "Loading CSV from: data/source/products.csv", "module": "loader", "function": "load_table"}
+{"timestamp": "2026-02-03T12:59:54.878755+00:00", "level": "INFO", "logger": "core.audit.loader", "message": "Loading CSV from: data/target/products.csv", "module": "loader", "function": "load_table"}
+{"timestamp": "2026-02-03T12:59:54.880251+00:00", "level": "INFO", "logger": "run_audit", "message": "products: source_rows=102, target_rows=100", "module": "run_audit", "function": "run_audit"}
+{"timestamp": "2026-02-03T12:59:54.883499+00:00", "level": "INFO", "logger": "run_audit", "message": "products: collected 17 check results", "module": "run_audit", "function": "run_audit"}
+{"timestamp": "2026-02-03T12:59:54.883616+00:00", "level": "INFO", "logger": "run_audit", "message": "Completed audit for table: products", "module": "run_audit", "function": "run_audit"}
+{"timestamp": "2026-02-03T12:59:54.884013+00:00", "level": "INFO", "logger": "run_audit", "message": "Audit run finished. Total checks executed: 70", "module": "run_audit", "function": "run_audit"}
+{"timestamp": "2026-02-03T12:59:54.885142+00:00", "level": "INFO", "logger": "core.audit.verdict", "message": "Computing final verdict", "module": "verdict", "function": "final_verdict"}
+{"timestamp": "2026-02-03T12:59:54.885407+00:00", "level": "INFO", "logger": "core.audit.verdict", "message": "Check summary: PASS=39, WARN=8, FAIL=23", "module": "verdict", "function": "final_verdict"}
+{"timestamp": "2026-02-03T12:59:54.885521+00:00", "level": "INFO", "logger": "core.audit.verdict", "message": "Final verdict: NO-GO", "module": "verdict", "function": "final_verdict"}
+{"timestamp": "2026-02-03T12:59:55.221908+00:00", "level": "INFO", "logger": "core.audit.verdict", "message": "Computing final verdict", "module": "verdict", "function": "final_verdict"}
+{"timestamp": "2026-02-03T12:59:55.222100+00:00", "level": "INFO", "logger": "core.audit.verdict", "message": "Check summary: PASS=39, WARN=8, FAIL=23", "module": "verdict", "function": "final_verdict"}
+{"timestamp": "2026-02-03T12:59:55.222219+00:00", "level": "INFO", "logger": "core.audit.verdict", "message": "Final verdict: NO-GO", "module": "verdict", "function": "final_verdict"}

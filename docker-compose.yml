@@ -1,0 +1,13 @@
+services:
+  platform:
+    build: .
+    container_name: migration_audit_platform
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./data:/app/data
+      - ./outputs:/app/outputs
+      - ./config:/app/config
+      - ./reports:/app/reports
+    environment:
+      - SECRET_KEY=override_me_in_production
