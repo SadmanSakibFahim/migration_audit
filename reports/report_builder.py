@@ -4,6 +4,8 @@ from collections import defaultdict
 from core.audit.verdict import final_verdict
 from core.audit.enums import CheckStatus
 import os
+import base64
+
 from xhtml2pdf import pisa  # For PDF generation
 
 SECTION_MAP = {
@@ -209,70 +211,209 @@ def _write_text(content, output_path):
     with open(output_path, 'w') as f:
         f.write('\n'.join(lines))
 
-def _write_html(content, output_path):
+def _write_html(content, output_path, logo_path=None):
     """Generate HTML report."""
     
+    # Handle Logo (Base64 Encode)
+    logo_html = ""
+    if logo_path and os.path.exists(logo_path):
+        try:
+            with open(logo_path, "rb") as img_file:
+                b64_string = base64.b64encode(img_file.read()).decode('utf-8')
+                # Determine mime type based on extension
+                ext = os.path.splitext(logo_path)[1].lower().replace('.', '')
+                mime_type = "image/png" if ext == "png" else "image/jpeg"
+                logo_html = f'<img src="data:{mime_type};base64,{b64_string}" class="logo" />'
+        except Exception as e:
+            print(f"Failed to load logo: {e}")
+
     html = f"""
     <html>
     <head>
         <style>
-            body {{ font-family: Arial, sans-serif; margin: 40px; }}
-            h1 {{ color: #2c3e50; }}
-            h2 {{ color: #34495e; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; }}
-            .verdict {{ font-weight: bold; font-size: 1.2em; }}
-            .verdict-PASS {{ color: #27ae60; }}
-            .verdict-WARN {{ color: #f39c12; }}
-            .verdict-FAIL {{ color: #c0392b; }}
-            .section {{ margin-bottom: 30px; }}
-            .check-item {{ margin: 5px 0; }}
-            .status-PASS {{ color: green; font-weight: bold; }}
-            .status-WARN {{ color: orange; font-weight: bold; }}
-            .status-FAIL {{ color: red; font-weight: bold; }}
-            .status-ERROR {{ color: darkred; font-weight: bold; }}
-            table {{ width: 100%; border-collapse: collapse; margin-top: 10px; }}
-            th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
-            th {{ background-color: #f2f2f2; }}
+            @page {{
+                size: A4;
+                margin: 2cm;
+                margin-bottom: 2.5cm;
+                @frame footer_frame {{
+                    -pdf-frame-content: footerContent;
+                    bottom: 1cm;
+                    margin-left: 2cm;
+                    margin-right: 2cm;
+                    height: 1cm;
+                }}
+            }}
+            
+            body {{ 
+                font-family: Helvetica, Arial, sans-serif; 
+                color: #2c3e50;
+                line-height: 1.5;
+            }}
+            
+            /* Footer Content (Hidden from normal flow, used by frame) */
+            #footerContent {{
+                font-family: Helvetica, Arial, sans-serif;
+                font-size: 9pt;
+                color: #7f8c8d;
+                text-align: center;
+                border-top: 1px solid #ecf0f1;
+                padding-top: 5px;
+            }}
+            
+            /* Header Section (Table used for layout) */
+            .header-table {{
+                width: 100%;
+                border-bottom: 3px solid #FF7F50; /* Coral brand color */
+                padding-bottom: 20px;
+                margin-bottom: 30px;
+            }}
+            .header-info {{ text-align: left; vertical-align: bottom; }}
+            .header-logo {{ text-align: right; vertical-align: bottom; }}
+            .logo {{ max-height: 60px; }}
+            
+            h1 {{ 
+                color: #2c3e50; 
+                font-size: 24pt; 
+                margin: 0; padding: 0; 
+            }}
+            
+            h2 {{ 
+                color: #34495e; 
+                border-bottom: 2px solid #FF7F50; 
+                padding-bottom: 5px; 
+                margin-top: 30px;
+                font-size: 16pt;
+            }}
+
+            .meta-info {{ font-size: 10pt; color: #7f8c8d; }}
+            
+            /* Verdict Styles */
+            .verdict-box {{
+                background-color: #f8f9fa;
+                border: 1px solid #bdc3c7;
+                padding: 15px;
+                border-radius: 5px;
+                margin-bottom: 20px;
+                font-size: 14pt;
+                text-align: center;
+            }}
+            
+            .verdict-PASS {{ color: #27ae60; font-weight: bold; }}
+            .verdict-WARN {{ color: #e67e22; font-weight: bold; }}
+            .verdict-FAIL {{ color: #c0392b; font-weight: bold; }}
+            
+            /* Section Summary */
+            .summary-table {{ width: 100%; margin-bottom: 20px; }}
+            .summary-row td {{ padding: 5px; border-bottom: 1px solid #ecf0f1; }}
+            
+            /* Detailed Tables */
+            .detail-table {{ 
+                width: 100%; 
+                border-collapse: collapse; 
+                margin-top: 10px; 
+                font-size: 10pt;
+            }}
+            .detail-table th {{ 
+                background-color: #ecf0f1; 
+                color: #2c3e50; 
+                padding: 8px; 
+                text-align: left; 
+                border-bottom: 2px solid #bdc3c7;
+            }}
+            .detail-table td {{ 
+                border-bottom: 1px solid #ecf0f1; 
+                padding: 8px; 
+                vertical-align: top;
+            }}
+            
+            /* Status Badges */
+            .status-badge {{
+                display: inline-block;
+                padding: 2px 6px;
+                border-radius: 4px;
+                color: white;
+                font-size: 8pt;
+                font-weight: bold;
+                text-align: center;
+                min-width: 50px;
+            }}
+            .bg-PASS {{ background-color: #27ae60; }}
+            .bg-WARN {{ background-color: #f39c12; }}
+            .bg-FAIL {{ background-color: #e74c3c; }}
+            .bg-ERROR {{ background-color: #c0392b; }}
+            
+            .footer-note {{
+                color: #bdc3c7;
+                font-size: 8pt;
+                text-align: center;
+                margin-top: 40px;
+                border-top: 1px solid #ecf0f1;
+                padding-top: 10px;
+            }}
         </style>
     </head>
     <body>
-        <h1>Migration Validation & Risk Audit</h1>
-        <p>
-            <strong>Client:</strong> {content['client']}<br>
-            <strong>Migration:</strong> {content['migration']}<br>
-            <strong>Audit Date:</strong> {content['date']}<br>
-            <strong>Auditor:</strong> Independent Migration Audit
-        </p>
+        <!-- Header -->
+        <table class="header-table">
+            <tr>
+                <td class="header-info">
+                    <h1>Migration Validation & Risk Audit</h1>
+                    <div class="meta-info">
+                        <strong>Client:</strong> {content['client']}<br/>
+                        <strong>Migration:</strong> {content['migration']}<br/>
+                        <strong>Date:</strong> {content['date']}<br/>
+                        <strong>Auditor:</strong> Independent Migration Audit
+                    </div>
+                </td>
+                <td class="header-logo">
+                    {logo_html}
+                </td>
+            </tr>
+        </table>
 
+        <!-- Executive Summary -->
         <h2>Executive Summary</h2>
-        <p class="verdict">Final Verdict: <span class="verdict-{content['final_verdict'].replace(' ', '-')}">{content['final_verdict']}</span></p>
+        <div class="verdict-box">
+            Final Verdict: <span class="verdict-{content['final_verdict'].replace(' ', '-')}">{content['final_verdict']}</span>
+        </div>
         
-        <ul>
+        <table class="summary-table">
     """
     
     for section, res in content['grouped_results'].items():
         verdict = section_verdict(res)
-        html += f"<li><strong>{section}:</strong> {verdict}</li>"
+        html += f"""
+            <tr class="summary-row">
+                <td><strong>{section}</strong></td>
+                <td style="text-align: right;"><span class="verdict-{verdict}">{verdict}</span></td>
+            </tr>
+        """
     
-    html += "</ul>"
+    html += """
+        </table>
+    """
     
     # Detailed Sections
     for section, res in content['grouped_results'].items():
         html += f"""
-        <div class="section">
+        <div class="section-block">
             <h2>{section}</h2>
-            <table>
+            <table class="detail-table">
                 <tr>
-                    <th>Check Name</th>
-                    <th>Status</th>
-                    <th>Message</th>
+                    <th width="30%">Check Name</th>
+                    <th width="15%">Status</th>
+                    <th width="55%">Details</th>
                 </tr>
         """
         for r in res:
             html += f"""
                 <tr>
                     <td>{r.name}</td>
-                    <td><span class="status-{r.status.value}">{r.status.value}</span></td>
-                    <td>{r.message}</td>
+                    <td><span class="status-badge bg-{r.status.value}">{r.status.value}</span></td>
+                    <td>
+                        {r.message}
+                        {f'<br/><small style="color:#7f8c8d">{r.details}</small>' if r.details else ''}
+                    </td>
                 </tr>
             """
         html += """
@@ -281,8 +422,15 @@ def _write_html(content, output_path):
         """
         
     html += f"""
+        <div style="page-break-before: always;"></div>
         <h2>Final Deployability Verdict</h2>
-        <p class="verdict verdict-{content['final_verdict'].replace(' ', '-')}">{content['final_verdict']}</p>
+        <div class="verdict-box">
+             <span class="verdict-{content['final_verdict'].replace(' ', '-')}">{content['final_verdict']}</span>
+        </div>
+        
+        <div id="footerContent">
+            Automatically generated by Coral &nbsp;|&nbsp; Page <pdf:pagenumber> of <pdf:pagecount>
+        </div>
     </body>
     </html>
     """
@@ -302,7 +450,7 @@ def _write_pdf(html_content, output_path):
     except Exception as e:
         print(f"Failed to generate PDF: {e}")
 
-def build_report(results, output_path=None, client="Client", migration="Source â†’ Target", base_dir="outputs", label=""):
+def build_report(results, output_path=None, client="Client", migration="Source â†’ Target", base_dir="outputs", label="", logo_path=None):
     """Generate reports in all formats (DOCX, Markdown, Text, HTML, PDF).
     
     Args:
@@ -312,6 +460,7 @@ def build_report(results, output_path=None, client="Client", migration="Source â
         migration: Migration description
         base_dir: Base directory for output (default: "outputs")
         label: Optional label to append to the timestamped folder (e.g., "_test")
+        logo_path: Optional path to a logo image (PNG/JPG)
     """
     if output_path is None:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -337,9 +486,11 @@ def build_report(results, output_path=None, client="Client", migration="Source â
     html_path = base_path + ".html"
     pdf_path = base_path + ".pdf"
     
+
     _write_markdown(content, md_path)
     _write_text(content, txt_path)
-    html_content = _write_html(content, html_path)
+    # Pass logo_path to html generator
+    html_content = _write_html(content, html_path, logo_path=logo_path)
     _write_pdf(html_content, pdf_path)
     
     return {

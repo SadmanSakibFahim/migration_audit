@@ -1,0 +1,192 @@
+
+    <html>
+    <head>
+        <style>
+            @page {
+                size: A4;
+                margin: 2cm;
+                margin-bottom: 2.5cm;
+                @frame footer_frame {
+                    -pdf-frame-content: footerContent;
+                    bottom: 1cm;
+                    margin-left: 2cm;
+                    margin-right: 2cm;
+                    height: 1cm;
+                }
+            }
+            
+            body { 
+                font-family: Helvetica, Arial, sans-serif; 
+                color: #2c3e50;
+                line-height: 1.5;
+            }
+            
+            /* Footer Content (Hidden from normal flow, used by frame) */
+            #footerContent {
+                font-family: Helvetica, Arial, sans-serif;
+                font-size: 9pt;
+                color: #7f8c8d;
+                text-align: center;
+                border-top: 1px solid #ecf0f1;
+                padding-top: 5px;
+            }
+            
+            /* Header Section (Table used for layout) */
+            .header-table {
+                width: 100%;
+                border-bottom: 3px solid #FF7F50; /* Coral brand color */
+                padding-bottom: 20px;
+                margin-bottom: 30px;
+            }
+            .header-info { text-align: left; vertical-align: bottom; }
+            .header-logo { text-align: right; vertical-align: bottom; }
+            .logo { max-height: 60px; }
+            
+            h1 { 
+                color: #2c3e50; 
+                font-size: 24pt; 
+                margin: 0; padding: 0; 
+            }
+            
+            h2 { 
+                color: #34495e; 
+                border-bottom: 2px solid #FF7F50; 
+                padding-bottom: 5px; 
+                margin-top: 30px;
+                font-size: 16pt;
+            }
+
+            .meta-info { font-size: 10pt; color: #7f8c8d; }
+            
+            /* Verdict Styles */
+            .verdict-box {
+                background-color: #f8f9fa;
+                border: 1px solid #bdc3c7;
+                padding: 15px;
+                border-radius: 5px;
+                margin-bottom: 20px;
+                font-size: 14pt;
+                text-align: center;
+            }
+            
+            .verdict-PASS { color: #27ae60; font-weight: bold; }
+            .verdict-WARN { color: #e67e22; font-weight: bold; }
+            .verdict-FAIL { color: #c0392b; font-weight: bold; }
+            
+            /* Section Summary */
+            .summary-table { width: 100%; margin-bottom: 20px; }
+            .summary-row td { padding: 5px; border-bottom: 1px solid #ecf0f1; }
+            
+            /* Detailed Tables */
+            .detail-table { 
+                width: 100%; 
+                border-collapse: collapse; 
+                margin-top: 10px; 
+                font-size: 10pt;
+            }
+            .detail-table th { 
+                background-color: #ecf0f1; 
+                color: #2c3e50; 
+                padding: 8px; 
+                text-align: left; 
+                border-bottom: 2px solid #bdc3c7;
+            }
+            .detail-table td { 
+                border-bottom: 1px solid #ecf0f1; 
+                padding: 8px; 
+                vertical-align: top;
+            }
+            
+            /* Status Badges */
+            .status-badge {
+                display: inline-block;
+                padding: 2px 6px;
+                border-radius: 4px;
+                color: white;
+                font-size: 8pt;
+                font-weight: bold;
+                text-align: center;
+                min-width: 50px;
+            }
+            .bg-PASS { background-color: #27ae60; }
+            .bg-WARN { background-color: #f39c12; }
+            .bg-FAIL { background-color: #e74c3c; }
+            .bg-ERROR { background-color: #c0392b; }
+            
+            .footer-note {
+                color: #bdc3c7;
+                font-size: 8pt;
+                text-align: center;
+                margin-top: 40px;
+                border-top: 1px solid #ecf0f1;
+                padding-top: 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <!-- Header -->
+        <table class="header-table">
+            <tr>
+                <td class="header-info">
+                    <h1>Migration Validation & Risk Audit</h1>
+                    <div class="meta-info">
+                        <strong>Client:</strong> Acme Corp<br/>
+                        <strong>Migration:</strong> On-Prem -> Cloud<br/>
+                        <strong>Date:</strong> 2026-02-04<br/>
+                        <strong>Auditor:</strong> Independent Migration Audit
+                    </div>
+                </td>
+                <td class="header-logo">
+                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAABkCAIAAABM5OhcAAAEwElEQVR4nO2dPUgrSxTHj2KMIgEJyG2EQAQ/wEIRjcTCzkoECyGCqFikEiPYCBHy7GzTSLBQkkaCgkFBFCxiVBIbsRCUKAmkENQyiuJG9xYB8cJ97928l8nunPn/qrhk3XM4vzkz+Zqt0nWdACg31WX/jwBALCAKiAWEALGAECAWEALEAkKAWEAIEAsIAWIBIdSQGfhr9M+etiM8ElAmqgz7SOcPZfrb0yGZqam4WP/Tp9/8Qximslhl9+k3l4BhSolVAaV+uRz0Yi9WhZX65dLQi+vbDQZaZfjVgZCOZaqionUx6VimssqE8ShDNf8qmjMq7pRpKpSieJgWJetYUlglUZwsqFarWnJFq65YMtZJxpglBF+bAWYTS96hL2/k/MWSvTayx89TLB5V4ZGFWcEaC5hELE4DnVMucovFrxL8MjIHmAqB4WJxHdxc8zIUdCxgrFi8hzXv7IwAHQsIAWIBA8VSYaZQIccKgo4FhACxgFFiqTNHqJOpeNCxAOP9seRhZ2dna2uroaGhvr7e7/f/+PGDiHZ3d6PRqMVi0TRtfHx8eHiYiNxud2dnp67rLy8vCwsLPT09RBSLxVZWVvb39+12OxENDg4eHx8TRyBWCZyfnx8cHGxsbFit1rOzs0AgEAqFkslkLBYLhUI2my2fz/t8vqamJpfLZbFY1tbWiOju7s7v90ejUSJKJBIej+f09HRkZISUngpVW3b8Y76RSGR2dtZqtRLRwMBAc3NzoVCIRCLz8/M2m42IbDabz+cLh8Pfz2ppaXl8fCSit7e319fX0dHRk5MT4g7WWCWQyWTa2tq+/lxaWqqpqclms+3t7V8HOzo6MpnM97NSqVRfXx8RJZNJt9vtcDju7+81TSPWYCosgY+Pj399jq7rVVVVRKRpmtfrLRQK2Wx2e3ubiOLxeDqdPjo6enp6uri4cLlcxBd0rBJwOBzpdLr4WNf1QCBARE6n8/r6+us5Nzc3TqeTiIprrPX19enp6b29vc/Pz1wut7m5GQ6Hl5eXE4kEsQZilcDY2Njq6ur7+zsRHR4eFh9MTk4Gg8Hn52ciyufzwWBwamrq+1n9/f1XV1eXl5etra3FI93d3alUiliDqbAEhoaGcrncxMREY2Oj3W5fXFwsevPw8OD1emtrazVN83g8xRXVFw6H4/b2Nh6P9/b2Fo/U1dXZ7fZsNqtp2szMTPFgV1fX3NwcqbLbjGqvCrEpTZnAVAiEALGAECAWEALEAkKAWEAIEAsY8yG0Yq+9VctXGOhYQAgQCwgBYgHDfkyhzLJDnUzFg44FhACxgJE/sVdgjlAhxwqCjgWEALGAwRuvsZ4peGdnBOhYwPjNbZkOa655GQo6FjDFDQTYDW5+GUl7yxNGleCUi8nAVAhMdFs5FgOdRxbsboQpeVVkj5/1rXulrY28kcsD1ljAhGLJOPRljFnFjiVXneSKVvWpUJZqyRKnEtsYlYRp9zyCUnIv3s1ZP3NGxZ1q5lU0WzzKUNap0FTTIpTi+T6WsXWFVWw7llGtC0qpIlbF9IJSKoolzjD4ZEoqLla5DINP5sY4sf6DZJBJHswhFmAHvjYDhACxgBAgFhACxAJCgFhACBALCAFiASFALEAi+AnLMYh4naOI8wAAAABJRU5ErkJggg==" class="logo" />
+                </td>
+            </tr>
+        </table>
+
+        <!-- Executive Summary -->
+        <h2>Executive Summary</h2>
+        <div class="verdict-box">
+            Final Verdict: <span class="verdict-NO-GO">NO-GO</span>
+        </div>
+        
+        <table class="summary-table">
+    
+            <tr class="summary-row">
+                <td><strong>Data Volume Checks</strong></td>
+                <td style="text-align: right;"><span class="verdict-PASS">PASS</span></td>
+            </tr>
+        
+        </table>
+    
+        <div class="section-block">
+            <h2>Data Volume Checks</h2>
+            <table class="detail-table">
+                <tr>
+                    <th width="30%">Check Name</th>
+                    <th width="15%">Status</th>
+                    <th width="55%">Details</th>
+                </tr>
+        
+                <tr>
+                    <td>Data Volume Consistency</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Row counts match.
+                        
+                    </td>
+                </tr>
+            
+            </table>
+        </div>
+        
+        <div style="page-break-before: always;"></div>
+        <h2>Final Deployability Verdict</h2>
+        <div class="verdict-box">
+             <span class="verdict-NO-GO">NO-GO</span>
+        </div>
+        
+        <div id="footerContent">
+            Automatically generated by Coral &nbsp;|&nbsp; Page <pdf:pagenumber> of <pdf:pagecount>
+        </div>
+    </body>
+    </html>
+    
