@@ -1,19 +1,31 @@
+# Core
 numpy
 pandas
 pydantic
-pytest
-pytest-cov
-python-docx
 pyyaml
-sqlalchemy
 tqdm
-xhtml2pdf
-passlib
-argon2-cffi
 python-dotenv
+
+# Database (T004 — DataSource abstraction)
+sqlalchemy
+
+# Web Framework (T001 — Dashboard)
 fastapi
 uvicorn
 python-multipart
 jinja2
 itsdangerous
 httpx
+
+# Auth & Security (T005 — RBAC/SSO)
+passlib
+argon2-cffi
+authlib
+
+# Reporting
+python-docx
+xhtml2pdf
+
+# Testing
+pytest
+pytest-cov

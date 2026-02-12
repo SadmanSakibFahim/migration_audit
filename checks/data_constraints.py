@@ -7,6 +7,20 @@ from typing import Dict, List
 # has data in each column without which the data is incomplete.
 
 def check_data_constraints(df: pd.DataFrame, columns: Dict[str, List[str]], name: str) -> TestResult:
+    # Guard: None or empty DataFrame
+    if df is None or not isinstance(df, pd.DataFrame):
+        return TestResult(
+            name=f"Data Constraints Check: {name}",
+            status=CheckStatus.FAIL,
+            message=f"Cannot run data constraints check — DataFrame is None or invalid for table '{name}'.",
+        )
+    if df.empty:
+        return TestResult(
+            name=f"Data Constraints Check: {name}",
+            status=CheckStatus.WARN,
+            message=f"DataFrame is empty for table '{name}' — data constraints check skipped.",
+        )
+
     issues = []
     total_rows = len(df)
 

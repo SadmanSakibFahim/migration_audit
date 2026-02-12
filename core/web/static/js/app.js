@@ -3,6 +3,18 @@ const { createApp } = Vue
 createApp({
     data() {
         return {
+            // Wizard state
+            wizardStep: 0, // 0: Upload, 1: Select Scope, 2: Progress
+            wizardSteps: ['Upload Files', 'Select Scope', 'Audit Progress'],
+
+            // Upload state
+            configFile: null,
+            dataFiles: [],
+            configDragOver: false,
+            dataDragOver: false,
+            uploading: false,
+
+            // Audit state
             loading: true,
             tables: [],
             selectedTables: [],
@@ -11,23 +23,12 @@ createApp({
             progress: 0,
             logs: [],
             reports: [],
-            showReportModal: false,
-            activeReport: null
         }
     },
     computed: {
         progressWidth() {
             return `${this.progress}%`
         },
-        statusClass() {
-            const map = {
-                'idle': 'bg-gray-100 text-gray-800',
-                'running': 'bg-blue-100 text-blue-800',
-                'completed': 'bg-green-100 text-green-800',
-                'error': 'bg-red-100 text-red-800'
-            }
-            return map[this.auditStatus] || 'bg-gray-100'
-        }
     },
     mounted() {
         this.fetchConfig()
@@ -35,11 +36,11 @@ createApp({
         this.connectStream()
     },
     methods: {
+        // ── Config & Reports ──────────────────────────────────
         async fetchConfig() {
             try {
                 const res = await axios.get('/api/config')
                 this.tables = res.data.tables
-                // Select all by default
                 this.selectedTables = [...this.tables]
                 this.loading = false
             } catch (e) {
@@ -55,23 +56,95 @@ createApp({
                 console.error("Failed to load reports", e)
             }
         },
+
+        // ── SSE Live Stream ──────────────────────────────────
         connectStream() {
             const eventSource = new EventSource('/api/stream')
             eventSource.onmessage = (event) => {
                 const data = JSON.parse(event.data)
 
-                // Only update if state changed significantly to avoid jitter
+                const prevStatus = this.auditStatus
                 this.auditStatus = data.status
                 this.auditMessage = data.message
                 this.progress = data.progress
                 this.logs = data.logs || []
 
-                if (data.status === 'completed' && this.auditStatus !== 'completed') {
-                    // Refresh reports list when done
+                // Auto-switch to progress view when audit starts
+                if (data.status === 'running' && this.wizardStep !== 2) {
+                    this.wizardStep = 2
+                }
+
+                // Refresh reports on completion
+                if (data.status === 'completed' && prevStatus !== 'completed') {
                     this.fetchReports()
                 }
             }
         },
+
+        // ── File Upload ──────────────────────────────────────
+        handleConfigDrop(event) {
+            this.configDragOver = false
+            const files = event.dataTransfer.files
+            if (files.length > 0) {
+                const file = files[0]
+                if (file.name.endsWith('.yml') || file.name.endsWith('.yaml')) {
+                    this.configFile = file
+                } else {
+                    alert('Please drop a .yml or .yaml configuration file.')
+                }
+            }
+        },
+        handleConfigSelect(event) {
+            if (event.target.files.length > 0) {
+                this.configFile = event.target.files[0]
+            }
+        },
+        handleDataDrop(event) {
+            this.dataDragOver = false
+            const files = Array.from(event.dataTransfer.files).filter(f => f.name.endsWith('.csv'))
+            if (files.length > 0) {
+                this.dataFiles = [...this.dataFiles, ...files]
+            } else {
+                alert('Please drop .csv data files.')
+            }
+        },
+        handleDataSelect(event) {
+            if (event.target.files.length > 0) {
+                this.dataFiles = [...this.dataFiles, ...Array.from(event.target.files)]
+            }
+        },
+        async uploadFiles() {
+            if (!this.configFile) return
+
+            this.uploading = true
+            const formData = new FormData()
+            formData.append('config', this.configFile)
+            this.dataFiles.forEach(f => formData.append('data_files', f))
+
+            try {
+                const res = await axios.post('/api/upload', formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                })
+                // Reload config after upload
+                await this.fetchConfig()
+                this.wizardStep = 1
+            } catch (e) {
+                console.error("Upload failed", e)
+                alert("File upload failed. Please try again.")
+            } finally {
+                this.uploading = false
+            }
+        },
+        skipUpload() {
+            this.wizardStep = 1
+        },
+        formatSize(bytes) {
+            if (bytes < 1024) return bytes + ' B'
+            if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB'
+            return (bytes / 1048576).toFixed(1) + ' MB'
+        },
+
+        // ── Audit Actions ────────────────────────────────────
         async startAudit() {
             if (this.selectedTables.length === 0) {
                 alert("Please select at least one table.")
@@ -80,6 +153,7 @@ createApp({
             this.auditStatus = 'running'
             this.progress = 0
             this.logs = []
+            this.wizardStep = 2
 
             try {
                 await axios.post('/api/audit/start', {
@@ -92,8 +166,6 @@ createApp({
             }
         },
         viewReport(report) {
-            // In a full SPA, we might load content here.
-            // For now, we just redirect or open new tab.
             window.open(`/outputs/${report.id}/Audit_Report.html`, '_blank')
         },
         selectAll() {
@@ -101,6 +173,15 @@ createApp({
         },
         deselectAll() {
             this.selectedTables = []
+        },
+        resetWizard() {
+            this.wizardStep = 0
+            this.configFile = null
+            this.dataFiles = []
+            this.auditStatus = 'idle'
+            this.progress = 0
+            this.logs = []
+            this.auditMessage = 'Ready to start.'
         }
     }
 }).mount('#app')

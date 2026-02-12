@@ -9,7 +9,25 @@ def check_links(child_df: pd.DataFrame, parent_df: pd.DataFrame, fk_column: str,
     """
     Verifies referential integrity between child and parent tables.
     """
-    # Ensure columns exist before check
+    # Guard: None or empty DataFrames
+    if child_df is None or not isinstance(child_df, pd.DataFrame):
+        return TestResult(
+            name=f"Foreign Key Check: {table_name}",
+            status=CheckStatus.FAIL,
+            message=f"Cannot run FK check — child DataFrame is None or invalid for table '{table_name}'.",
+        )
+    if parent_df is None or not isinstance(parent_df, pd.DataFrame):
+        return TestResult(
+            name=f"Foreign Key Check: {table_name}",
+            status=CheckStatus.FAIL,
+            message=f"Cannot run FK check — parent DataFrame is None or invalid for table '{table_name}'.",
+        )
+    if child_df.empty:
+        return TestResult(
+            name=f"Foreign Key Check: {table_name}",
+            status=CheckStatus.WARN,
+            message=f"Child DataFrame is empty for table '{table_name}' — FK check skipped.",
+        )
     if fk_column not in child_df.columns:
         return TestResult(
             name=f"Foreign Key check (Missing FK): {table_name}",

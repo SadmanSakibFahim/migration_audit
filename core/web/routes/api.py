@@ -1,10 +1,12 @@
-from fastapi import APIRouter, Request, BackgroundTasks
+from fastapi import APIRouter, Request, BackgroundTasks, UploadFile, File
 from fastapi.responses import JSONResponse, StreamingResponse
 from core.audit.logger import get_logger
 import asyncio
 import json
 import yaml
 import os
+import shutil
+from typing import List, Optional
 from datetime import datetime
 
 router = APIRouter(prefix="/api")
@@ -22,6 +24,42 @@ AUDIT_STATE = {
 
 def get_current_user(request: Request):
     return request.session.get("user")
+
+
+@router.post("/upload")
+async def upload_files(
+    request: Request,
+    config: Optional[UploadFile] = File(None),
+    data_files: Optional[List[UploadFile]] = File(None),
+):
+    """Upload config YAML and/or data CSV files via drag-and-drop or file picker."""
+    user = get_current_user(request)
+    if not user:
+        return JSONResponse({"error": "Unauthorized"}, status_code=401)
+
+    uploaded = {"config": None, "data_files": []}
+
+    # Save config YAML
+    if config and config.filename:
+        os.makedirs("config", exist_ok=True)
+        config_dest = os.path.join("config", "audit.yaml")
+        with open(config_dest, "wb") as f:
+            shutil.copyfileobj(config.file, f)
+        uploaded["config"] = config.filename
+        logger.info(f"Uploaded config: {config.filename} → {config_dest}")
+
+    # Save data CSV files
+    if data_files:
+        os.makedirs("data", exist_ok=True)
+        for df in data_files:
+            if df.filename:
+                dest = os.path.join("data", df.filename)
+                with open(dest, "wb") as f:
+                    shutil.copyfileobj(df.file, f)
+                uploaded["data_files"].append(df.filename)
+                logger.info(f"Uploaded data file: {df.filename} → {dest}")
+
+    return {"status": "ok", "uploaded": uploaded}
 
 @router.get("/config")
 async def get_config(request: Request):

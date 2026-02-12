@@ -7,6 +7,20 @@ import pandas as pd
 from typing import List
 
 def check_mappings(df: pd.DataFrame, columns: List[str], allowed_values: List[str], name: str) -> TestResult:
+    # Guard: None or empty DataFrame
+    if df is None or not isinstance(df, pd.DataFrame):
+        return TestResult(
+            name=f"Mapping Check: {name}",
+            status=CheckStatus.FAIL,
+            message=f"Cannot run mapping check — DataFrame is None or invalid for table '{name}'.",
+        )
+    if df.empty:
+        return TestResult(
+            name=f"Mapping Check: {name}",
+            status=CheckStatus.WARN,
+            message=f"DataFrame is empty for table '{name}' — mapping check skipped.",
+        )
+
     issues = []
     for column in columns:
         if column not in df.columns:
