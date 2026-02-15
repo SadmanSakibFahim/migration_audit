@@ -1,0 +1,621 @@
+{
+  "verdict": "NO-GO",
+  "summary": {
+    "pass": 33,
+    "warn": 8,
+    "fail": 33,
+    "error": 0
+  },
+  "timestamp": "2026-02-15T03:06:14.046121+00:00",
+  "total_checks": 74,
+  "checks": [
+    {
+      "name": "Volume Check: users",
+      "status": "FAIL",
+      "message": "Row count difference exceeds tolerance for table 'users'. Source: 102, Target: 100, Difference: 1.96%.",
+      "metrics": {
+        "src_rows": 102,
+        "tgt_rows": 100,
+        "difference": 2,
+        "tolerance": 0.1
+      }
+    },
+    {
+      "name": "Identity Check: users",
+      "status": "PASS",
+      "message": "Identity Overlap: 98.04% of source IDs found in target.",
+      "details": {
+        "overlap_pct": 98.0392156862745,
+        "common_rows": 100,
+        "src_null_pks": 0,
+        "tgt_null_pks": 0
+      }
+    },
+    {
+      "name": "Sum Check: users - age",
+      "status": "FAIL",
+      "message": "Sum difference exceeds tolerance for column 'age' in table 'users'. Source: 3634, Target: 3559, Difference: 2.06%.",
+      "details": {
+        "pct_difference": 2.0638414969730325
+      }
+    },
+    {
+      "name": "Average Check: users - age",
+      "status": "WARN",
+      "message": "Average difference within tolerance for column 'age' in table 'users'. Source: 35.627450980392155, Target: 35.59, Difference: 0.11%.",
+      "details": {
+        "pct_difference": 0.1051183269124773
+      }
+    },
+    {
+      "name": "Max Check: users - age",
+      "status": "PASS",
+      "message": "Max matches exactly for column 'age' in table 'users'. Source and Target both have max 41.",
+      "details": {
+        "pct_difference": 0.0
+      }
+    },
+    {
+      "name": "Min Check: users - age",
+      "status": "PASS",
+      "message": "Min matches exactly for column 'age' in table 'users'. Source and Target both have min 30.",
+      "details": {
+        "pct_difference": 0.0
+      }
+    },
+    {
+      "name": "Variance Check: users - age",
+      "status": "WARN",
+      "message": "Variance difference within tolerance for column 'age' in table 'users'. Source: 9.364783537177246, Target: 9.436262626262627, Difference: 0.76%.",
+      "details": {
+        "pct_difference": 0.7632754008847737
+      }
+    },
+    {
+      "name": "Sum Check: users - tenure_days",
+      "status": "PASS",
+      "message": "Sum matches exactly for column 'tenure_days' in table 'users'. Source and Target both have sum 89957.0.",
+      "details": {
+        "pct_difference": 0.0
+      }
+    },
+    {
+      "name": "Average Check: users - tenure_days",
+      "status": "PASS",
+      "message": "Average matches exactly for column 'tenure_days' in table 'users'. Source and Target both have average 1058.3176470588235.",
+      "details": {
+        "pct_difference": 0.0
+      }
+    },
+    {
+      "name": "Max Check: users - tenure_days",
+      "status": "PASS",
+      "message": "Max matches exactly for column 'tenure_days' in table 'users'. Source and Target both have max 2098.0.",
+      "details": {
+        "pct_difference": 0.0
+      }
+    },
+    {
+      "name": "Min Check: users - tenure_days",
+      "status": "PASS",
+      "message": "Min matches exactly for column 'tenure_days' in table 'users'. Source and Target both have min 7.0.",
+      "details": {
+        "pct_difference": 0.0
+      }
+    },
+    {
+      "name": "Variance Check: users - tenure_days",
+      "status": "PASS",
+      "message": "Variance matches exactly for column 'tenure_days' in table 'users'. Source and Target both have variance 378180.3383753501.",
+      "details": {
+        "pct_difference": 0.0
+      }
+    },
+    {
+      "name": "Mapping Check: users",
+      "status": "FAIL",
+      "message": "Mapping issues found in table 'users': Column 'status' in table 'users' has invalid values: [nan].",
+      "details": {
+        "issues": [
+          "Column 'status' in table 'users' has invalid values: [nan]."
+        ]
+      }
+    },
+    {
+      "name": "Mapping Check: users",
+      "status": "FAIL",
+      "message": "Mapping issues found in table 'users': Column 'country_code' in table 'users' has invalid values: [nan].",
+      "details": {
+        "issues": [
+          "Column 'country_code' in table 'users' has invalid values: [nan]."
+        ]
+      }
+    },
+    {
+      "name": "Data Constraints Check: users.first_name",
+      "status": "FAIL",
+      "message": "Data constraint issues found in table 'users': Column 'first_name' has 100 null values out of 100 rows.",
+      "details": {
+        "issues": [
+          "Column 'first_name' has 100 null values out of 100 rows."
+        ]
+      }
+    },
+    {
+      "name": "Data Constraints Check: users.last_name",
+      "status": "FAIL",
+      "message": "Data constraint issues found in table 'users': Column 'last_name' has 100 null values out of 100 rows.",
+      "details": {
+        "issues": [
+          "Column 'last_name' has 100 null values out of 100 rows."
+        ]
+      }
+    },
+    {
+      "name": "Data Constraints Check: users.email",
+      "status": "FAIL",
+      "message": "Data constraint issues found in table 'users': Column 'email' has 100 null values out of 100 rows.",
+      "details": {
+        "issues": [
+          "Column 'email' has 100 null values out of 100 rows."
+        ]
+      }
+    },
+    {
+      "name": "Data Constraints Check: users.date_of_birth",
+      "status": "FAIL",
+      "message": "Data constraint issues found in table 'users': Column 'date_of_birth' has 100 null values out of 100 rows.; Column 'date_of_birth' has 100 invalid date values out of 100 rows.",
+      "details": {
+        "issues": [
+          "Column 'date_of_birth' has 100 null values out of 100 rows.",
+          "Column 'date_of_birth' has 100 invalid date values out of 100 rows."
+        ]
+      }
+    },
+    {
+      "name": "Data Constraints Check: users.date_onboarded",
+      "status": "FAIL",
+      "message": "Data constraint issues found in table 'users': Column 'date_onboarded' has 100 null values out of 100 rows.; Column 'date_onboarded' has 100 invalid date values out of 100 rows.",
+      "details": {
+        "issues": [
+          "Column 'date_onboarded' has 100 null values out of 100 rows.",
+          "Column 'date_onboarded' has 100 invalid date values out of 100 rows."
+        ]
+      }
+    },
+    {
+      "name": "Volume Check: orders",
+      "status": "FAIL",
+      "message": "Row count difference exceeds tolerance for table 'orders'. Source: 102, Target: 100, Difference: 1.96%.",
+      "metrics": {
+        "src_rows": 102,
+        "tgt_rows": 100,
+        "difference": 2,
+        "tolerance": 0.1
+      }
+    },
+    {
+      "name": "Identity Check: orders",
+      "status": "PASS",
+      "message": "Identity Overlap: 98.04% of source IDs found in target.",
+      "details": {
+        "overlap_pct": 98.0392156862745,
+        "common_rows": 100,
+        "src_null_pks": 0,
+        "tgt_null_pks": 0
+      }
+    },
+    {
+      "name": "Sum Check: orders - amount",
+      "status": "FAIL",
+      "message": "Sum difference exceeds tolerance for column 'amount' in table 'orders'. Source: 20280.98, Target: 19875.98, Difference: 2.00%.",
+      "details": {
+        "pct_difference": 1.9969449208075745
+      }
+    },
+    {
+      "name": "Average Check: orders - amount",
+      "status": "WARN",
+      "message": "Average difference within tolerance for column 'amount' in table 'orders'. Source: 198.83313725490197, Target: 198.75979999999998, Difference: 0.04%.",
+      "details": {
+        "pct_difference": 0.03688381922373864
+      }
+    },
+    {
+      "name": "Max Check: orders - amount",
+      "status": "PASS",
+      "message": "Max matches exactly for column 'amount' in table 'orders'. Source and Target both have max 330.0.",
+      "details": {
+        "pct_difference": 0.0
+      }
+    },
+    {
+      "name": "Min Check: orders - amount",
+      "status": "PASS",
+      "message": "Min matches exactly for column 'amount' in table 'orders'. Source and Target both have min 50.0.",
+      "details": {
+        "pct_difference": 0.0
+      }
+    },
+    {
+      "name": "Variance Check: orders - amount",
+      "status": "FAIL",
+      "message": "Variance difference exceeds tolerance for column 'amount' in table 'orders'. Source: 6618.199209862164, Target: 6684.8302080404055, Difference: 1.01%.",
+      "details": {
+        "pct_difference": 1.006784414693211
+      }
+    },
+    {
+      "name": "Sum Check: orders - quantity",
+      "status": "FAIL",
+      "message": "Sum difference exceeds tolerance for column 'quantity' in table 'orders'. Source: 236, Target: 231, Difference: 2.12%.",
+      "details": {
+        "pct_difference": 2.11864406779661
+      }
+    },
+    {
+      "name": "Average Check: orders - quantity",
+      "status": "WARN",
+      "message": "Average difference within tolerance for column 'quantity' in table 'orders'. Source: 2.3137254901960786, Target: 2.31, Difference: 0.16%.",
+      "details": {
+        "pct_difference": 0.16101694915254947
+      }
+    },
+    {
+      "name": "Max Check: orders - quantity",
+      "status": "PASS",
+      "message": "Max matches exactly for column 'quantity' in table 'orders'. Source and Target both have max 5.",
+      "details": {
+        "pct_difference": 0.0
+      }
+    },
+    {
+      "name": "Min Check: orders - quantity",
+      "status": "PASS",
+      "message": "Min matches exactly for column 'quantity' in table 'orders'. Source and Target both have min 1.",
+      "details": {
+        "pct_difference": 0.0
+      }
+    },
+    {
+      "name": "Variance Check: orders - quantity",
+      "status": "FAIL",
+      "message": "Variance difference exceeds tolerance for column 'quantity' in table 'orders'. Source: 1.7025820229081736, Target: 1.7312121212121216, Difference: 1.68%.",
+      "details": {
+        "pct_difference": 1.681569399813412
+      }
+    },
+    {
+      "name": "Mapping Check: orders",
+      "status": "FAIL",
+      "message": "Mapping issues found in table 'orders': Column 'order_status' in table 'orders' has invalid values: [nan].",
+      "details": {
+        "issues": [
+          "Column 'order_status' in table 'orders' has invalid values: [nan]."
+        ]
+      }
+    },
+    {
+      "name": "Mapping Check: orders",
+      "status": "FAIL",
+      "message": "Mapping issues found in table 'orders': Column 'payment_method' in table 'orders' has invalid values: [nan].",
+      "details": {
+        "issues": [
+          "Column 'payment_method' in table 'orders' has invalid values: [nan]."
+        ]
+      }
+    },
+    {
+      "name": "Foreign Key Check: orders",
+      "status": "PASS",
+      "message": "All foreign key values in 'user_id' of child table 'orders' have matching primary keys in parent table."
+    },
+    {
+      "name": "Foreign Key check (Missing FK): orders",
+      "status": "FAIL",
+      "message": "Foreign key column 'order_id' not found in child table 'orders'."
+    },
+    {
+      "name": "Data Constraints Check: orders.order_date",
+      "status": "FAIL",
+      "message": "Data constraint issues found in table 'orders': Column 'order_date' has 100 null values out of 100 rows.; Column 'order_date' has 100 invalid date values out of 100 rows.",
+      "details": {
+        "issues": [
+          "Column 'order_date' has 100 null values out of 100 rows.",
+          "Column 'order_date' has 100 invalid date values out of 100 rows."
+        ]
+      }
+    },
+    {
+      "name": "Data Constraints Check: orders.amount",
+      "status": "PASS",
+      "message": "All data constraints are satisfied for table 'orders'."
+    },
+    {
+      "name": "Data Constraints Check: orders.user_id",
+      "status": "PASS",
+      "message": "All data constraints are satisfied for table 'orders'."
+    },
+    {
+      "name": "Volume Check: order_items",
+      "status": "FAIL",
+      "message": "Row count difference exceeds tolerance for table 'order_items'. Source: 102, Target: 100, Difference: 1.96%.",
+      "metrics": {
+        "src_rows": 102,
+        "tgt_rows": 100,
+        "difference": 2,
+        "tolerance": 0.1
+      }
+    },
+    {
+      "name": "Identity Check: order_items",
+      "status": "PASS",
+      "message": "Identity Overlap: 98.04% of source IDs found in target.",
+      "details": {
+        "overlap_pct": 98.0392156862745,
+        "common_rows": 100,
+        "src_null_pks": 0,
+        "tgt_null_pks": 0
+      }
+    },
+    {
+      "name": "Sum Check: order_items - price",
+      "status": "FAIL",
+      "message": "Sum difference exceeds tolerance for column 'price' in table 'order_items'. Source: 11173.05, Target: 10933.05, Difference: 2.15%.",
+      "details": {
+        "pct_difference": 2.148025830010606
+      }
+    },
+    {
+      "name": "Average Check: order_items - price",
+      "status": "WARN",
+      "message": "Average difference within tolerance for column 'price' in table 'order_items'. Source: 109.53970588235293, Target: 109.33049999999999, Difference: 0.19%.",
+      "details": {
+        "pct_difference": 0.19098634661082334
+      }
+    },
+    {
+      "name": "Max Check: order_items - price",
+      "status": "PASS",
+      "message": "Max matches exactly for column 'price' in table 'order_items'. Source and Target both have max 210.5.",
+      "details": {
+        "pct_difference": 0.0
+      }
+    },
+    {
+      "name": "Min Check: order_items - price",
+      "status": "PASS",
+      "message": "Min matches exactly for column 'price' in table 'order_items'. Source and Target both have min 50.0.",
+      "details": {
+        "pct_difference": 0.0
+      }
+    },
+    {
+      "name": "Variance Check: order_items - price",
+      "status": "WARN",
+      "message": "Variance difference within tolerance for column 'price' in table 'order_items'. Source: 816.7939771403611, Target: 818.413934090909, Difference: 0.20%.",
+      "details": {
+        "pct_difference": 0.19833115765856713
+      }
+    },
+    {
+      "name": "Sum Check: order_items - quantity",
+      "status": "FAIL",
+      "message": "Sum difference exceeds tolerance for column 'quantity' in table 'order_items'. Source: 170, Target: 174, Difference: 2.35%.",
+      "details": {
+        "pct_difference": 2.3529411764705883
+      }
+    },
+    {
+      "name": "Average Check: order_items - quantity",
+      "status": "FAIL",
+      "message": "Average difference exceeds tolerance for column 'quantity' in table 'order_items'. Source: 1.6666666666666667, Target: 1.74, Difference: 4.40%.",
+      "details": {
+        "pct_difference": 4.399999999999995
+      }
+    },
+    {
+      "name": "Max Check: order_items - quantity",
+      "status": "PASS",
+      "message": "Max matches exactly for column 'quantity' in table 'order_items'. Source and Target both have max 4.",
+      "details": {
+        "pct_difference": 0.0
+      }
+    },
+    {
+      "name": "Min Check: order_items - quantity",
+      "status": "WARN",
+      "message": "Source min for column 'quantity' in table 'order_items' is zero."
+    },
+    {
+      "name": "Variance Check: order_items - quantity",
+      "status": "FAIL",
+      "message": "Variance difference exceeds tolerance for column 'quantity' in table 'order_items'. Source: 0.5808580858085808, Target: 0.47717171717171736, Difference: 17.85%.",
+      "details": {
+        "pct_difference": 17.850550964187285
+      }
+    },
+    {
+      "name": "Mapping Check: order_items",
+      "status": "FAIL",
+      "message": "Mapping issues found in table 'order_items': Column 'fulfillment_status' in table 'order_items' has invalid values: [nan].",
+      "details": {
+        "issues": [
+          "Column 'fulfillment_status' in table 'order_items' has invalid values: [nan]."
+        ]
+      }
+    },
+    {
+      "name": "Foreign Key Check: order_items",
+      "status": "PASS",
+      "message": "All foreign key values in 'order_id' of child table 'order_items' have matching primary keys in parent table."
+    },
+    {
+      "name": "Foreign Key Check: order_items",
+      "status": "PASS",
+      "message": "All foreign key values in 'product_id' of child table 'order_items' have matching primary keys in parent table."
+    },
+    {
+      "name": "Data Constraints Check: order_items.order_id",
+      "status": "PASS",
+      "message": "All data constraints are satisfied for table 'order_items'."
+    },
+    {
+      "name": "Data Constraints Check: order_items.product_id",
+      "status": "PASS",
+      "message": "All data constraints are satisfied for table 'order_items'."
+    },
+    {
+      "name": "Data Constraints Check: order_items.quantity",
+      "status": "PASS",
+      "message": "All data constraints are satisfied for table 'order_items'."
+    },
+    {
+      "name": "Data Constraints Check: order_items.price",
+      "status": "PASS",
+      "message": "All data constraints are satisfied for table 'order_items'."
+    },
+    {
+      "name": "Volume Check: products",
+      "status": "FAIL",
+      "message": "Row count difference exceeds tolerance for table 'products'. Source: 102, Target: 100, Difference: 1.96%.",
+      "metrics": {
+        "src_rows": 102,
+        "tgt_rows": 100,
+        "difference": 2,
+        "tolerance": 0.1
+      }
+    },
+    {
+      "name": "Identity Check: products",
+      "status": "PASS",
+      "message": "Identity Overlap: 98.04% of source IDs found in target.",
+      "details": {
+        "overlap_pct": 98.0392156862745,
+        "common_rows": 100,
+        "src_null_pks": 0,
+        "tgt_null_pks": 0
+      }
+    },
+    {
+      "name": "Sum Check: products - price",
+      "status": "WARN",
+      "message": "Sum difference within tolerance for column 'price' in table 'products'. Source: 10867.98, Target: 10838.0, Difference: 0.28%.",
+      "details": {
+        "pct_difference": 0.2758562308727065
+      }
+    },
+    {
+      "name": "Average Check: products - price",
+      "status": "FAIL",
+      "message": "Average difference exceeds tolerance for column 'price' in table 'products'. Source: 106.54882352941176, Target: 108.38, Difference: 1.72%.",
+      "details": {
+        "pct_difference": 1.7186266445098328
+      }
+    },
+    {
+      "name": "Max Check: products - price",
+      "status": "PASS",
+      "message": "Max matches exactly for column 'price' in table 'products'. Source and Target both have max 999.99.",
+      "details": {
+        "pct_difference": 0.0
+      }
+    },
+    {
+      "name": "Min Check: products - price",
+      "status": "PASS",
+      "message": "Min matches exactly for column 'price' in table 'products'. Source and Target both have min 3.99.",
+      "details": {
+        "pct_difference": 0.0
+      }
+    },
+    {
+      "name": "Variance Check: products - price",
+      "status": "FAIL",
+      "message": "Variance difference exceeds tolerance for column 'price' in table 'products'. Source: 26291.31828771113, Target: 26649.21, Difference: 1.36%.",
+      "details": {
+        "pct_difference": 1.3612543440096476
+      }
+    },
+    {
+      "name": "Sum Check: products - stock_quantity",
+      "status": "FAIL",
+      "message": "Sum difference exceeds tolerance for column 'stock_quantity' in table 'products'. Source: 29735, Target: 27935, Difference: 6.05%.",
+      "details": {
+        "pct_difference": 6.053472338994451
+      }
+    },
+    {
+      "name": "Average Check: products - stock_quantity",
+      "status": "FAIL",
+      "message": "Average difference exceeds tolerance for column 'stock_quantity' in table 'products'. Source: 291.51960784313724, Target: 279.35, Difference: 4.17%.",
+      "details": {
+        "pct_difference": 4.174541785774326
+      }
+    },
+    {
+      "name": "Max Check: products - stock_quantity",
+      "status": "PASS",
+      "message": "Max matches exactly for column 'stock_quantity' in table 'products'. Source and Target both have max 2000.",
+      "details": {
+        "pct_difference": 0.0
+      }
+    },
+    {
+      "name": "Min Check: products - stock_quantity",
+      "status": "PASS",
+      "message": "Min matches exactly for column 'stock_quantity' in table 'products'. Source and Target both have min 25.",
+      "details": {
+        "pct_difference": 0.0
+      }
+    },
+    {
+      "name": "Variance Check: products - stock_quantity",
+      "status": "FAIL",
+      "message": "Variance difference exceeds tolerance for column 'stock_quantity' in table 'products'. Source: 86184.05406717143, Target: 78477.60353535356, Difference: 8.94%.",
+      "details": {
+        "pct_difference": 8.94185196464708
+      }
+    },
+    {
+      "name": "Mapping Check: products",
+      "status": "FAIL",
+      "message": "Mapping issues found in table 'products': Column 'category' in table 'products' has invalid values: [nan].",
+      "details": {
+        "issues": [
+          "Column 'category' in table 'products' has invalid values: [nan]."
+        ]
+      }
+    },
+    {
+      "name": "Mapping Check: products",
+      "status": "FAIL",
+      "message": "Mapping issues found in table 'products': Column 'status' in table 'products' has invalid values: [nan].",
+      "details": {
+        "issues": [
+          "Column 'status' in table 'products' has invalid values: [nan]."
+        ]
+      }
+    },
+    {
+      "name": "Data Constraints Check: products.product_name",
+      "status": "FAIL",
+      "message": "Data constraint issues found in table 'products': Column 'product_name' has 100 null values out of 100 rows.",
+      "details": {
+        "issues": [
+          "Column 'product_name' has 100 null values out of 100 rows."
+        ]
+      }
+    },
+    {
+      "name": "Data Constraints Check: products.price",
+      "status": "PASS",
+      "message": "All data constraints are satisfied for table 'products'."
+    },
+    {
+      "name": "Data Constraints Check: products.stock_quantity",
+      "status": "PASS",
+      "message": "All data constraints are satisfied for table 'products'."
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+name: "Migration Audit Gate"
+description: "Run migration validation audit and use the verdict as a deployment gate"
+author: "Migration Audit Team"
+
+branding:
+  icon: "shield"
+  color: "blue"
+
+inputs:
+  config-path:
+    description: "Path to audit YAML config file"
+    required: false
+    default: "config/audit.yaml"
+  client-name:
+    description: "Client name for the audit report"
+    required: false
+    default: "CI_Run"
+  migration-desc:
+    description: "Migration description (e.g. Source -> Target)"
+    required: false
+    default: "Source -> Target"
+  fail-on-warnings:
+    description: "Set to 'true' to also block deployments on GO WITH WARNINGS verdict"
+    required: false
+    default: "false"
+  python-version:
+    description: "Python version to use"
+    required: false
+    default: "3.11"
+
+outputs:
+  verdict:
+    description: "The audit verdict: GO, GO WITH WARNINGS, NO-GO, or ERROR"
+    value: ${{ steps.gate.outputs.verdict }}
+  report-path:
+    description: "Path to the generated audit report directory"
+    value: ${{ steps.gate.outputs.report_path }}
+  results-json:
+    description: "Path to the JSON results file"
+    value: ${{ steps.gate.outputs.results_json }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+        cache: "pip"
+
+    - name: Install system dependencies
+      shell: bash
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -y -qq libcairo2-dev > /dev/null 2>&1
+
+    - name: Install Python dependencies
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip -q
+        pip install -r requirements.txt -q
+
+    - name: Run Audit Gate
+      id: gate
+      shell: bash
+      env:
+        INPUT_CONFIG_PATH: ${{ inputs.config-path }}
+        INPUT_CLIENT_NAME: ${{ inputs.client-name }}
+        INPUT_MIGRATION_DESC: ${{ inputs.migration-desc }}
+        INPUT_FAIL_ON_WARNINGS: ${{ inputs.fail-on-warnings }}
+      run: bash scripts/audit_gate.sh

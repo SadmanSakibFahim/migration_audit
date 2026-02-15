@@ -1,56 +1,255 @@
-name: Migration Audit CI
+name: Migration Audit CI/CD
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  audit:
+  # ──────────────────────────────────────────────
+  # Job 1: Lint
+  # ──────────────────────────────────────────────
+  lint:
+    name: 🔍 Lint
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install linters
+        run: pip install flake8
+
+      - name: Run flake8
+        run: |
+          flake8 core/ cli.py run_audit.py \
+            --max-line-length=120 \
+            --exclude=__pycache__,*.pyc \
+            --count --statistics \
+            --ignore=E501,W503,E402
+
+  # ──────────────────────────────────────────────
+  # Job 2: Test (matrix)
+  # ──────────────────────────────────────────────
+  test:
+    name: 🧪 Test (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    needs: [lint]
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11"]
+      fail-fast: false
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
-        cache: 'pip'
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
 
-    - name: Install system dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y libcairo2-dev
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libcairo2-dev > /dev/null 2>&1
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
 
-    - name: Run unit tests
-      run: |
-        pip install pytest pytest-cov
-        pytest tests/ --doctest-modules --junitxml=test_outputs/junit.xml
+      - name: Run unit tests
+        run: |
+          pytest tests/ \
+            --junitxml=test_outputs/junit-${{ matrix.python-version }}.xml \
+            --cov=core \
+            --cov-report=term-missing \
+            -v --tb=short
 
-    - name: Run E2E Scenarios (Testing Grounds)
-      run: |
-        python audit_testing_grounds/runner.py --scenario all
-      continue-on-error: false
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-py${{ matrix.python-version }}
+          path: test_outputs/junit-*.xml
 
-    - name: Run Migration Audit (Dry Run/Sample)
-      run: |
-        # Ensure test_outputs directory exists
-        mkdir -p test_outputs
-        # Run audit in --test mode to automatically use timestamped subfolders in test_outputs
-        python cli.py run --config config/audit.yaml --client "CI_Run" --migration "Source -> Target" --log-level INFO --test
-      continue-on-error: false
+  # ──────────────────────────────────────────────
+  # Job 3: E2E Scenarios
+  # ──────────────────────────────────────────────
+  e2e:
+    name: 🔗 E2E Scenarios
+    runs-on: ubuntu-latest
+    needs: [lint]
 
-    - name: Upload CI/CD Artifacts
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: cicd-test-results
-        path: test_outputs/
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libcairo2-dev > /dev/null 2>&1
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run E2E Scenarios
+        run: python audit_testing_grounds/runner.py --scenario all
+
+  # ──────────────────────────────────────────────
+  # Job 4: Audit Gate
+  # ──────────────────────────────────────────────
+  audit-gate:
+    name: 🛡️ Audit Gate
+    runs-on: ubuntu-latest
+    needs: [test, e2e]
+    outputs:
+      verdict: ${{ steps.audit.outputs.verdict }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libcairo2-dev > /dev/null 2>&1
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Migration Audit Gate
+        id: audit
+        env:
+          INPUT_CONFIG_PATH: config/audit.yaml
+          INPUT_CLIENT_NAME: CI_Run
+          INPUT_MIGRATION_DESC: "Source -> Target"
+          INPUT_FAIL_ON_WARNINGS: "false"
+        run: bash scripts/audit_gate.sh
+
+      - name: Upload audit results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: audit-results
+          path: |
+            test_outputs/ci/
+            test_outputs/*_test/
+
+  # ──────────────────────────────────────────────
+  # Job 5: Docker Build & Smoke Test
+  # ──────────────────────────────────────────────
+  build-docker:
+    name: 🐳 Docker Build
+    runs-on: ubuntu-latest
+    needs: [test]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          load: true
+          tags: migration-audit:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Run Docker smoke test
+        run: |
+          docker run -d \
+            --name smoke-test \
+            -p 8001:8001 \
+            -e SECRET_KEY=ci-smoke-test \
+            migration-audit:ci
+
+          echo "Waiting for container to be ready..."
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:8001/ -o /dev/null 2>/dev/null; then
+              echo "✅ Container is responding (took ~${i}s)"
+              break
+            fi
+            if [ "$i" -eq 30 ]; then
+              echo "❌ Container did not become ready"
+              docker logs smoke-test --tail 30
+              exit 1
+            fi
+            sleep 1
+          done
+
+          # Test key endpoints
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8001/)
+          echo "GET / → ${HTTP_CODE}"
+          [[ "$HTTP_CODE" == "200" || "$HTTP_CODE" == "302" || "$HTTP_CODE" == "307" ]]
+
+      - name: Cleanup
+        if: always()
+        run: docker rm -f smoke-test 2>/dev/null || true
+
+  # ──────────────────────────────────────────────
+  # Job 6: Deploy Gate (final summary)
+  # ──────────────────────────────────────────────
+  deploy-gate:
+    name: 🚀 Deploy Gate
+    runs-on: ubuntu-latest
+    needs: [audit-gate, build-docker]
+    if: always()
+
+    steps:
+      - name: Check upstream results
+        run: |
+          echo "## 🚀 Deployment Gate Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          AUDIT_RESULT="${{ needs.audit-gate.result }}"
+          DOCKER_RESULT="${{ needs.build-docker.result }}"
+          VERDICT="${{ needs.audit-gate.outputs.verdict }}"
+
+          echo "| Check | Result |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Audit Gate | ${AUDIT_RESULT} (${VERDICT}) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Docker Build | ${DOCKER_RESULT} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [[ "$AUDIT_RESULT" == "success" && "$DOCKER_RESULT" == "success" ]]; then
+            echo "### ✅ All gates passed — ready for deployment" >> $GITHUB_STEP_SUMMARY
+            echo "All gates passed."
+          else
+            echo "### ❌ Deployment blocked" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            [[ "$AUDIT_RESULT" != "success" ]] && echo "- Audit gate: **${AUDIT_RESULT}** (${VERDICT})" >> $GITHUB_STEP_SUMMARY
+            [[ "$DOCKER_RESULT" != "success" ]] && echo "- Docker build: **${DOCKER_RESULT}**" >> $GITHUB_STEP_SUMMARY
+            echo "Deployment blocked."
+            exit 1
+          fi

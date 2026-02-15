@@ -55,11 +55,27 @@ def build_parser():
         help="Run in test mode (CI/CD). Saves results to timestamped subfolders in 'test_outputs' with a '_test' suffix."
     )
 
+    run_parser.add_argument(
+        "--ci",
+        action="store_true",
+        help="CI/CD gate mode. Implies --test. Writes JSON results to test_outputs and exits non-zero on NO-GO/ERROR verdict."
+    )
+
+    run_parser.add_argument(
+        "--fail-on-warnings",
+        action="store_true",
+        help="When used with --ci, also exit non-zero on GO WITH WARNINGS verdict."
+    )
+
     return parser
 
 def main():
     parser = build_parser()
     args = parser.parse_args()
+
+    # --ci implies --test (bypass auth, use test_outputs)
+    if hasattr(args, "ci") and args.ci:
+        args.test = True
 
     # 🔑 Set logging level globally BEFORE any logger is created
     import os
@@ -68,14 +84,14 @@ def main():
     if args.command == "run":
         from run_audit import run_audit
         from reports.report_builder import build_report
-        from core.audit.verdict import final_verdict
+        from core.audit.verdict import final_verdict, Verdict
         from core.audit.exceptions import AuditError
         from core.audit.logger import get_logger
 
         logger = get_logger(__name__)
 
         logger.info(f"Running audit with log level: {args.log_level}")
-        
+
         if args.ignore_invalid_rows:
             logger.info("Invalid row filtering enabled. Invalid rows will be excluded from audit.")
 
@@ -83,7 +99,7 @@ def main():
             results = run_audit(
                 config_path=args.config,
                 ignore_invalid_rows=args.ignore_invalid_rows,
-                no_auth=args.test # Bypass auth in CI/Test mode
+                no_auth=args.test  # Bypass auth in CI/Test mode
             )
         except AuditError as e:
             logger.error(f"Audit failed: {e}")
@@ -94,7 +110,7 @@ def main():
             "results": results,
             "output_path": args.out,
             "client": args.client,
-            "migration": args.migration
+            "migration": args.migration,
         }
 
         if args.test:
@@ -104,11 +120,45 @@ def main():
         build_report(**build_args)
 
         verdict = final_verdict(results)
-        from core.audit.verdict import Verdict
-        
-        # Always exit successfully - let users review the report and decide
+
+        # --- CI/CD gate mode ---
+        if hasattr(args, "ci") and args.ci:
+            from core.audit.ci_output import (
+                write_ci_report,
+                verdict_exit_code,
+            )
+
+            # Write JSON results next to the report
+            ci_output_dir = os.path.join("test_outputs", "ci")
+            os.makedirs(ci_output_dir, exist_ok=True)
+            json_path = os.path.join(ci_output_dir, "audit_result.json")
+            report = write_ci_report(results, json_path)
+
+            print(f"\n{'='*50}")
+            print(f"  CI/CD Audit Gate Result")
+            print(f"{'='*50}")
+            print(f"  Verdict : {report['verdict']}")
+            print(f"  Checks  : {report['total_checks']}")
+            print(f"  Pass={report['summary']['pass']}  "
+                  f"Warn={report['summary']['warn']}  "
+                  f"Fail={report['summary']['fail']}  "
+                  f"Error={report['summary']['error']}")
+            print(f"  Results : {json_path}")
+            print(f"{'='*50}\n")
+
+            fail_on_warnings = getattr(args, "fail_on_warnings", False)
+            exit_code = verdict_exit_code(verdict, fail_on_warnings)
+
+            if exit_code != 0:
+                print(f"❌ Deployment BLOCKED — verdict: {verdict}")
+            else:
+                print(f"✅ Deployment APPROVED — verdict: {verdict}")
+
+            exit(exit_code)
+
+        # --- Normal (non-CI) mode ---
         print(f"\nAudit complete. Final verdict: {verdict}\n")
-        
+
         if verdict in [Verdict.NO_GO, Verdict.ERROR]:
             print(f"⚠️  WARNING: Migration audit indicates issues. Please review the report carefully.\n")
 
