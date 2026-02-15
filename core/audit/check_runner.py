@@ -13,15 +13,19 @@ class CheckRunner:
         meta,
         src_df,
         tgt_df,
-        volume_tolerance=0.1,
-        aggregate_tolerance=1.0,
+        config=None,
     ):
         self.table_name = table_name
         self.meta = meta
         self.src_df = src_df
         self.tgt_df = tgt_df
-        self.volume_tolerance = volume_tolerance
-        self.aggregate_tolerance = aggregate_tolerance
+        self.config = config or {}
+        
+        # Extract configuration with defaults
+        self.volume_tolerance = self.config.get("volume_tolerance", 0.1)
+        self.aggregate_tolerance = self.config.get("aggregate_tolerance", 1.0)
+        self.identity_overlap_threshold = self.config.get("identity_overlap_threshold", 95)
+        
         self.results = []
 
     def _normalize_result(self, result):
@@ -49,19 +53,12 @@ class CheckRunner:
             )]
 
     def _validate_dataframes(self) -> bool:
-        """Validate source and target DataFrames before running checks.
-        
-        Returns True if DataFrames are valid enough to proceed.
-        Appends WARN results for edge cases but still returns True.
-        Returns False only if DataFrames are fundamentally broken.
-        """
+        """Validate source and target DataFrames before running checks."""
         # Check for None DataFrames
         if self.src_df is None or self.tgt_df is None:
             which = []
-            if self.src_df is None:
-                which.append("source")
-            if self.tgt_df is None:
-                which.append("target")
+            if self.src_df is None: which.append("source")
+            if self.tgt_df is None: which.append("target")
             self.results.append(TestResult(
                 name=f"DataFrame Validation: {self.table_name}",
                 status=CheckStatus.FAIL,
@@ -88,18 +85,8 @@ class CheckRunner:
 
         return True
 
-    def execute_all(self):
-        from core.audit.check_registry import CHECK_REGISTRY
-
-        # --- Validate DataFrames before running any checks ---
-        if not self._validate_dataframes():
-            logger.error(f"Aborting checks for '{self.table_name}' due to invalid DataFrames")
-            return self.results
-
-        # -----------------------------
-        # Volume checks
-        # -----------------------------
-        for fn in CHECK_REGISTRY.get("volume", []):
+    def _run_volume_checks(self, check_registry):
+        for fn in check_registry.get("volume", []):
             self.results.extend(self._safe_run(
                 "Volume Check", fn,
                 self.table_name,
@@ -108,53 +95,50 @@ class CheckRunner:
                 self.volume_tolerance,
             ))
 
-        # -----------------------------
-        # Identity Checks (PK Overlap)
-        # -----------------------------
+    def _run_identity_checks(self):
         pk = getattr(self.meta, "primary_key", None)
-        if pk and pk in self.src_df.columns and pk in self.tgt_df.columns:
-            try:
-                src_ids = set(self.src_df[pk].dropna().unique())
-                tgt_ids = set(self.tgt_df[pk].dropna().unique())
-                
-                overlap = src_ids.intersection(tgt_ids)
-                overlap_pct = (len(overlap) / len(src_ids) * 100) if src_ids else 0
-                
-                # We expect high overlap in a migration
-                status = CheckStatus.PASS if overlap_pct >= 95 else (CheckStatus.WARN if overlap_pct > 0 else CheckStatus.FAIL)
-                
-                message = f"Identity Overlap: {overlap_pct:.2f}% of source IDs found in target."
-                if overlap_pct == 0:
-                    message = "CRITICAL: 0% overlap detected! Source and Target share NO Primary Keys."
+        if not (pk and pk in self.src_df.columns and pk in self.tgt_df.columns):
+            return
 
-                # Note NULL PKs as a separate warning
-                src_null_pks = self.src_df[pk].isnull().sum()
-                tgt_null_pks = self.tgt_df[pk].isnull().sum()
-                if src_null_pks > 0 or tgt_null_pks > 0:
-                    message += f" (NULL PK values: source={src_null_pks}, target={tgt_null_pks})"
-                    
-                self.results.append(TestResult(
-                    name=f"Identity Check: {self.table_name}",
-                    status=status,
-                    message=message,
-                    details={
-                        "overlap_pct": overlap_pct,
-                        "common_rows": len(overlap),
-                        "src_null_pks": int(src_null_pks),
-                        "tgt_null_pks": int(tgt_null_pks),
-                    }
-                ))
-            except Exception as e:
-                logger.error(f"Identity check failed for '{self.table_name}': {e}", exc_info=True)
-                self.results.append(TestResult(
-                    name=f"Identity Check (ERROR): {self.table_name}",
-                    status=CheckStatus.ERROR,
-                    message=f"Identity check crashed: {type(e).__name__}: {e}",
-                ))
+        try:
+            src_ids = set(self.src_df[pk].dropna().unique())
+            tgt_ids = set(self.tgt_df[pk].dropna().unique())
+            
+            overlap = src_ids.intersection(tgt_ids)
+            overlap_pct = (len(overlap) / len(src_ids) * 100) if src_ids else 0
+            
+            status = CheckStatus.PASS if overlap_pct >= self.identity_overlap_threshold else (CheckStatus.WARN if overlap_pct > 0 else CheckStatus.FAIL)
+            
+            message = f"Identity Overlap: {overlap_pct:.2f}% of source IDs found in target."
+            if overlap_pct == 0:
+                message = "CRITICAL: 0% overlap detected! Source and Target share NO Primary Keys."
 
-        # -----------------------------
-        # Aggregate checks
-        # -----------------------------
+            # Note NULL PKs as a separate warning
+            src_null_pks = self.src_df[pk].isnull().sum()
+            tgt_null_pks = self.tgt_df[pk].isnull().sum()
+            if src_null_pks > 0 or tgt_null_pks > 0:
+                message += f" (NULL PK values: source={src_null_pks}, target={tgt_null_pks})"
+                
+            self.results.append(TestResult(
+                name=f"Identity Check: {self.table_name}",
+                status=status,
+                message=message,
+                details={
+                    "overlap_pct": overlap_pct,
+                    "common_rows": len(overlap),
+                    "src_null_pks": int(src_null_pks),
+                    "tgt_null_pks": int(tgt_null_pks),
+                }
+            ))
+        except Exception as e:
+            logger.error(f"Identity check failed for '{self.table_name}': {e}", exc_info=True)
+            self.results.append(TestResult(
+                name=f"Identity Check (ERROR): {self.table_name}",
+                status=CheckStatus.ERROR,
+                message=f"Identity check crashed: {type(e).__name__}: {e}",
+            ))
+
+    def _run_aggregate_checks(self, check_registry):
         for col in getattr(self.meta, "aggregates", []):
             try:
                 # Handle column mapping for complex mappings
@@ -197,7 +181,7 @@ class CheckRunner:
                         details={"junk_rows": junk_count, "sample_values": sample_values}
                     ))
 
-                for fn in CHECK_REGISTRY.get("aggregates", []):
+                for fn in check_registry.get("aggregates", []):
                     results = self._safe_run(
                         f"Aggregate Check ({col})", fn,
                         self.src_df,
@@ -221,11 +205,9 @@ class CheckRunner:
                     message=f"Aggregate check crashed for column '{col}': {type(e).__name__}: {e}",
                 ))
 
-        # -----------------------------
-        # Mapping checks
-        # -----------------------------
+    def _run_mapping_checks(self, check_registry):
         for mapping in getattr(self.meta, "mappings", []):
-            for fn in CHECK_REGISTRY.get("mappings", []):
+            for fn in check_registry.get("mappings", []):
                 self.results.extend(self._safe_run(
                     "Mapping Check", fn,
                     self.tgt_df,
@@ -234,11 +216,9 @@ class CheckRunner:
                     self.table_name,
                 ))
 
-        # -----------------------------
-        # Relationship checks
-        # -----------------------------
+    def _run_relationship_checks(self, check_registry):
         for rel in getattr(self.meta, "relationships", []):
-            for fn in CHECK_REGISTRY.get("relationships", []):
+            for fn in check_registry.get("relationships", []):
                 self.results.extend(self._safe_run(
                     "Relationship Check", fn,
                     self.tgt_df,          # child_df
@@ -248,9 +228,7 @@ class CheckRunner:
                     self.table_name,
                 ))
 
-        # -----------------------------
-        # Data constraint checks
-        # -----------------------------
+    def _run_data_constraint_checks(self):
         from checks.data_constraints import check_data_constraints
         for col, constraints in getattr(self.meta, "data_constraints", {}).items():
             if isinstance(constraints, str):
@@ -260,5 +238,20 @@ class CheckRunner:
                 check_data_constraints,
                 self.tgt_df, {col: constraints}, self.table_name,
             ))
+
+    def execute_all(self):
+        from core.audit.check_registry import CHECK_REGISTRY
+
+        # --- Validate DataFrames before running any checks ---
+        if not self._validate_dataframes():
+            logger.error(f"Aborting checks for '{self.table_name}' due to invalid DataFrames")
+            return self.results
+
+        self._run_volume_checks(CHECK_REGISTRY)
+        self._run_identity_checks()
+        self._run_aggregate_checks(CHECK_REGISTRY)
+        self._run_mapping_checks(CHECK_REGISTRY)
+        self._run_relationship_checks(CHECK_REGISTRY)
+        self._run_data_constraint_checks()
 
         return self.results

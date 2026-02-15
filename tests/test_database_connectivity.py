@@ -27,15 +27,25 @@ class TestConnectionPool:
     
     def setup_method(self):
         """Reset singleton before each test."""
+        # Reset the class-level singleton
         if DatabaseConnectionPool._instance:
             DatabaseConnectionPool._instance.close_all()
             DatabaseConnectionPool._instance = None
+        
+        # Reset the module-level global variable
+        from core.db import connection_pool
+        connection_pool._pool_instance = None
     
     def teardown_method(self):
         """Clean up after test."""
+        # Reset the class-level singleton
         if DatabaseConnectionPool._instance:
             DatabaseConnectionPool._instance.close_all()
             DatabaseConnectionPool._instance = None
+
+        # Reset the module-level global variable
+        from core.db import connection_pool
+        connection_pool._pool_instance = None
     
     def test_singleton_pattern(self):
         """Test that connection pool uses singleton pattern."""
