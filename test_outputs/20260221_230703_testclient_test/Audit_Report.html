@@ -1,0 +1,872 @@
+
+    <html>
+    <head>
+        <style>
+            @page {
+                size: A4;
+                margin: 2cm;
+                margin-bottom: 2.5cm;
+                @frame footer_frame {
+                    -pdf-frame-content: footerContent;
+                    bottom: 1cm;
+                    margin-left: 2cm;
+                    margin-right: 2cm;
+                    height: 1cm;
+                }
+            }
+            
+            body { 
+                font-family: Helvetica, Arial, sans-serif; 
+                color: #2c3e50;
+                line-height: 1.5;
+            }
+            
+            /* Footer Content (Hidden from normal flow, used by frame) */
+            #footerContent {
+                font-family: Helvetica, Arial, sans-serif;
+                font-size: 9pt;
+                color: #7f8c8d;
+                text-align: center;
+                border-top: 1px solid #ecf0f1;
+                padding-top: 5px;
+            }
+            
+            /* Header Section (Table used for layout) */
+            .header-table {
+                width: 100%;
+                border-bottom: 3px solid #FF7F50; /* Coral brand color */
+                padding-bottom: 20px;
+                margin-bottom: 30px;
+            }
+            .header-info { text-align: left; vertical-align: bottom; }
+            .header-logo { text-align: right; vertical-align: bottom; }
+            .logo { max-height: 60px; }
+            
+            h1 { 
+                color: #2c3e50; 
+                font-size: 24pt; 
+                margin: 0; padding: 0; 
+            }
+            
+            h2 { 
+                color: #34495e; 
+                border-bottom: 2px solid #FF7F50; 
+                padding-bottom: 5px; 
+                margin-top: 30px;
+                font-size: 16pt;
+            }
+
+            .meta-info { font-size: 10pt; color: #7f8c8d; }
+            
+            /* Verdict Styles */
+            .verdict-box {
+                background-color: #f8f9fa;
+                border: 1px solid #bdc3c7;
+                padding: 15px;
+                border-radius: 5px;
+                margin-bottom: 20px;
+                font-size: 14pt;
+                text-align: center;
+            }
+            
+            .verdict-PASS { color: #27ae60; font-weight: bold; }
+            .verdict-WARN { color: #e67e22; font-weight: bold; }
+            .verdict-FAIL { color: #c0392b; font-weight: bold; }
+            
+            /* Section Summary */
+            .summary-table { width: 100%; margin-bottom: 20px; }
+            .summary-row td { padding: 5px; border-bottom: 1px solid #ecf0f1; }
+            
+            /* Detailed Tables */
+            .detail-table { 
+                width: 100%; 
+                border-collapse: collapse; 
+                margin-top: 10px; 
+                font-size: 10pt;
+            }
+            .detail-table th { 
+                background-color: #ecf0f1; 
+                color: #2c3e50; 
+                padding: 8px; 
+                text-align: left; 
+                border-bottom: 2px solid #bdc3c7;
+            }
+            .detail-table td { 
+                border-bottom: 1px solid #ecf0f1; 
+                padding: 8px; 
+                vertical-align: top;
+            }
+            
+            /* Status Badges */
+            .status-badge {
+                display: inline-block;
+                padding: 2px 6px;
+                border-radius: 4px;
+                color: white;
+                font-size: 8pt;
+                font-weight: bold;
+                text-align: center;
+                min-width: 50px;
+            }
+            .bg-PASS { background-color: #27ae60; }
+            .bg-WARN { background-color: #f39c12; }
+            .bg-FAIL { background-color: #e74c3c; }
+            .bg-ERROR { background-color: #c0392b; }
+            
+            .footer-note {
+                color: #bdc3c7;
+                font-size: 8pt;
+                text-align: center;
+                margin-top: 40px;
+                border-top: 1px solid #ecf0f1;
+                padding-top: 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <!-- Header -->
+        <table class="header-table">
+            <tr>
+                <td class="header-info">
+                    <h1>Migration Validation & Risk Audit</h1>
+                    <div class="meta-info">
+                        <strong>Client:</strong> TestClient<br/>
+                        <strong>Migration:</strong> TestMig<br/>
+                        <strong>Date:</strong> 2026-02-21<br/>
+                        <strong>Auditor:</strong> Independent Migration Audit
+                    </div>
+                </td>
+                <td class="header-logo">
+                    
+                </td>
+            </tr>
+        </table>
+
+        <!-- Executive Summary -->
+        <h2>Executive Summary</h2>
+        <div class="verdict-box">
+            Final Verdict: <span class="verdict-GO">GO</span>
+        </div>
+        
+        <table class="summary-table">
+    
+            <tr class="summary-row">
+                <td><strong>Data Volume Checks</strong></td>
+                <td style="text-align: right;"><span class="verdict-PASS">PASS</span></td>
+            </tr>
+        
+            <tr class="summary-row">
+                <td><strong>Aggregate Checks</strong></td>
+                <td style="text-align: right;"><span class="verdict-PASS">PASS</span></td>
+            </tr>
+        
+            <tr class="summary-row">
+                <td><strong>Mapping Checks</strong></td>
+                <td style="text-align: right;"><span class="verdict-PASS">PASS</span></td>
+            </tr>
+        
+            <tr class="summary-row">
+                <td><strong>Data Constraint Checks</strong></td>
+                <td style="text-align: right;"><span class="verdict-PASS">PASS</span></td>
+            </tr>
+        
+            <tr class="summary-row">
+                <td><strong>Relationship Checks</strong></td>
+                <td style="text-align: right;"><span class="verdict-PASS">PASS</span></td>
+            </tr>
+        
+        </table>
+    
+        <div class="section-block">
+            <h2>Data Volume Checks</h2>
+            <table class="detail-table">
+                <tr>
+                    <th width="30%">Check Name</th>
+                    <th width="15%">Status</th>
+                    <th width="55%">Details</th>
+                </tr>
+        
+                <tr>
+                    <td>Volume Check: users</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Row counts match exactly for table 'users'. Source: 50, Target: 50 rows.
+                        
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Volume Check: orders</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Row counts match exactly for table 'orders'. Source: 80, Target: 80 rows.
+                        
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Volume Check: order_items</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Row counts match exactly for table 'order_items'. Source: 120, Target: 120 rows.
+                        
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Volume Check: products</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Row counts match exactly for table 'products'. Source: 30, Target: 30 rows.
+                        
+                    </td>
+                </tr>
+            
+            </table>
+        </div>
+        
+        <div class="section-block">
+            <h2>Aggregate Checks</h2>
+            <table class="detail-table">
+                <tr>
+                    <th width="30%">Check Name</th>
+                    <th width="15%">Status</th>
+                    <th width="55%">Details</th>
+                </tr>
+        
+                <tr>
+                    <td>Sum Check: users - age</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Sum matches exactly for column 'age' in table 'users'. Source and Target both have sum 1959.
+                        <br/><small style="color:#7f8c8d">{'pct_difference': np.float64(0.0)}</small>
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Average Check: users - age</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Average matches exactly for column 'age' in table 'users'. Source and Target both have average 39.18.
+                        <br/><small style="color:#7f8c8d">{'pct_difference': np.float64(0.0)}</small>
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Max Check: users - age</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Max matches exactly for column 'age' in table 'users'. Source and Target both have max 55.
+                        <br/><small style="color:#7f8c8d">{'pct_difference': np.float64(0.0)}</small>
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Min Check: users - age</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Min matches exactly for column 'age' in table 'users'. Source and Target both have min 25.
+                        <br/><small style="color:#7f8c8d">{'pct_difference': np.float64(0.0)}</small>
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Variance Check: users - age</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Variance matches exactly for column 'age' in table 'users'. Source and Target both have variance 96.885306122449.
+                        <br/><small style="color:#7f8c8d">{'pct_difference': np.float64(0.0)}</small>
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Sum Check: users - tenure_days</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Sum matches exactly for column 'tenure_days' in table 'users'. Source and Target both have sum 53368.
+                        <br/><small style="color:#7f8c8d">{'pct_difference': np.float64(0.0)}</small>
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Average Check: users - tenure_days</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Average matches exactly for column 'tenure_days' in table 'users'. Source and Target both have average 1067.36.
+                        <br/><small style="color:#7f8c8d">{'pct_difference': np.float64(0.0)}</small>
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Max Check: users - tenure_days</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Max matches exactly for column 'tenure_days' in table 'users'. Source and Target both have max 1972.
+                        <br/><small style="color:#7f8c8d">{'pct_difference': np.float64(0.0)}</small>
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Min Check: users - tenure_days</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Min matches exactly for column 'tenure_days' in table 'users'. Source and Target both have min 166.
+                        <br/><small style="color:#7f8c8d">{'pct_difference': np.float64(0.0)}</small>
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Variance Check: users - tenure_days</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Variance matches exactly for column 'tenure_days' in table 'users'. Source and Target both have variance 309923.37795918365.
+                        <br/><small style="color:#7f8c8d">{'pct_difference': np.float64(0.0)}</small>
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Sum Check: orders - amount</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Sum matches exactly for column 'amount' in table 'orders'. Source and Target both have sum 83775.83000000002.
+                        <br/><small style="color:#7f8c8d">{'pct_difference': np.float64(0.0)}</small>
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Average Check: orders - amount</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Average matches exactly for column 'amount' in table 'orders'. Source and Target both have average 1047.1978750000003.
+                        <br/><small style="color:#7f8c8d">{'pct_difference': np.float64(0.0)}</small>
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Max Check: orders - amount</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Max matches exactly for column 'amount' in table 'orders'. Source and Target both have max 1992.23.
+                        <br/><small style="color:#7f8c8d">{'pct_difference': np.float64(0.0)}</small>
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Min Check: orders - amount</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Min matches exactly for column 'amount' in table 'orders'. Source and Target both have min 57.09.
+                        <br/><small style="color:#7f8c8d">{'pct_difference': np.float64(0.0)}</small>
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Variance Check: orders - amount</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Variance matches exactly for column 'amount' in table 'orders'. Source and Target both have variance 278405.6154928956.
+                        <br/><small style="color:#7f8c8d">{'pct_difference': np.float64(0.0)}</small>
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Sum Check: orders - quantity</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Sum matches exactly for column 'quantity' in table 'orders'. Source and Target both have sum 449.
+                        <br/><small style="color:#7f8c8d">{'pct_difference': np.float64(0.0)}</small>
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Average Check: orders - quantity</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Average matches exactly for column 'quantity' in table 'orders'. Source and Target both have average 5.6125.
+                        <br/><small style="color:#7f8c8d">{'pct_difference': np.float64(0.0)}</small>
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Max Check: orders - quantity</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Max matches exactly for column 'quantity' in table 'orders'. Source and Target both have max 10.
+                        <br/><small style="color:#7f8c8d">{'pct_difference': np.float64(0.0)}</small>
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Min Check: orders - quantity</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Min matches exactly for column 'quantity' in table 'orders'. Source and Target both have min 1.
+                        <br/><small style="color:#7f8c8d">{'pct_difference': np.float64(0.0)}</small>
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Variance Check: orders - quantity</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Variance matches exactly for column 'quantity' in table 'orders'. Source and Target both have variance 7.784651898734177.
+                        <br/><small style="color:#7f8c8d">{'pct_difference': np.float64(0.0)}</small>
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Sum Check: order_items - price</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Sum matches exactly for column 'price' in table 'order_items'. Source and Target both have sum 28328.28.
+                        <br/><small style="color:#7f8c8d">{'pct_difference': np.float64(0.0)}</small>
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Average Check: order_items - price</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Average matches exactly for column 'price' in table 'order_items'. Source and Target both have average 236.069.
+                        <br/><small style="color:#7f8c8d">{'pct_difference': np.float64(0.0)}</small>
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Max Check: order_items - price</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Max matches exactly for column 'price' in table 'order_items'. Source and Target both have max 493.89.
+                        <br/><small style="color:#7f8c8d">{'pct_difference': np.float64(0.0)}</small>
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Min Check: order_items - price</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Min matches exactly for column 'price' in table 'order_items'. Source and Target both have min 6.32.
+                        <br/><small style="color:#7f8c8d">{'pct_difference': np.float64(0.0)}</small>
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Variance Check: order_items - price</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Variance matches exactly for column 'price' in table 'order_items'. Source and Target both have variance 20123.940056134452.
+                        <br/><small style="color:#7f8c8d">{'pct_difference': np.float64(0.0)}</small>
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Sum Check: order_items - quantity</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Sum matches exactly for column 'quantity' in table 'order_items'. Source and Target both have sum 361.
+                        <br/><small style="color:#7f8c8d">{'pct_difference': np.float64(0.0)}</small>
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Average Check: order_items - quantity</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Average matches exactly for column 'quantity' in table 'order_items'. Source and Target both have average 3.0083333333333333.
+                        <br/><small style="color:#7f8c8d">{'pct_difference': np.float64(0.0)}</small>
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Max Check: order_items - quantity</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Max matches exactly for column 'quantity' in table 'order_items'. Source and Target both have max 5.
+                        <br/><small style="color:#7f8c8d">{'pct_difference': np.float64(0.0)}</small>
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Min Check: order_items - quantity</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Min matches exactly for column 'quantity' in table 'order_items'. Source and Target both have min 1.
+                        <br/><small style="color:#7f8c8d">{'pct_difference': np.float64(0.0)}</small>
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Variance Check: order_items - quantity</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Variance matches exactly for column 'quantity' in table 'order_items'. Source and Target both have variance 1.8570728291316525.
+                        <br/><small style="color:#7f8c8d">{'pct_difference': np.float64(0.0)}</small>
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Sum Check: products - price</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Sum matches exactly for column 'price' in table 'products'. Source and Target both have sum 12119.300000000001.
+                        <br/><small style="color:#7f8c8d">{'pct_difference': np.float64(0.0)}</small>
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Average Check: products - price</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Average matches exactly for column 'price' in table 'products'. Source and Target both have average 403.9766666666667.
+                        <br/><small style="color:#7f8c8d">{'pct_difference': np.float64(0.0)}</small>
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Max Check: products - price</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Max matches exactly for column 'price' in table 'products'. Source and Target both have max 968.18.
+                        <br/><small style="color:#7f8c8d">{'pct_difference': np.float64(0.0)}</small>
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Min Check: products - price</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Min matches exactly for column 'price' in table 'products'. Source and Target both have min 55.28.
+                        <br/><small style="color:#7f8c8d">{'pct_difference': np.float64(0.0)}</small>
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Variance Check: products - price</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Variance matches exactly for column 'price' in table 'products'. Source and Target both have variance 97809.61317471262.
+                        <br/><small style="color:#7f8c8d">{'pct_difference': np.float64(0.0)}</small>
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Sum Check: products - stock_quantity</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Sum matches exactly for column 'stock_quantity' in table 'products'. Source and Target both have sum 7410.
+                        <br/><small style="color:#7f8c8d">{'pct_difference': np.float64(0.0)}</small>
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Average Check: products - stock_quantity</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Average matches exactly for column 'stock_quantity' in table 'products'. Source and Target both have average 247.0.
+                        <br/><small style="color:#7f8c8d">{'pct_difference': np.float64(0.0)}</small>
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Max Check: products - stock_quantity</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Max matches exactly for column 'stock_quantity' in table 'products'. Source and Target both have max 496.
+                        <br/><small style="color:#7f8c8d">{'pct_difference': np.float64(0.0)}</small>
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Min Check: products - stock_quantity</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Min matches exactly for column 'stock_quantity' in table 'products'. Source and Target both have min 17.
+                        <br/><small style="color:#7f8c8d">{'pct_difference': np.float64(0.0)}</small>
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Variance Check: products - stock_quantity</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        Variance matches exactly for column 'stock_quantity' in table 'products'. Source and Target both have variance 24260.96551724138.
+                        <br/><small style="color:#7f8c8d">{'pct_difference': np.float64(0.0)}</small>
+                    </td>
+                </tr>
+            
+            </table>
+        </div>
+        
+        <div class="section-block">
+            <h2>Mapping Checks</h2>
+            <table class="detail-table">
+                <tr>
+                    <th width="30%">Check Name</th>
+                    <th width="15%">Status</th>
+                    <th width="55%">Details</th>
+                </tr>
+        
+                <tr>
+                    <td>Mapping Check: users</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        All mappings are valid for table 'users'.
+                        
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Mapping Check: users</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        All mappings are valid for table 'users'.
+                        
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Mapping Check: orders</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        All mappings are valid for table 'orders'.
+                        
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Mapping Check: orders</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        All mappings are valid for table 'orders'.
+                        
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Mapping Check: order_items</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        All mappings are valid for table 'order_items'.
+                        
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Mapping Check: products</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        All mappings are valid for table 'products'.
+                        
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Mapping Check: products</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        All mappings are valid for table 'products'.
+                        
+                    </td>
+                </tr>
+            
+            </table>
+        </div>
+        
+        <div class="section-block">
+            <h2>Data Constraint Checks</h2>
+            <table class="detail-table">
+                <tr>
+                    <th width="30%">Check Name</th>
+                    <th width="15%">Status</th>
+                    <th width="55%">Details</th>
+                </tr>
+        
+                <tr>
+                    <td>Data Constraints Check: users.first_name</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        All data constraints are satisfied for table 'users'.
+                        
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Data Constraints Check: users.last_name</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        All data constraints are satisfied for table 'users'.
+                        
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Data Constraints Check: users.email</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        All data constraints are satisfied for table 'users'.
+                        
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Data Constraints Check: users.date_of_birth</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        All data constraints are satisfied for table 'users'.
+                        
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Data Constraints Check: users.date_onboarded</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        All data constraints are satisfied for table 'users'.
+                        
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Data Constraints Check: orders.order_date</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        All data constraints are satisfied for table 'orders'.
+                        
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Data Constraints Check: orders.amount</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        All data constraints are satisfied for table 'orders'.
+                        
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Data Constraints Check: orders.user_id</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        All data constraints are satisfied for table 'orders'.
+                        
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Data Constraints Check: order_items.order_id</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        All data constraints are satisfied for table 'order_items'.
+                        
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Data Constraints Check: order_items.product_id</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        All data constraints are satisfied for table 'order_items'.
+                        
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Data Constraints Check: order_items.quantity</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        All data constraints are satisfied for table 'order_items'.
+                        
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Data Constraints Check: order_items.price</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        All data constraints are satisfied for table 'order_items'.
+                        
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Data Constraints Check: products.product_name</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        All data constraints are satisfied for table 'products'.
+                        
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Data Constraints Check: products.price</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        All data constraints are satisfied for table 'products'.
+                        
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Data Constraints Check: products.stock_quantity</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        All data constraints are satisfied for table 'products'.
+                        
+                    </td>
+                </tr>
+            
+            </table>
+        </div>
+        
+        <div class="section-block">
+            <h2>Relationship Checks</h2>
+            <table class="detail-table">
+                <tr>
+                    <th width="30%">Check Name</th>
+                    <th width="15%">Status</th>
+                    <th width="55%">Details</th>
+                </tr>
+        
+                <tr>
+                    <td>Foreign Key Check: orders</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        All foreign key values in 'user_id' of child table 'orders' have matching primary keys in parent table.
+                        
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Foreign Key Check: order_items</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        All foreign key values in 'order_id' of child table 'order_items' have matching primary keys in parent table.
+                        
+                    </td>
+                </tr>
+            
+                <tr>
+                    <td>Foreign Key Check: order_items</td>
+                    <td><span class="status-badge bg-PASS">PASS</span></td>
+                    <td>
+                        All foreign key values in 'product_id' of child table 'order_items' have matching primary keys in parent table.
+                        
+                    </td>
+                </tr>
+            
+            </table>
+        </div>
+        
+        <div style="page-break-before: always;"></div>
+        <h2>Final Deployability Verdict</h2>
+        <div class="verdict-box">
+             <span class="verdict-GO">GO</span>
+        </div>
+        
+        <div id="footerContent">
+            Automatically generated by Coral &nbsp;|&nbsp; Page <pdf:pagenumber> of <pdf:pagecount>
+        </div>
+    </body>
+    </html>
+    

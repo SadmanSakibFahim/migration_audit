@@ -50,11 +50,11 @@ class TestAuditGateScript:
         shutil.rmtree(self.temp_dir)
 
     def test_script_execution_pass(self):
-        """Test script runs and passes (exit 0) on default sample data (which fails actually).
+        """Test script runs and passes (exit 0) on clean sample data.
         
-        Wait, the default sample data FAILS (NO-GO). So expect exit 1.
+        The sample data has identical source/target with valid FKs and mappings,
+        so the audit should produce a GO verdict.
         """
-        # The default sample data creates a NO-GO verdict.
         result = subprocess.run(
             [SCRIPT_PATH],
             cwd=PROJECT_ROOT,
@@ -63,21 +63,21 @@ class TestAuditGateScript:
             text=True
         )
         
-        assert result.returncode == 1
-        assert "Verdict : NO-GO" in result.stdout
+        assert result.returncode == 0
+        assert "Verdict : GO" in result.stdout
 
         # Check GitHub Output
         with open(self.github_output) as f:
             content = f.read()
-            assert "verdict=NO-GO" in content
+            assert "verdict=GO" in content
             assert "results_json=" in content
 
         # Check Step Summary
         with open(self.github_step_summary) as f:
             content = f.read()
             assert "## 🔍 Migration Audit Gate" in content
-            assert "### ❌ Verdict: NO-GO" in content
-            assert "| ❌ Fail | 33 |" in content
+            assert "### ✅ Verdict: GO" in content
+            assert "| ❌ Fail | 0 |" in content
 
     def test_fail_on_warnings_flag(self):
         """Test INPUT_FAIL_ON_WARNINGS passed to CLI."""
@@ -93,4 +93,4 @@ class TestAuditGateScript:
         
         # Should still output fail-on-warnings in logs
         assert "Fail on warnings: true" in result.stdout
-        assert result.returncode == 1 # Still 1 because NO-GO > Warning
+        assert result.returncode == 0  # GO verdict with clean data

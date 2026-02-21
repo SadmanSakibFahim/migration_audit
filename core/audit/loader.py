@@ -122,8 +122,9 @@ def load_table(path: str, query: Optional[str] = None, chunk_size: Optional[int]
     # Try to convert columns to numeric, but only if they're already numeric-like
     # Don't convert date/string columns that would become NaN
     for col in df.columns:
-        # Skip if column is already a string/object type (likely contains dates or text)
-        if df[col].dtype == 'object':
+        col_dtype = df[col].dtype
+        # Skip string/text columns (handles both 'object' and pandas 2.x 'string' dtype)
+        if col_dtype == 'object' or pd.api.types.is_string_dtype(col_dtype):
             # Try to detect if it's actually numeric but stored as string
             # Only convert if ALL values can be converted to numeric
             sample_values = df[col].dropna().head(10)
@@ -149,11 +150,12 @@ def load_table(path: str, query: Optional[str] = None, chunk_size: Optional[int]
                 except (ValueError, TypeError):
                     # Contains non-numeric values - keep as object/string type
                     pass
-        else:
+        elif pd.api.types.is_numeric_dtype(col_dtype):
             # Column is already numeric - ensure it's the right type
             converted = pd.to_numeric(df[col], errors='coerce')
             if converted.dtype in ['int64', 'float64']:
                 df[col] = converted
+        # else: skip datetime, categorical, and other non-numeric types
     return df
 
 

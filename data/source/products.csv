@@ -1,103 +1,31 @@
 id,product_name,price,stock_quantity,category,status
-1,Laptop Pro,999.99,45,electronics,active
-2,Wireless Mouse,29.99,250,electronics,active
-3,USB-C Cable,15.99,500,electronics,active
-4,Monitor 27in 4K,349.99,80,electronics,active
-5,Mechanical Keyboard,149.99,120,electronics,active
-6,Gaming Chair,299.99,60,electronics,active
-7,Desk Lamp LED,59.99,180,electronics,active
-8,Phone Stand,19.99,400,electronics,active
-9,External SSD 1TB,129.99,110,electronics,active
-10,Webcam HD,79.99,200,electronics,discontinued
-11,Wireless Charger,39.99,300,electronics,active
-12,USB Hub 7-port,49.99,250,electronics,active
-13,HDMI Cable 2m,12.99,600,electronics,active
-14,Desktop Speaker,89.99,150,electronics,active
-15,Microphone Condenser,199.99,70,electronics,coming_soon
-16,Headphone Stand,24.99,350,electronics,active
-17,Cable Organizer,14.99,450,electronics,active
-18,Power Bank 20000mAh,49.99,280,electronics,active
-19,Laptop Cooling Pad,34.99,200,electronics,active
-20,Monitor Arm,99.99,130,electronics,active
-21,Dress Shirt Blue,49.99,120,clothing,active
-22,Jeans Dark Denim,79.99,200,clothing,active
-23,T-Shirt Classic,19.99,500,clothing,active
-24,Hoodie Fleece,59.99,180,clothing,active
-25,Jacket Winter,199.99,90,clothing,active
-26,Sneakers Running,119.99,150,clothing,active
-27,Socks Pack 6,12.99,400,clothing,active
-28,Pants Chino,69.99,200,clothing,active
-29,Sweater Wool,89.99,110,clothing,active
-30,Hat Baseball,24.99,300,clothing,discontinued
-31,Scarf Wool,39.99,250,clothing,active
-32,Gloves Winter,29.99,280,clothing,active
-33,Belt Leather,44.99,220,clothing,active
-34,Shorts Summer,39.99,320,clothing,active
-35,Swimsuit,59.99,150,clothing,active
-36,Python Programming,39.99,250,books,active
-37,Clean Code,45.99,200,books,active
-38,Design Patterns,52.99,180,books,active
-39,Web Development 2024,55.99,120,books,active
-40,Data Science Guide,65.99,90,books,active
-41,Machine Learning AI,72.99,110,books,discontinued
-42,DevOps Handbook,48.99,140,books,active
-43,Microservices,54.99,100,books,active
-44,Cloud Architecture,68.99,80,books,coming_soon
-45,GraphQL Essentials,44.99,170,books,active
-46,Sofa Grey 3-Seat,799.99,25,home,active
-47,Coffee Table Wood,199.99,80,home,active
-48,Bed Frame Queen,449.99,40,home,active
-49,Dining Table Oak,599.99,30,home,active
-50,Kitchen Stool,99.99,150,home,active
-51,Lamp Floor Arc,129.99,60,home,active
-52,Shelf Floating White,74.99,200,home,active
-53,Door Mat Entrance,24.99,350,home,active
-54,Pillow Memory Foam,49.99,280,home,active
-55,Blanket Wool,89.99,200,home,discontinued
-56,Curtains Room Darkening,119.99,120,home,active
-57,Rug Area 8x10,349.99,35,home,active
-58,Nightstand Wood,179.99,90,home,active
-59,Desk Home Office,299.99,50,home,active
-60,Bookshelf 5-Tier,149.99,110,home,coming_soon
-61,Basketball,34.99,300,sports,active
-62,Football,39.99,250,sports,active
-63,Soccer Ball,44.99,280,sports,active
-64,Tennis Racket,149.99,100,sports,active
-65,Yoga Mat,24.99,420,sports,active
-66,Dumbbells Set 20lbs,89.99,200,sports,active
-67,Resistance Bands,19.99,500,sports,active
-68,Jump Rope,14.99,600,sports,active
-69,Running Shoes,129.99,180,sports,active
-70,Bicycle Mountain,599.99,45,sports,active
-71,Helmet Bike,79.99,220,sports,discontinued
-72,Water Bottle 32oz,24.99,450,sports,active
-73,Gym Bag,79.99,160,sports,active
-74,Kickboard,39.99,280,sports,active
-75,Skates Roller,159.99,85,sports,coming_soon
-76,Action Figure Superhero,14.99,500,toys,active
-77,Board Game Strategy,39.99,250,toys,active
-78,Puzzle 1000pc,19.99,400,toys,active
-79,LEGO City Set,59.99,200,toys,active
-80,Drone Mini,99.99,120,toys,active
-81,Remote Car,49.99,280,toys,active
-82,Building Blocks,29.99,350,toys,active
-83,Doll Fashion,24.99,300,toys,active
-84,Train Set,149.99,80,toys,active
-85,Board Game Family,34.99,220,toys,discontinued
-86,Coloring Book,9.99,600,toys,active
-87,Card Game,14.99,450,toys,active
-88,Fidget Spinner,7.99,800,toys,active
-89,Plush Toy Bear,29.99,380,toys,coming_soon
-90,Video Game Console,499.99,60,toys,active
-91,Granola Bar Box,12.99,1000,other,active
-92,Protein Powder,34.99,300,other,active
-93,Vitamin Supplement,24.99,400,other,active
-94,Coffee Beans 1lb,16.99,450,other,active
-95,Tea Variety Pack,22.99,350,other,active
-96,Energy Drink,3.99,2000,other,active
-97,Chocolate Bar,5.99,1500,other,active
-98,Snack Mix,8.99,800,other,discontinued
-99,Water Filter,14.99,500,other,active
-100,Air Purifier,199.99,120,other,active
-101,Phone Case,19.99,600,electronics,active
-102,Screen Protector,9.99,1200,electronics,coming_soon
+1,Laptop Pro,72.0,17,other,discontinued
+2,Wireless Mouse,75.43,122,books,coming_soon
+3,USB-C Hub,487.5,277,clothing,coming_soon
+4,Mechanical Keyboard,934.9,293,sports,discontinued
+5,Monitor 27in,246.54,243,other,discontinued
+6,Webcam HD,194.27,50,toys,discontinued
+7,Headphones,357.17,211,home,coming_soon
+8,Desk Lamp,58.85,335,toys,active
+9,Notebook,65.25,373,books,active
+10,Pen Set,252.16,98,sports,discontinued
+11,Backpack,144.34,94,books,discontinued
+12,Water Bottle,253.31,473,electronics,discontinued
+13,Phone Case,808.17,439,sports,active
+14,Charger,55.28,277,other,active
+15,Cable Kit,968.18,475,other,active
+16,Mouse Pad,170.31,249,home,active
+17,Screen Protector,864.46,463,electronics,active
+18,Tablet Stand,381.7,200,books,discontinued
+19,Speaker,288.54,357,toys,coming_soon
+20,Flash Drive,662.9,250,clothing,active
+21,SSD 1TB,299.93,496,electronics,coming_soon
+22,RAM 16GB,736.32,32,toys,discontinued
+23,Graphics Card,61.82,300,home,coming_soon
+24,Power Supply,918.87,272,clothing,active
+25,Cooling Fan,960.01,42,other,active
+26,Router,73.11,35,toys,active
+27,Ethernet Cable,406.35,483,sports,active
+28,Surge Protector,580.45,21,sports,active
+29,Desk Mat,421.71,299,sports,coming_soon
+30,Chair Cushion,319.47,134,clothing,coming_soon

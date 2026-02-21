@@ -1,0 +1,257 @@
+# Migration Validation & Risk Audit
+
+**Client:** CI_Test
+
+**Migration:** Source -> Target
+
+**Audit Date:** 2026-02-21
+
+**Auditor:** Independent Migration Audit
+
+
+## Executive Summary
+
+**Final Verdict:** GO
+
+- **Data Volume Checks:** PASS
+- **Aggregate Checks:** PASS
+- **Mapping Checks:** PASS
+- **Data Constraint Checks:** PASS
+- **Relationship Checks:** PASS
+
+## Data Volume Checks
+
+### Checks Performed
+
+- Volume Check: users
+- Volume Check: orders
+- Volume Check: order_items
+- Volume Check: products
+
+### Findings
+
+- **[PASS]** Row counts match exactly for table 'users'. Source: 50, Target: 50 rows.
+- **[PASS]** Row counts match exactly for table 'orders'. Source: 80, Target: 80 rows.
+- **[PASS]** Row counts match exactly for table 'order_items'. Source: 120, Target: 120 rows.
+- **[PASS]** Row counts match exactly for table 'products'. Source: 30, Target: 30 rows.
+
+**Section Verdict:** PASS
+
+
+## Aggregate Checks
+
+### Checks Performed
+
+- Sum Check: users - age
+- Average Check: users - age
+- Max Check: users - age
+- Min Check: users - age
+- Variance Check: users - age
+- Sum Check: users - tenure_days
+- Average Check: users - tenure_days
+- Max Check: users - tenure_days
+- Min Check: users - tenure_days
+- Variance Check: users - tenure_days
+- Sum Check: orders - amount
+- Average Check: orders - amount
+- Max Check: orders - amount
+- Min Check: orders - amount
+- Variance Check: orders - amount
+- Sum Check: orders - quantity
+- Average Check: orders - quantity
+- Max Check: orders - quantity
+- Min Check: orders - quantity
+- Variance Check: orders - quantity
+- Sum Check: order_items - price
+- Average Check: order_items - price
+- Max Check: order_items - price
+- Min Check: order_items - price
+- Variance Check: order_items - price
+- Sum Check: order_items - quantity
+- Average Check: order_items - quantity
+- Max Check: order_items - quantity
+- Min Check: order_items - quantity
+- Variance Check: order_items - quantity
+- Sum Check: products - price
+- Average Check: products - price
+- Max Check: products - price
+- Min Check: products - price
+- Variance Check: products - price
+- Sum Check: products - stock_quantity
+- Average Check: products - stock_quantity
+- Max Check: products - stock_quantity
+- Min Check: products - stock_quantity
+- Variance Check: products - stock_quantity
+
+### Findings
+
+- **[PASS]** Sum matches exactly for column 'age' in table 'users'. Source and Target both have sum 1959.
+  - Details: {'pct_difference': np.float64(0.0)}
+- **[PASS]** Average matches exactly for column 'age' in table 'users'. Source and Target both have average 39.18.
+  - Details: {'pct_difference': np.float64(0.0)}
+- **[PASS]** Max matches exactly for column 'age' in table 'users'. Source and Target both have max 55.
+  - Details: {'pct_difference': np.float64(0.0)}
+- **[PASS]** Min matches exactly for column 'age' in table 'users'. Source and Target both have min 25.
+  - Details: {'pct_difference': np.float64(0.0)}
+- **[PASS]** Variance matches exactly for column 'age' in table 'users'. Source and Target both have variance 96.885306122449.
+  - Details: {'pct_difference': np.float64(0.0)}
+- **[PASS]** Sum matches exactly for column 'tenure_days' in table 'users'. Source and Target both have sum 53368.
+  - Details: {'pct_difference': np.float64(0.0)}
+- **[PASS]** Average matches exactly for column 'tenure_days' in table 'users'. Source and Target both have average 1067.36.
+  - Details: {'pct_difference': np.float64(0.0)}
+- **[PASS]** Max matches exactly for column 'tenure_days' in table 'users'. Source and Target both have max 1972.
+  - Details: {'pct_difference': np.float64(0.0)}
+- **[PASS]** Min matches exactly for column 'tenure_days' in table 'users'. Source and Target both have min 166.
+  - Details: {'pct_difference': np.float64(0.0)}
+- **[PASS]** Variance matches exactly for column 'tenure_days' in table 'users'. Source and Target both have variance 309923.37795918365.
+  - Details: {'pct_difference': np.float64(0.0)}
+- **[PASS]** Sum matches exactly for column 'amount' in table 'orders'. Source and Target both have sum 83775.83000000002.
+  - Details: {'pct_difference': np.float64(0.0)}
+- **[PASS]** Average matches exactly for column 'amount' in table 'orders'. Source and Target both have average 1047.1978750000003.
+  - Details: {'pct_difference': np.float64(0.0)}
+- **[PASS]** Max matches exactly for column 'amount' in table 'orders'. Source and Target both have max 1992.23.
+  - Details: {'pct_difference': np.float64(0.0)}
+- **[PASS]** Min matches exactly for column 'amount' in table 'orders'. Source and Target both have min 57.09.
+  - Details: {'pct_difference': np.float64(0.0)}
+- **[PASS]** Variance matches exactly for column 'amount' in table 'orders'. Source and Target both have variance 278405.6154928956.
+  - Details: {'pct_difference': np.float64(0.0)}
+- **[PASS]** Sum matches exactly for column 'quantity' in table 'orders'. Source and Target both have sum 449.
+  - Details: {'pct_difference': np.float64(0.0)}
+- **[PASS]** Average matches exactly for column 'quantity' in table 'orders'. Source and Target both have average 5.6125.
+  - Details: {'pct_difference': np.float64(0.0)}
+- **[PASS]** Max matches exactly for column 'quantity' in table 'orders'. Source and Target both have max 10.
+  - Details: {'pct_difference': np.float64(0.0)}
+- **[PASS]** Min matches exactly for column 'quantity' in table 'orders'. Source and Target both have min 1.
+  - Details: {'pct_difference': np.float64(0.0)}
+- **[PASS]** Variance matches exactly for column 'quantity' in table 'orders'. Source and Target both have variance 7.784651898734177.
+  - Details: {'pct_difference': np.float64(0.0)}
+- **[PASS]** Sum matches exactly for column 'price' in table 'order_items'. Source and Target both have sum 28328.28.
+  - Details: {'pct_difference': np.float64(0.0)}
+- **[PASS]** Average matches exactly for column 'price' in table 'order_items'. Source and Target both have average 236.069.
+  - Details: {'pct_difference': np.float64(0.0)}
+- **[PASS]** Max matches exactly for column 'price' in table 'order_items'. Source and Target both have max 493.89.
+  - Details: {'pct_difference': np.float64(0.0)}
+- **[PASS]** Min matches exactly for column 'price' in table 'order_items'. Source and Target both have min 6.32.
+  - Details: {'pct_difference': np.float64(0.0)}
+- **[PASS]** Variance matches exactly for column 'price' in table 'order_items'. Source and Target both have variance 20123.940056134452.
+  - Details: {'pct_difference': np.float64(0.0)}
+- **[PASS]** Sum matches exactly for column 'quantity' in table 'order_items'. Source and Target both have sum 361.
+  - Details: {'pct_difference': np.float64(0.0)}
+- **[PASS]** Average matches exactly for column 'quantity' in table 'order_items'. Source and Target both have average 3.0083333333333333.
+  - Details: {'pct_difference': np.float64(0.0)}
+- **[PASS]** Max matches exactly for column 'quantity' in table 'order_items'. Source and Target both have max 5.
+  - Details: {'pct_difference': np.float64(0.0)}
+- **[PASS]** Min matches exactly for column 'quantity' in table 'order_items'. Source and Target both have min 1.
+  - Details: {'pct_difference': np.float64(0.0)}
+- **[PASS]** Variance matches exactly for column 'quantity' in table 'order_items'. Source and Target both have variance 1.8570728291316525.
+  - Details: {'pct_difference': np.float64(0.0)}
+- **[PASS]** Sum matches exactly for column 'price' in table 'products'. Source and Target both have sum 12119.300000000001.
+  - Details: {'pct_difference': np.float64(0.0)}
+- **[PASS]** Average matches exactly for column 'price' in table 'products'. Source and Target both have average 403.9766666666667.
+  - Details: {'pct_difference': np.float64(0.0)}
+- **[PASS]** Max matches exactly for column 'price' in table 'products'. Source and Target both have max 968.18.
+  - Details: {'pct_difference': np.float64(0.0)}
+- **[PASS]** Min matches exactly for column 'price' in table 'products'. Source and Target both have min 55.28.
+  - Details: {'pct_difference': np.float64(0.0)}
+- **[PASS]** Variance matches exactly for column 'price' in table 'products'. Source and Target both have variance 97809.61317471262.
+  - Details: {'pct_difference': np.float64(0.0)}
+- **[PASS]** Sum matches exactly for column 'stock_quantity' in table 'products'. Source and Target both have sum 7410.
+  - Details: {'pct_difference': np.float64(0.0)}
+- **[PASS]** Average matches exactly for column 'stock_quantity' in table 'products'. Source and Target both have average 247.0.
+  - Details: {'pct_difference': np.float64(0.0)}
+- **[PASS]** Max matches exactly for column 'stock_quantity' in table 'products'. Source and Target both have max 496.
+  - Details: {'pct_difference': np.float64(0.0)}
+- **[PASS]** Min matches exactly for column 'stock_quantity' in table 'products'. Source and Target both have min 17.
+  - Details: {'pct_difference': np.float64(0.0)}
+- **[PASS]** Variance matches exactly for column 'stock_quantity' in table 'products'. Source and Target both have variance 24260.96551724138.
+  - Details: {'pct_difference': np.float64(0.0)}
+
+**Section Verdict:** PASS
+
+
+## Mapping Checks
+
+### Checks Performed
+
+- Mapping Check: users
+- Mapping Check: users
+- Mapping Check: orders
+- Mapping Check: orders
+- Mapping Check: order_items
+- Mapping Check: products
+- Mapping Check: products
+
+### Findings
+
+- **[PASS]** All mappings are valid for table 'users'.
+- **[PASS]** All mappings are valid for table 'users'.
+- **[PASS]** All mappings are valid for table 'orders'.
+- **[PASS]** All mappings are valid for table 'orders'.
+- **[PASS]** All mappings are valid for table 'order_items'.
+- **[PASS]** All mappings are valid for table 'products'.
+- **[PASS]** All mappings are valid for table 'products'.
+
+**Section Verdict:** PASS
+
+
+## Data Constraint Checks
+
+### Checks Performed
+
+- Data Constraints Check: users.first_name
+- Data Constraints Check: users.last_name
+- Data Constraints Check: users.email
+- Data Constraints Check: users.date_of_birth
+- Data Constraints Check: users.date_onboarded
+- Data Constraints Check: orders.order_date
+- Data Constraints Check: orders.amount
+- Data Constraints Check: orders.user_id
+- Data Constraints Check: order_items.order_id
+- Data Constraints Check: order_items.product_id
+- Data Constraints Check: order_items.quantity
+- Data Constraints Check: order_items.price
+- Data Constraints Check: products.product_name
+- Data Constraints Check: products.price
+- Data Constraints Check: products.stock_quantity
+
+### Findings
+
+- **[PASS]** All data constraints are satisfied for table 'users'.
+- **[PASS]** All data constraints are satisfied for table 'users'.
+- **[PASS]** All data constraints are satisfied for table 'users'.
+- **[PASS]** All data constraints are satisfied for table 'users'.
+- **[PASS]** All data constraints are satisfied for table 'users'.
+- **[PASS]** All data constraints are satisfied for table 'orders'.
+- **[PASS]** All data constraints are satisfied for table 'orders'.
+- **[PASS]** All data constraints are satisfied for table 'orders'.
+- **[PASS]** All data constraints are satisfied for table 'order_items'.
+- **[PASS]** All data constraints are satisfied for table 'order_items'.
+- **[PASS]** All data constraints are satisfied for table 'order_items'.
+- **[PASS]** All data constraints are satisfied for table 'order_items'.
+- **[PASS]** All data constraints are satisfied for table 'products'.
+- **[PASS]** All data constraints are satisfied for table 'products'.
+- **[PASS]** All data constraints are satisfied for table 'products'.
+
+**Section Verdict:** PASS
+
+
+## Relationship Checks
+
+### Checks Performed
+
+- Foreign Key Check: orders
+- Foreign Key Check: order_items
+- Foreign Key Check: order_items
+
+### Findings
+
+- **[PASS]** All foreign key values in 'user_id' of child table 'orders' have matching primary keys in parent table.
+- **[PASS]** All foreign key values in 'order_id' of child table 'order_items' have matching primary keys in parent table.
+- **[PASS]** All foreign key values in 'product_id' of child table 'order_items' have matching primary keys in parent table.
+
+**Section Verdict:** PASS
+
+
+## Final Deployability Verdict
+
+GO
