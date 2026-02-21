@@ -19,7 +19,9 @@ AUDIT_STATE = {
     "message": "Ready to start.",
     "logs": [],
     "progress": 0,
-    "last_run_id": None
+    "last_run_id": None,
+    "results_summary": {"pass": 0, "warn": 0, "fail": 0, "error": 0, "total": 0},
+    "results_details": [],
 }
 
 def get_current_user(request: Request):
@@ -171,6 +173,7 @@ def run_audit_background_task(selected_tables):
     try:
         from run_audit import run_audit
         from reports.report_builder import build_report
+        from core.audit.enums import CheckStatus
         
         def progress_callback(msg: str):
             AUDIT_STATE["logs"].append(f"[{datetime.now().strftime('%H:%M:%S')}] {msg}")
@@ -193,6 +196,28 @@ def run_audit_background_task(selected_tables):
         
         # Build Report
         build_report(results, client="Web Dashboard User", migration="Manual Web Run")
+
+        # Compute results summary for charts
+        summary = {"pass": 0, "warn": 0, "fail": 0, "error": 0, "total": 0}
+        details = []
+        for r in results:
+            status_str = str(getattr(r, 'status', '')).lower()
+            if 'pass' in status_str or status_str == str(CheckStatus.PASS).lower():
+                summary["pass"] += 1
+            elif 'warn' in status_str:
+                summary["warn"] += 1
+            elif 'fail' in status_str:
+                summary["fail"] += 1
+            elif 'error' in status_str:
+                summary["error"] += 1
+            summary["total"] += 1
+            details.append({
+                "name": getattr(r, 'name', 'Unknown'),
+                "status": status_str,
+                "message": getattr(r, 'message', ''),
+            })
+        AUDIT_STATE["results_summary"] = summary
+        AUDIT_STATE["results_details"] = details
         
         AUDIT_STATE["status"] = "completed"
         AUDIT_STATE["message"] = "Audit completed successfully."
@@ -219,3 +244,16 @@ async def start_audit(request: Request, background_tasks: BackgroundTasks):
     background_tasks.add_task(run_audit_background_task, tables)
     
     return {"status": "started", "message": "Audit started in background"}
+
+@router.get("/audit/results")
+async def get_audit_results(request: Request):
+    """Return the latest audit results summary for chart rendering."""
+    user = get_current_user(request)
+    if not user:
+        return JSONResponse({"error": "Unauthorized"}, status_code=401)
+
+    return {
+        "status": AUDIT_STATE["status"],
+        "summary": AUDIT_STATE["results_summary"],
+        "details": AUDIT_STATE["results_details"],
+    }

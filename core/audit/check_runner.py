@@ -14,12 +14,14 @@ class CheckRunner:
         src_df,
         tgt_df,
         config=None,
+        progress_callback=None,
     ):
         self.table_name = table_name
         self.meta = meta
         self.src_df = src_df
         self.tgt_df = tgt_df
         self.config = config or {}
+        self.progress_callback = progress_callback
         
         # Extract configuration with defaults
         self.volume_tolerance = self.config.get("volume_tolerance", 0.1)
@@ -27,6 +29,15 @@ class CheckRunner:
         self.identity_overlap_threshold = self.config.get("identity_overlap_threshold", 95)
         
         self.results = []
+
+    def _report_progress(self, message: str):
+        """Report progress via callback if available."""
+        logger.info(message)
+        if self.progress_callback:
+            try:
+                self.progress_callback(message)
+            except Exception:
+                pass  # Never let callback errors break the audit
 
     def _normalize_result(self, result):
         if result is None:
@@ -217,12 +228,44 @@ class CheckRunner:
                 ))
 
     def _run_relationship_checks(self, check_registry):
+        from core.audit.loader import load_table
+
         for rel in getattr(self.meta, "relationships", []):
+            # Load the actual parent (reference) table
+            parent_target = rel.parent.get("target")
+            if parent_target:
+                try:
+                    self._report_progress(
+                        f"Loading parent table '{parent_target}' for relationship check"
+                    )
+                    parent_df = load_table(parent_target)
+                except Exception as e:
+                    logger.error(
+                        f"Failed to load parent table '{parent_target}': {e}",
+                        exc_info=True,
+                    )
+                    self.results.append(TestResult(
+                        name=f"Relationship Check (ERROR): {self.table_name}",
+                        status=CheckStatus.ERROR,
+                        message=(
+                            f"Could not load parent table '{parent_target}': "
+                            f"{type(e).__name__}: {e}"
+                        ),
+                    ))
+                    continue
+            else:
+                # Fallback: use tgt_df if no parent target specified
+                logger.warning(
+                    f"No parent target specified for relationship on '{self.table_name}', "
+                    f"using target DataFrame as fallback"
+                )
+                parent_df = self.tgt_df
+
             for fn in check_registry.get("relationships", []):
                 self.results.extend(self._safe_run(
                     "Relationship Check", fn,
-                    self.tgt_df,          # child_df
-                    self.tgt_df,          # parent_df (STUB: should load reference_table)
+                    self.tgt_df,      # child_df
+                    parent_df,        # parent_df (loaded from reference table)
                     rel.child["fk_column"],
                     rel.parent["pk_column"],
                     self.table_name,
@@ -247,11 +290,76 @@ class CheckRunner:
             logger.error(f"Aborting checks for '{self.table_name}' due to invalid DataFrames")
             return self.results
 
-        self._run_volume_checks(CHECK_REGISTRY)
-        self._run_identity_checks()
-        self._run_aggregate_checks(CHECK_REGISTRY)
-        self._run_mapping_checks(CHECK_REGISTRY)
-        self._run_relationship_checks(CHECK_REGISTRY)
-        self._run_data_constraint_checks()
+        steps = [
+            ("Volume checks", lambda: self._run_volume_checks(CHECK_REGISTRY)),
+            ("Identity checks", lambda: self._run_identity_checks()),
+            ("Aggregate checks", lambda: self._run_aggregate_checks(CHECK_REGISTRY)),
+            ("Mapping checks", lambda: self._run_mapping_checks(CHECK_REGISTRY)),
+            ("Relationship checks", lambda: self._run_relationship_checks(CHECK_REGISTRY)),
+            ("Data constraint checks", lambda: self._run_data_constraint_checks()),
+        ]
 
+        for i, (step_name, step_fn) in enumerate(steps, 1):
+            self._report_progress(
+                f"[{self.table_name}] Running {step_name} ({i}/{len(steps)})"
+            )
+            step_fn()
+
+        self._report_progress(f"[{self.table_name}] All checks complete")
         return self.results
+
+    def execute_chunked(
+        self,
+        src_iter,
+        tgt_iter,
+        chunk_size: int = 10000,
+    ):
+        """Execute audit checks on chunked/streamed DataFrames.
+
+        Useful for large datasets that cannot fit in memory.
+        Accumulates chunks first, then runs standard checks.
+
+        Args:
+            src_iter: Iterator of source DataFrame chunks.
+            tgt_iter: Iterator of target DataFrame chunks.
+            chunk_size: Expected chunk size (for logging).
+
+        Returns:
+            List of TestResult objects.
+        """
+        self._report_progress(
+            f"[{self.table_name}] Starting chunked processing (chunk_size={chunk_size})"
+        )
+
+        # Accumulate chunks into full DataFrames
+        src_chunks = []
+        tgt_chunks = []
+        src_row_count = 0
+        tgt_row_count = 0
+
+        for i, chunk in enumerate(src_iter):
+            src_chunks.append(chunk)
+            src_row_count += len(chunk)
+            self._report_progress(
+                f"[{self.table_name}] Loaded source chunk {i + 1} "
+                f"({len(chunk)} rows, total: {src_row_count})"
+            )
+
+        for i, chunk in enumerate(tgt_iter):
+            tgt_chunks.append(chunk)
+            tgt_row_count += len(chunk)
+            self._report_progress(
+                f"[{self.table_name}] Loaded target chunk {i + 1} "
+                f"({len(chunk)} rows, total: {tgt_row_count})"
+            )
+
+        # Merge chunks
+        self.src_df = pd.concat(src_chunks, ignore_index=True) if src_chunks else pd.DataFrame()
+        self.tgt_df = pd.concat(tgt_chunks, ignore_index=True) if tgt_chunks else pd.DataFrame()
+
+        self._report_progress(
+            f"[{self.table_name}] Chunked loading complete: "
+            f"source={src_row_count} rows, target={tgt_row_count} rows"
+        )
+
+        return self.execute_all()

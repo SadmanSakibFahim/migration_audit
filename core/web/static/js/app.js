@@ -4,8 +4,8 @@ createApp({
     data() {
         return {
             // Wizard state
-            wizardStep: 0, // 0: Upload, 1: Select Scope, 2: Progress
-            wizardSteps: ['Upload Files', 'Select Scope', 'Audit Progress'],
+            wizardStep: 0, // 0: Upload, 1: Select Scope, 2: Progress, 3: Results
+            wizardSteps: ['Upload Files', 'Select Scope', 'Audit Progress', 'Results'],
 
             // Upload state
             configFile: null,
@@ -23,6 +23,11 @@ createApp({
             progress: 0,
             logs: [],
             reports: [],
+
+            // Results state
+            resultsSummary: { pass: 0, warn: 0, fail: 0, error: 0, total: 0 },
+            resultsDetails: [],
+            resultsChart: null,
         }
     },
     computed: {
@@ -74,9 +79,10 @@ createApp({
                     this.wizardStep = 2
                 }
 
-                // Refresh reports on completion
+                // Refresh reports on completion and navigate to results
                 if (data.status === 'completed' && prevStatus !== 'completed') {
                     this.fetchReports()
+                    this.fetchResults()
                 }
             }
         },
@@ -182,6 +188,62 @@ createApp({
             this.progress = 0
             this.logs = []
             this.auditMessage = 'Ready to start.'
-        }
+        },
+        async fetchResults() {
+            try {
+                const res = await axios.get('/api/audit/results')
+                this.resultsSummary = res.data.summary
+                this.resultsDetails = res.data.details
+                this.wizardStep = 3
+                this.$nextTick(() => this.renderResultsChart())
+            } catch (e) {
+                console.error('Failed to fetch results', e)
+            }
+        },
+        renderResultsChart() {
+            const canvas = document.getElementById('resultsChart')
+            if (!canvas) return
+
+            // Destroy old chart if it exists
+            if (this.resultsChart) {
+                this.resultsChart.destroy()
+            }
+
+            const s = this.resultsSummary
+            this.resultsChart = new Chart(canvas, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Pass', 'Warn', 'Fail', 'Error'],
+                    datasets: [{
+                        data: [s.pass, s.warn, s.fail, s.error],
+                        backgroundColor: [
+                            '#10b981', // emerald-500
+                            '#f59e0b', // amber-500
+                            '#ef4444', // red-500
+                            '#64748b', // slate-500
+                        ],
+                        borderColor: 'transparent',
+                        borderWidth: 0,
+                        hoverOffset: 8,
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    cutout: '65%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            titleColor: '#f1f5f9',
+                            bodyColor: '#cbd5e1',
+                            borderColor: 'rgba(148, 163, 184, 0.2)',
+                            borderWidth: 1,
+                            cornerRadius: 8,
+                            padding: 12,
+                        },
+                    },
+                },
+            })
+        },
     }
 }).mount('#app')

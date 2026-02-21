@@ -13,6 +13,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
@@ -654,6 +655,110 @@
               >
                 View Reports →
               </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3: Results -->
+        <div v-if="wizardStep === 3" class="fade-in max-w-6xl mx-auto">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Doughnut Chart -->
+            <div class="glass rounded-xl p-6">
+              <h3 class="text-lg font-semibold text-white mb-4">
+                Results Breakdown
+              </h3>
+              <div class="relative" style="max-width: 280px; margin: 0 auto">
+                <canvas id="resultsChart"></canvas>
+              </div>
+              <div class="grid grid-cols-2 gap-3 mt-6">
+                <div class="flex items-center space-x-2">
+                  <div class="w-3 h-3 rounded-full bg-emerald-500"></div>
+                  <span class="text-sm text-slate-300"
+                    >Pass: {{ resultsSummary.pass }}</span
+                  >
+                </div>
+                <div class="flex items-center space-x-2">
+                  <div class="w-3 h-3 rounded-full bg-amber-500"></div>
+                  <span class="text-sm text-slate-300"
+                    >Warn: {{ resultsSummary.warn }}</span
+                  >
+                </div>
+                <div class="flex items-center space-x-2">
+                  <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                  <span class="text-sm text-slate-300"
+                    >Fail: {{ resultsSummary.fail }}</span
+                  >
+                </div>
+                <div class="flex items-center space-x-2">
+                  <div class="w-3 h-3 rounded-full bg-slate-500"></div>
+                  <span class="text-sm text-slate-300"
+                    >Error: {{ resultsSummary.error }}</span
+                  >
+                </div>
+              </div>
+            </div>
+
+            <!-- Results Details Table -->
+            <div class="lg:col-span-2 glass rounded-xl overflow-hidden">
+              <div
+                class="px-6 py-4 border-b border-slate-700/50 flex justify-between items-center"
+              >
+                <h3 class="font-semibold text-white">Check Details</h3>
+                <span class="text-xs text-slate-400"
+                  >{{ resultsSummary.total }} checks</span
+                >
+              </div>
+              <div
+                class="divide-y divide-slate-700/30 max-h-[480px] overflow-y-auto"
+              >
+                <div
+                  v-for="(check, i) in resultsDetails"
+                  :key="i"
+                  class="px-5 py-3 flex items-start space-x-3 hover:bg-slate-700/20 transition-colors"
+                >
+                  <span
+                    class="mt-0.5 w-2 h-2 rounded-full flex-shrink-0"
+                    :class="{
+                      'bg-emerald-500': check.status.includes('pass'),
+                      'bg-amber-500': check.status.includes('warn'),
+                      'bg-red-500': check.status.includes('fail'),
+                      'bg-slate-500': check.status.includes('error'),
+                    }"
+                  ></span>
+                  <div class="min-w-0">
+                    <p
+                      class="text-sm font-medium text-slate-200 truncate"
+                      v-text="check.name"
+                    ></p>
+                    <p
+                      class="text-xs text-slate-500 mt-0.5 line-clamp-2"
+                      v-text="check.message"
+                    ></p>
+                  </div>
+                </div>
+                <div
+                  v-if="resultsDetails.length === 0"
+                  class="p-12 text-center text-slate-500"
+                >
+                  No results available yet.
+                </div>
+              </div>
+              <div
+                class="px-6 py-4 border-t border-slate-700/50 flex justify-between"
+              >
+                <button
+                  @click="resetWizard"
+                  class="px-6 py-2 text-sm text-slate-400 border border-slate-600 rounded-lg hover:bg-slate-700/30 transition"
+                >
+                  ← New Audit
+                </button>
+                <button
+                  @click="wizardStep = 1; fetchReports()"
+                  class="px-6 py-2 text-sm font-semibold text-white bg-brand-600 rounded-lg hover:bg-brand-500 transition"
+                >
+                  View Reports →
+                </button>
+              </div>
             </div>
           </div>
         </div>
