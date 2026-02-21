@@ -9,16 +9,13 @@
       content="Enterprise migration validation and risk audit dashboard"
     />
 
-    <!-- Dependencies -->
+    <!-- Dependencies — all served locally, no external network required (ARC-01) -->
     <script src="/static/vendor/tailwindcss.js"></script>
     <script src="/static/vendor/vue.global.js"></script>
     <script src="/static/vendor/axios.min.js"></script>
     <script src="/static/vendor/chart.umd.min.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
+    <!-- Inter font — self-hosted, no Google Fonts CDN -->
+    <link rel="stylesheet" href="/static/vendor/inter.css" />
 
     <script>
       tailwind.config = {

@@ -112,7 +112,8 @@ class AuditConfig(BaseModel):
         default=None,
         description="If set, enables incremental (chunked) processing for large files.",
     )
-    strict_schema: bool = Field(
-        default=False,
-        description="If True, audit fails if target has unexpected columns not present in source.",
+    large_file_threshold_mb: float = Field(
+        default=50.0,
+        description="Threshold (MB) to auto-trigger incremental processing for compatible tables.",
     )
+

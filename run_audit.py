@@ -1,7 +1,9 @@
 #
 # Authentication
 import getpass
+import json
 import os
+from datetime import datetime
 from typing import List, Optional
 
 import pandas as pd
@@ -179,12 +181,34 @@ def run_audit(
         if progress_callback:
             progress_callback(f"Auditing table: {table_name}")
 
-        # New: Incremental Processing for large files
-        if cfg.chunk_size and not meta.is_complex_mapping():
+        # New: Incremental Processing for large files (ARC-03 Auto-detection)
+        should_use_incremental = False
+        chunk_size = cfg.chunk_size
+        
+        if (chunk_size or cfg.large_file_threshold_mb) and not meta.is_complex_mapping():
+            source_path = meta.source if isinstance(meta.source, str) else None
+            target_path = meta.target if isinstance(meta.target, str) else None
+            
+            if source_path and target_path and os.path.exists(source_path) and os.path.exists(target_path):
+                source_size_mb = os.path.getsize(source_path) / (1024 * 1024)
+                target_size_mb = os.path.getsize(target_path) / (1024 * 1024)
+                
+                if source_size_mb > cfg.large_file_threshold_mb or target_size_mb > cfg.large_file_threshold_mb:
+                    should_use_incremental = True
+                    # Default chunk size if not specified
+                    if not chunk_size:
+                        chunk_size = 50000 
+                    logger.info(
+                        f"Auto-detected large file(s) for '{table_name}'. "
+                        f"Source: {source_size_mb:.1f}MB, Target: {target_size_mb:.1f}MB. "
+                        f"Triggering incremental processing (chunk={chunk_size})."
+                    )
+
+        if (chunk_size or should_use_incremental) and not meta.is_complex_mapping():
             assert isinstance(meta.source, str)
             assert isinstance(meta.target, str)
             logger.info(
-                f"Using IncrementalRunner for '{table_name}' (Chunk size: {cfg.chunk_size})"
+                f"Using IncrementalRunner for '{table_name}' (Chunk size: {chunk_size})"
             )
             try:
                 runner = IncrementalRunner(
@@ -192,7 +216,7 @@ def run_audit(
                     meta=meta,
                     volume_tolerance=volume_tolerance,
                     aggregate_tolerance=aggregate_tolerance,
-                    chunk_size=cfg.chunk_size,
+                    chunk_size=chunk_size,
                 )
                 runner.process_source(meta.source)
                 runner.process_target(meta.target)
@@ -205,6 +229,7 @@ def run_audit(
                     f"Falling back to standard in-memory audit for '{table_name}'"
                 )
 
+
         try:
             # Handle complex mappings (N:1, 1:N, N:M)
             if meta.is_complex_mapping():
@@ -214,12 +239,9 @@ def run_audit(
                 )
 
                 # #region agent log
-                import json
-                import os
-
                 try:
                     os.makedirs(".cursor", exist_ok=True)
-                    with open(".cursor\\debug.log", "a", encoding="utf-8") as f:
+                    with open(".cursor/debug.log", "a", encoding="utf-8") as f:
                         f.write(
                             json.dumps(
                                 {
@@ -253,7 +275,7 @@ def run_audit(
                     temp_df = load_table_safe(src.path, table_name)
                     # #region agent log
                     try:
-                        with open(".cursor\\debug.log", "a", encoding="utf-8") as f:
+                        with open(".cursor/debug.log", "a", encoding="utf-8") as f:
                             f.write(
                                 json.dumps(
                                     {
@@ -289,7 +311,7 @@ def run_audit(
                         temp_df = valid_df
                         # #region agent log
                         try:
-                            with open(".cursor\\debug.log", "a", encoding="utf-8") as f:
+                            with open(".cursor/debug.log", "a", encoding="utf-8") as f:
                                 f.write(
                                     json.dumps(
                                         {
@@ -321,7 +343,7 @@ def run_audit(
 
                 # #region agent log
                 try:
-                    with open(".cursor\\debug.log", "a", encoding="utf-8") as f:
+                    with open(".cursor/debug.log", "a", encoding="utf-8") as f:
                         f.write(
                             json.dumps(
                                 {
@@ -382,10 +404,8 @@ def run_audit(
                 )
                 # #region agent log
                 try:
-                    import os
-
                     os.makedirs(".cursor", exist_ok=True)
-                    with open(".cursor\\debug.log", "a", encoding="utf-8") as f:
+                    with open(".cursor/debug.log", "a", encoding="utf-8") as f:
                         f.write(
                             json.dumps(
                                 {
@@ -616,7 +636,6 @@ def run_audit(
 
     # Create summary log of invalid rows if filtering was enabled
     if ignore_invalid_rows:
-        import os
         from pathlib import Path
 
         # Determine output directory (use current working directory or config directory)

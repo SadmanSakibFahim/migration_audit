@@ -100,3 +100,88 @@ def test_api_download_non_csv(mock_auth):
             response = client.get("/api/reports/123/download?file=test.pdf")
             assert response.status_code == 200
             assert response.content == b"dummy pdf"
+
+
+# ─── TST-02: Additional API coverage ──────────────────────────────────────────
+
+def test_api_stream_unauthorized(unauth_mock):
+    """GET /api/stream should return 401 when not authenticated."""
+    response = client.get("/api/stream")
+    assert response.status_code == 401
+
+
+def test_api_stream_authorized(mock_auth):
+    """GET /api/stream should return a streaming response with SSE content."""
+    # Mock event_generator to avoid infinite loop during tests
+    async def mock_generator():
+        yield "data: {\"status\": \"idle\"}\n\n"
+
+    with patch("core.web.routes.api.event_generator", side_effect=mock_generator):
+        # We need to be careful with StreamingResponse in TestClient
+        # Instead, let's just mock the response for this unit test if it's too risky,
+        # or use a timeout.
+        response = client.get("/api/stream")
+        assert response.status_code == 200
+        assert "text/event-stream" in response.headers.get("content-type", "")
+
+
+
+def test_api_config_no_file(mock_auth):
+    """GET /api/config with no config file should return empty tables list."""
+    with patch("core.web.routes.api.os.path.exists", return_value=False):
+        response = client.get("/api/config")
+        assert response.status_code == 200
+        assert response.json() == {"tables": []}
+
+
+def test_api_upload_no_files(mock_auth):
+    """POST /api/upload with no files should still return 200 ok."""
+    response = client.post("/api/upload")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "ok"
+    assert data["uploaded"]["config"] is None
+    assert data["uploaded"]["data_files"] == []
+
+
+def test_api_download_csv_sanitized(mock_auth):
+    """GET /api/reports/{id}/download for a CSV should stream a sanitized version."""
+    import pandas as pd
+    with tempfile.TemporaryDirectory() as tmpdir:
+        csv_path = os.path.join(tmpdir, "results.csv")
+        pd.DataFrame({"id": [1, 2], "email": ["a@b.com", "c@d.com"], "amount": [10.0, 20.0]}).to_csv(csv_path, index=False)
+
+        with patch("core.web.routes.api.os.path.exists", return_value=True), \
+             patch("core.web.routes.api.os.path.join", return_value=csv_path):
+            response = client.get("/api/reports/abc/download?file=results.csv")
+            assert response.status_code == 200
+            # Email should be hashed (not plain text)
+            content = response.content.decode()
+            assert "a@b.com" not in content
+
+
+def test_api_reports_empty(mock_auth):
+    """GET /api/reports should return empty list when output dir doesn't exist."""
+    with patch("core.web.routes.api.os.path.exists", return_value=False):
+        response = client.get("/api/reports")
+        assert response.status_code == 200
+        assert response.json() == {"reports": []}
+
+
+def test_api_audit_results_unauthorized(unauth_mock):
+    """GET /api/audit/results should return 401 when not authenticated."""
+    response = client.get("/api/audit/results")
+    assert response.status_code == 401
+
+
+def test_api_config_unauthorized(unauth_mock):
+    """GET /api/config should return 401 when not authenticated."""
+    response = client.get("/api/config")
+    assert response.status_code == 401
+
+
+def test_api_reports_unauthorized(unauth_mock):
+    """GET /api/reports should return 401 when not authenticated."""
+    response = client.get("/api/reports")
+    assert response.status_code == 401
+
