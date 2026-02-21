@@ -181,7 +181,6 @@ async def stream_audit_progress(request: Request):
 
 def run_audit_background_task(selected_tables):
     """Task to run in background."""
-    global AUDIT_STATE
     AUDIT_STATE["status"] = "running"
     AUDIT_STATE["logs"] = []
     AUDIT_STATE["progress"] = 0
