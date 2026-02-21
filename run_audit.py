@@ -63,16 +63,16 @@ def authenticate_cli_user() -> bool:
     """Prompt for credentials and verify access."""
 
     # Path to DB relative to execution
-    # Assuming 'data' folder is in current work dir or known path
-    # If run_audit.py is in root, data is ./data/auth.db
-    db_path = "sqlite:///data/auth.db"
+    db_path = os.getenv("AUTH_DB_URI", "sqlite:///data/auth.db")
 
-    # Check if DB exists
-    if not os.path.exists("data/auth.db"):
-        logger.warning(
-            "Auth DB not found at data/auth.db for CLI auth. Skipping authentication."
-        )
-        return True  # Or False if we want to enforce it strictly. Let's enforce it if the user enabled strict auth, or just log.
+    # Check if DB exists (only required if using local sqlite)
+    if db_path.startswith("sqlite"):
+        local_path = db_path.replace("sqlite:///", "")
+        if not os.path.exists(local_path):
+            logger.warning(
+                f"Auth DB not found at {local_path} for CLI auth. Skipping authentication."
+            )
+            return True  # Or False if we want to enforce it strictly. Let's enforce it if the user enabled strict auth, or just log.
         # Decision: For now, if no DB, warn but proceed (backward compat). But user asked to "make it happen".
         # Let's try to connect regardless.
 
@@ -138,7 +138,7 @@ def authenticate_cli_user() -> bool:
 
 def run_audit(
     config_path: str = "config/audit.yaml",
-    tables_to_run: List[str] = None,
+    tables_to_run: Optional[List[str]] = None,
     dry_run: bool = False,
     ignore_invalid_rows: bool = False,
     no_auth: bool = False,
@@ -181,6 +181,8 @@ def run_audit(
 
         # New: Incremental Processing for large files
         if cfg.chunk_size and not meta.is_complex_mapping():
+            assert isinstance(meta.source, str)
+            assert isinstance(meta.target, str)
             logger.info(
                 f"Using IncrementalRunner for '{table_name}' (Chunk size: {cfg.chunk_size})"
             )
@@ -206,6 +208,7 @@ def run_audit(
         try:
             # Handle complex mappings (N:1, 1:N, N:M)
             if meta.is_complex_mapping():
+                assert meta.complex_mapping is not None
                 logger.info(
                     f"Processing complex mapping for '{table_name}': {meta.complex_mapping.mapping_type}"
                 )
@@ -590,7 +593,7 @@ def run_audit(
                     )
                 )
 
-        runner = CheckRunner(
+        std_runner = CheckRunner(
             table_name=table_name,
             meta=meta,
             src_df=src_df,
@@ -601,7 +604,7 @@ def run_audit(
             },
         )
 
-        table_results_raw = runner.execute_all()
+        table_results_raw = std_runner.execute_all()
         table_results = _normalize_results(table_results_raw)
 
         logger.info(f"{table_name}: collected {len(table_results)} check results")

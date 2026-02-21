@@ -1,12 +1,11 @@
+from typing import Any, List, Dict, Set
 import random
-from typing import Any, List
-
 import pandas as pd
 
 from core.audit.enums import CheckStatus
 from core.audit.loader import load_table
 from core.audit.result import TestResult
-
+from core.audit.config_models import TableConfig
 
 class IncrementalRunner:
     """
@@ -17,7 +16,7 @@ class IncrementalRunner:
     def __init__(
         self,
         table_name: str,
-        meta: Any,
+        meta: TableConfig,
         volume_tolerance: float = 0.1,
         aggregate_tolerance: float = 1.0,
         chunk_size: int = 50000,
@@ -27,27 +26,25 @@ class IncrementalRunner:
         self.volume_tolerance = volume_tolerance
         self.aggregate_tolerance = aggregate_tolerance
         self.chunk_size = chunk_size
-        self.results = []
+        self.results: List[TestResult] = []
 
         # State Accumulators
         self.src_row_count = 0
         self.tgt_row_count = 0
-        self.src_aggregates = {}  # {col: running_sum}
-        self.tgt_aggregates = {}  # {col: running_sum}
-        self.mapping_errors = []  # Collected during target sweep
-        self.constraint_errors = []  # Collected during target sweep
-        self.junk_counts = {}  # {col: count}
+        self.src_aggregates: Dict[str, float] = {}  # {col: running_sum}
+        self.tgt_aggregates: Dict[str, float] = {}  # {col: running_sum}
+        self.mapping_errors: List[str] = []  # Collected during target sweep
+        self.constraint_errors: List[str] = []  # Collected during target sweep
+        self.junk_counts: Dict[str, int] = {}  # {col: count}
 
         # Identity Sampling (Reservoir Sampling)
         self.sample_size = 1000
-        self.src_pk_sample = []
+        self.src_pk_sample: List[Any] = []
         self.src_pk_total_processed = 0
         self.tgt_pk_matched_count = 0
-        self.tgt_pks_seen = (
-            set()
-        )  # Only used if target fits in memory, but we stream it.
+        self.tgt_pks_seen: Set[Any] = set()
         # For true streaming, we'll mark which sampled IDs were found in the target.
-        self.sampled_ids_found = {}  # {id: found_bool}
+        self.sampled_ids_found: Dict[Any, bool] = {}  # {id: found_bool}
 
     def process_source(self, path: str):
         """Iterate through source path in chunks and accumulate metrics."""
@@ -118,7 +115,7 @@ class IncrementalRunner:
                     self.tgt_aggregates[col] += vals_coerced.sum()
 
             # Mapping Checks (Value validation)
-            for mapping in getattr(self.meta, "mappings", []):
+            for mapping in self.meta.mappings:
                 for fn in CHECK_REGISTRY.get("mappings", []):
                     res = fn(
                         chunk, mapping.columns, mapping.allowed_values, self.table_name
@@ -161,9 +158,9 @@ class IncrementalRunner:
             src_val = self.src_aggregates[col]
             tgt_val = self.tgt_aggregates.get(col, 0.0)
 
-            diff = abs(src_val - tgt_val)
+            agg_diff = abs(src_val - tgt_val)
             diff_pct = (
-                (diff / src_val * 100) if src_val != 0 else (100 if tgt_val != 0 else 0)
+                (agg_diff / src_val * 100) if src_val != 0 else (100 if tgt_val != 0 else 0)
             )
 
             status = (

@@ -4,7 +4,7 @@ Row validation module for identifying and filtering invalid rows.
 
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional
 
 import pandas as pd
 
@@ -162,7 +162,7 @@ def export_invalid_rows(
     file_path: str,
     table_name: str,
     is_source: bool = True,
-) -> str:
+) -> Optional[str]:
     """
     Export invalid rows to a CSV file and log them.
 
@@ -219,7 +219,7 @@ def export_invalid_rows(
     return str(output_file)
 
 
-def create_invalid_rows_summary_log(output_dir: str) -> str:
+def create_invalid_rows_summary_log(output_dir: str) -> Optional[str]:
     """
     Create a summary log file of all invalid rows across the entire audit.
 

@@ -74,7 +74,7 @@ class AuthService:
         if not user or not user.is_active:
             return None
 
-        if self.verify_password(password, user.password_hash):
+        if self.verify_password(password, str(user.password_hash)):
             return user
         return None
 
@@ -86,7 +86,7 @@ class AuthService:
         # In case dates are timezone naive, we assume system local or naive UTC
         # If dates in DB are naive UTC, Ensure 'now' is compatible.
         # Here we just compare naive against naive for MVP simplicity
-        return license_obj.valid_from <= now <= license_obj.valid_until
+        return bool(license_obj.valid_from <= now <= license_obj.valid_until)
 
     def check_access(self, user: User) -> bool:
         """

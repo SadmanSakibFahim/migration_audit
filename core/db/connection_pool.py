@@ -135,11 +135,11 @@ class DatabaseConnectionPool:
         pool_obj = engine.pool
 
         return {
-            "size": pool_obj.size(),
-            "checked_in": pool_obj.checkedin(),
-            "checked_out": pool_obj.checkedout(),
-            "overflow": pool_obj.overflow(),
-            "status": pool_obj.status(),
+            "size": getattr(pool_obj, "size", lambda: 0)(),  # type: ignore
+            "checked_in": getattr(pool_obj, "checkedin", lambda: 0)(),  # type: ignore
+            "checked_out": getattr(pool_obj, "checkedout", lambda: 0)(),  # type: ignore
+            "overflow": getattr(pool_obj, "overflow", lambda: 0)(),  # type: ignore
+            "status": getattr(pool_obj, "status", lambda: "")(),  # type: ignore
         }
 
     @staticmethod

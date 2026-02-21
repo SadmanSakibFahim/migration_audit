@@ -29,13 +29,20 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
 
 app.add_middleware(SecurityHeadersMiddleware)
+
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
+if not ALLOWED_HOSTS or ALLOWED_HOSTS == [""]:
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+
 app.add_middleware(
-    TrustedHostMiddleware, allowed_hosts=["*"]
-)  # Restrict this in production
+    TrustedHostMiddleware, allowed_hosts=ALLOWED_HOSTS
+)  # Driven by env whitelist
 
 # Session Middleware for Auth (Cookie-based)
-# In prod, SECRET_KEY should be truly secret and random
-SECRET_KEY = os.getenv("SECRET_KEY", "super-secret-default-key")
+SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    raise RuntimeError("SECRET_KEY environment variable is not set. Cannot boot securely.")
+
 app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
 
 # Mount Static Files

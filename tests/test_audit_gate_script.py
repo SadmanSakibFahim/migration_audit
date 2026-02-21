@@ -64,7 +64,7 @@ class TestAuditGateScript:
             text=True,
         )
 
-        assert result.returncode == 0
+        assert result.returncode == 0, f"Script failed!\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
         assert "Verdict : GO" in result.stdout
 
         # Check GitHub Output
@@ -93,5 +93,5 @@ class TestAuditGateScript:
         )
 
         # Should still output fail-on-warnings in logs
+        assert result.returncode == 0, f"Script failed!\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
         assert "Fail on warnings: true" in result.stdout
-        assert result.returncode == 0  # GO verdict with clean data

@@ -16,9 +16,10 @@ from core.audit.result import TestResult
 from core.audit.verdict import Verdict, final_verdict
 
 
-def serialize_check(result: TestResult) -> Dict:
+from typing import Any
+def serialize_check(result: TestResult) -> Dict[str, Any]:
     """Serialize a single TestResult to a JSON-friendly dict."""
-    entry = {
+    entry: Dict[str, Any] = {
         "name": result.name,
         "status": result.status.value,
         "message": result.message,

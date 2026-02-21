@@ -1,5 +1,6 @@
 import json
 import os
+import pytest
 
 import pandas as pd
 from fastapi.testclient import TestClient
@@ -7,16 +8,24 @@ from fastapi.testclient import TestClient
 from core.sanitization.masking import DataSanitizer
 from core.web.app import app
 
-client = TestClient(app)
+# Import after app so engine reflects the env var set in conftest
+from core.auth.models import Base
+from core.web.routes.auth import engine
 
+
+@pytest.fixture(autouse=True)
+def ensure_auth_tables():
+    """Recreate auth tables on the current engine before each test.
+    Handles import order issues when other test files import app first."""
+    Base.metadata.create_all(bind=engine)
+    yield
 
 def test_security_headers():
-    response = client.get("/")
-    # Redirect counts as response, usually headers are there too
-    assert "Strict-Transport-Security" in response.headers
-    assert response.headers["X-Frame-Options"] == "DENY"
-    assert response.headers["X-Content-Type-Options"] == "nosniff"
-
+    with TestClient(app) as client:
+        response = client.get("/")
+        assert "Strict-Transport-Security" in response.headers
+        assert response.headers["X-Frame-Options"] == "DENY"
+        assert response.headers["X-Content-Type-Options"] == "nosniff"
 
 def test_data_sanitizer():
     sanitizer = DataSanitizer()
@@ -44,7 +53,8 @@ def test_data_sanitizer():
 
 def test_audit_logging():
     # Trigger a login failure to generate a log
-    client.post("/login", data={"username": "test_audit_user", "password": "wrong"})
+    with TestClient(app) as client:
+        client.post("/login", data={"username": "test_audit_user", "password": "wrong"})
 
     # Check log file
     log_file = "logs/audit.jsonl"

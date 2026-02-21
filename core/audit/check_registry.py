@@ -5,8 +5,10 @@ from checks.mappings import check_mappings
 from checks.relationships import check_links
 from checks.volume import check_volume
 
+from typing import Any, Callable, Dict, List
+
 # Central registry of all check types
-CHECK_REGISTRY = {
+CHECK_REGISTRY: Dict[str, List[Callable[..., Any]]] = {
     "volume": [check_volume],
     "aggregates": [check_sum, check_avg, check_max, check_min, check_variance],
     "mappings": [check_mappings],  # Will run once per mapping in config

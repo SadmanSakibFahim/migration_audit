@@ -29,22 +29,26 @@ class ScenarioRunner:
         Runs a full scenario: schema -> data -> mutation -> audit -> verify result.
         """
         schema_path = scenario_config.get("schema_path")
-        if not os.path.isabs(schema_path):
+        if not schema_path:
+            return {"passed": False, "results": [], "audit_config": {}}
+            
+        schema_path_str = str(schema_path)
+        if not os.path.isabs(schema_path_str):
             # Assume relative to generic data dir or provided root
-            if os.path.exists(schema_path):
+            if os.path.exists(schema_path_str):
                 pass
             else:
                 # search or fail
                 pass
 
         # 1. Convert Schema
-        print(f"Converting schema: {schema_path}")
+        print(f"Converting schema: {schema_path_str}")
         # Detect format from extension
-        ext = os.path.splitext(schema_path)[1].replace(".", "")
+        ext = os.path.splitext(schema_path_str)[1].replace(".", "")
         # Fallback if unknown
         fmt = "sql" if ext == "sql" else "json"
 
-        audit_config_dict = self.converter.convert_to_config(schema_path, format=fmt)
+        audit_config_dict = self.converter.convert_to_config(schema_path_str, format=fmt)
 
         # 2. Generate Data
         print(f"Generating data in {self.temp_dir}")

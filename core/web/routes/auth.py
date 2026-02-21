@@ -12,8 +12,10 @@ templates = Jinja2Templates(directory="core/web/templates")
 # Dependency to get DB session
 # For MVP we create a new engine/session per request or re-use a global one.
 # Best practice is dependency injection.
-DB_PATH = "sqlite:///data/auth.db"
-engine = create_engine(DB_PATH, connect_args={"check_same_thread": False})
+import os
+DB_PATH = os.getenv("AUTH_DB_URI", "sqlite:///data/auth.db")
+connect_args = {"check_same_thread": False} if DB_PATH.startswith("sqlite") else {}
+engine = create_engine(DB_PATH, connect_args=connect_args)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
@@ -39,7 +41,7 @@ async def login(
 ):
     from core.audit.logger import log_audit_event
 
-    client_ip = request.client.host
+    client_ip = request.client.host if request.client else "unknown"
 
     auth = AuthService(db)
     user = auth.authenticate_user(username, password)
@@ -88,7 +90,7 @@ async def logout(request: Request):
 
     user = request.session.get("user")
     user_id = user["username"] if user else "anonymous"
-    client_ip = request.client.host
+    client_ip = request.client.host if request.client else "unknown"
 
     log_audit_event(
         "LOGOUT",

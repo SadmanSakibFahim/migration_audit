@@ -211,7 +211,7 @@ class DatabaseDataSource(DataSource):
                 logger.info(f"Created database engine for {self._safe_uri}")
             except Exception as exc:
                 raise DatabaseConnectionError(
-                    f"Failed to create engine for '{self._safe_uri}': {exc}"
+                    self._safe_uri, exc
                 ) from exc
         return self._engine
 
@@ -262,7 +262,7 @@ class DatabaseDataSource(DataSource):
             raise
         except Exception as exc:
             raise DatabaseQueryError(
-                f"Query failed on table '{self.table_name}': {exc}"
+                sql, self._safe_uri, exc
             ) from exc
 
     def validate(self) -> bool:
@@ -278,7 +278,7 @@ class DatabaseDataSource(DataSource):
             return True
         except Exception as exc:
             raise DatabaseConnectionError(
-                f"Cannot connect to database '{self._safe_uri}': {exc}"
+                self._safe_uri, exc, self.table_name
             ) from exc
 
     def get_schema(self) -> Dict[str, str]:

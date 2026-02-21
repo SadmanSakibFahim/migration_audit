@@ -4,6 +4,32 @@ Created by: Ron Swanson (QA Lead)
 Provides reusable test data and helpers across all QA test modules.
 """
 
+import os
+import pytest
+
+# Global Test Environment Setup for FastAPI App
+os.environ["SECRET_KEY"] = "test_secret_key_from_conftest"
+os.environ["AUTH_DB_URI"] = "sqlite:///test_auth.db"
+os.environ["ALLOWED_HOSTS"] = "testserver,localhost,127.0.0.1"
+
+import shutil
+
+_AUDIT_CONFIG_PATH = os.path.join(os.path.dirname(__file__), "..", "config", "audit.yaml")
+_AUDIT_CONFIG_BACKUP = os.path.join(os.path.dirname(__file__), "..", "config", "audit.yaml.bak")
+
+
+@pytest.fixture(autouse=True, scope="session")
+def protect_audit_yaml():
+    """Back up config/audit.yaml before the test session; restore it after."""
+    src = os.path.abspath(_AUDIT_CONFIG_PATH)
+    bak = os.path.abspath(_AUDIT_CONFIG_BACKUP)
+    if os.path.exists(src):
+        shutil.copy2(src, bak)
+    yield
+    if os.path.exists(bak):
+        shutil.copy2(bak, src)
+        os.remove(bak)
+
 import pandas as pd
 import pytest
 from sqlalchemy import create_engine

@@ -27,7 +27,7 @@ async def dashboard(request: Request):
     log_audit_event(
         "VIEW_DASHBOARD",
         user_id=user["username"],
-        ip_address=request.client.host,
+        ip_address=request.client.host if request.client else "unknown",
         details="User accessed dashboard",
     )
 
@@ -70,7 +70,7 @@ async def run_audit_endpoint(request: Request, background_tasks: BackgroundTasks
     log_audit_event(
         "TRIGGER_AUDIT",
         user_id=user["username"],
-        ip_address=request.client.host,
+        ip_address=request.client.host if request.client else "unknown",
         details="User triggered new audit",
     )
 

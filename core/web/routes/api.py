@@ -14,9 +14,10 @@ from core.audit.logger import get_logger
 router = APIRouter(prefix="/api")
 logger = get_logger(__name__)
 
+from typing import Dict, Any
 # Simple in-memory state for the MVP
 # In production, use Redis or a database
-AUDIT_STATE = {
+AUDIT_STATE: Dict[str, Any] = {
     "status": "idle",  # idle, running, completed, error
     "message": "Ready to start.",
     "logs": [],
@@ -42,7 +43,8 @@ async def upload_files(
     if not user:
         return JSONResponse({"error": "Unauthorized"}, status_code=401)
 
-    uploaded = {"config": None, "data_files": []}
+    from typing import Dict, Any
+    uploaded: Dict[str, Any] = {"config": None, "data_files": []}
 
     # Save config YAML
     if config and config.filename:

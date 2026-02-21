@@ -27,7 +27,7 @@ class SchemaConverter:
         """
         Basic SQL DDL parser. verify CREATE TABLE statements.
         """
-        config = {"tables": {}}
+        config: Dict[str, Any] = {"tables": {}}
 
         # Regex to find CREATE TABLE statements
         table_pattern = re.compile(
@@ -130,7 +130,7 @@ class SchemaConverter:
         except json.JSONDecodeError:
             raise ValueError("Invalid JSON content")
 
-        config = {"tables": {}}
+        config: Dict[str, Any] = {"tables": {}}
 
         # Heuristic: Is this a single object schema or multiple?
         # Let's assume a structure like { "definitions": { "User": { ... } } } or root is the table.

@@ -5,6 +5,7 @@ import pandas as pd
 
 from core.audit.enums import CheckStatus
 from core.audit.result import TestResult
+from typing import Optional
 
 
 def _is_numeric_col(df: pd.DataFrame, column: str) -> bool:
@@ -16,6 +17,22 @@ def _is_numeric_col(df: pd.DataFrame, column: str) -> bool:
     return pd.api.types.is_numeric_dtype(df[column])
 
 
+def _check_all_nan(src_df: pd.DataFrame, tgt_df: pd.DataFrame, column: str, name: str, check_type: str) -> Optional[TestResult]:
+    if not src_df.empty and pd.to_numeric(src_df[column], errors="coerce").isna().all():
+        return TestResult(
+            name=f"{check_type} Check: {name} - {column}",
+            status=CheckStatus.WARN,
+            message=f"Source column '{column}' in table '{name}' contains entirely NaN values.",
+        )
+    if not tgt_df.empty and pd.to_numeric(tgt_df[column], errors="coerce").isna().all():
+        return TestResult(
+            name=f"{check_type} Check: {name} - {column}",
+            status=CheckStatus.WARN,
+            message=f"Target column '{column}' in table '{name}' contains entirely NaN values.",
+        )
+    return None
+
+
 def _is_id_col(column: str) -> bool:
     # Heuristic to identify PK/FK columns
     col_lower = column.lower()
@@ -24,7 +41,7 @@ def _is_id_col(column: str) -> bool:
 
 def check_sum(
     src_df: pd.DataFrame, tgt_df: pd.DataFrame, column: str, name: str, tolerance: float
-) -> TestResult:
+) -> Optional[TestResult]:
     # Restrict to numeric columns and exclude IDs
     if (
         not _is_numeric_col(src_df, column)
@@ -32,6 +49,10 @@ def check_sum(
         or _is_id_col(column)
     ):
         return None
+
+    nan_check = _check_all_nan(src_df, tgt_df, column, name, "Sum")
+    if nan_check:
+        return nan_check
 
     # Use to_numeric with coerce to avoid crash on strings, but junk check will catch it separately
     src_vals = pd.to_numeric(src_df[column], errors="coerce").dropna()
@@ -75,7 +96,7 @@ def check_sum(
 
 def check_avg(
     src_df: pd.DataFrame, tgt_df: pd.DataFrame, column: str, name: str, tolerance: float
-) -> TestResult:
+) -> Optional[TestResult]:
     # Restrict to numeric columns and exclude IDs
     if (
         not _is_numeric_col(src_df, column)
@@ -83,6 +104,10 @@ def check_avg(
         or _is_id_col(column)
     ):
         return None
+
+    nan_check = _check_all_nan(src_df, tgt_df, column, name, "Average")
+    if nan_check:
+        return nan_check
 
     src_vals = pd.to_numeric(src_df[column], errors="coerce").dropna()
     tgt_vals = pd.to_numeric(tgt_df[column], errors="coerce").dropna()
@@ -125,7 +150,7 @@ def check_avg(
 
 def check_max(
     src_df: pd.DataFrame, tgt_df: pd.DataFrame, column: str, name: str, tolerance: float
-) -> TestResult:
+) -> Optional[TestResult]:
     # Restrict to numeric columns and exclude IDs
     if (
         not _is_numeric_col(src_df, column)
@@ -133,6 +158,10 @@ def check_max(
         or _is_id_col(column)
     ):
         return None
+
+    nan_check = _check_all_nan(src_df, tgt_df, column, name, "Max")
+    if nan_check:
+        return nan_check
 
     src_vals = pd.to_numeric(src_df[column], errors="coerce").dropna()
     tgt_vals = pd.to_numeric(tgt_df[column], errors="coerce").dropna()
@@ -175,7 +204,7 @@ def check_max(
 
 def check_min(
     src_df: pd.DataFrame, tgt_df: pd.DataFrame, column: str, name: str, tolerance: float
-) -> TestResult:
+) -> Optional[TestResult]:
     # Restrict to numeric columns and exclude IDs
     if (
         not _is_numeric_col(src_df, column)
@@ -183,6 +212,10 @@ def check_min(
         or _is_id_col(column)
     ):
         return None
+
+    nan_check = _check_all_nan(src_df, tgt_df, column, name, "Min")
+    if nan_check:
+        return nan_check
 
     src_vals = pd.to_numeric(src_df[column], errors="coerce").dropna()
     tgt_vals = pd.to_numeric(tgt_df[column], errors="coerce").dropna()
@@ -225,7 +258,7 @@ def check_min(
 
 def check_variance(
     src_df: pd.DataFrame, tgt_df: pd.DataFrame, column: str, name: str, tolerance: float
-) -> TestResult:
+) -> Optional[TestResult]:
     # Restrict to numeric columns and exclude IDs
     if (
         not _is_numeric_col(src_df, column)
@@ -233,6 +266,10 @@ def check_variance(
         or _is_id_col(column)
     ):
         return None
+
+    nan_check = _check_all_nan(src_df, tgt_df, column, name, "Variance")
+    if nan_check:
+        return nan_check
 
     src_vals = pd.to_numeric(src_df[column], errors="coerce").dropna()
     tgt_vals = pd.to_numeric(tgt_df[column], errors="coerce").dropna()

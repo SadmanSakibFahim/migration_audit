@@ -130,6 +130,11 @@ def load_table(
 
     logger.info(f"Loading CSV from: {path}")
     try:
+        # Auto-enable chunking for large files (>500MB) to prevent memory exhaustion
+        if chunk_size is None and os.path.getsize(path) > 500 * 1024 * 1024:
+            logger.info(f"File '{path}' >500MB detected. Auto-enabling chunk_size streaming.")
+            chunk_size = 100000
+
         if chunk_size:
             # returns TextFileReader iterator
             return pd.read_csv(path, chunksize=chunk_size)

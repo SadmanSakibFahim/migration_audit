@@ -7,7 +7,8 @@ from sqlalchemy.orm import declarative_base, relationship
 
 from core.auth.enums import SubscriberType, UserRole
 
-Base = declarative_base()
+from typing import Any
+Base: Any = declarative_base()
 
 
 class License(Base):
@@ -30,7 +31,7 @@ class Subscriber(Base):
     __tablename__ = "subscribers"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    type = Column(SqEnum(SubscriberType), nullable=False)
+    type: Any = Column(SqEnum(SubscriberType), nullable=False)
     license_key_id = Column(Integer, ForeignKey("licenses.id"), nullable=False)
     is_active = Column(Boolean, default=True)
 
@@ -60,7 +61,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     username = Column(String, unique=True, nullable=False)
     password_hash = Column(String, nullable=False)
-    role = Column(SqEnum(UserRole), default=UserRole.VIEWER)
+    role: Any = Column(SqEnum(UserRole), default=UserRole.VIEWER)
     subscriber_id = Column(Integer, ForeignKey("subscribers.id"), nullable=False)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
