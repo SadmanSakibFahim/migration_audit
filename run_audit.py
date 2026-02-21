@@ -410,8 +410,10 @@ def run_audit(
             meta=meta,
             src_df=src_df,
             tgt_df=tgt_df,
-            volume_tolerance=volume_tolerance,
-            aggregate_tolerance=aggregate_tolerance,
+            config={
+                "volume_tolerance": volume_tolerance,
+                "aggregate_tolerance": aggregate_tolerance,
+            },
         )
 
         table_results_raw = runner.execute_all()

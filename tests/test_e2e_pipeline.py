@@ -23,8 +23,10 @@ def _run_pipeline(src_df, tgt_df, meta, vol_tol=0.1, agg_tol=1.0):
         meta=meta,
         src_df=src_df,
         tgt_df=tgt_df,
-        volume_tolerance=vol_tol,
-        aggregate_tolerance=agg_tol,
+        config={
+            "volume_tolerance": vol_tol,
+            "aggregate_tolerance": agg_tol,
+        },
     )
     results = runner.execute_all()
     v = final_verdict(results)

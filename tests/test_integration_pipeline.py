@@ -70,7 +70,7 @@ class TestDataSourceToVerdict:
             target=str(tgt_path),
             primary_key="id",
         )
-        runner = CheckRunner("mismatch_test", meta, src_df, tgt_df, volume_tolerance=0.1)
+        runner = CheckRunner("mismatch_test", meta, src_df, tgt_df, config={"volume_tolerance": 0.1})
         results = runner.execute_all()
         verdict = final_verdict(results)
 
