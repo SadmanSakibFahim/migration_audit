@@ -12,16 +12,11 @@ from datetime import datetime
 
 import pytest
 
-from core.audit.ci_output import (
-    build_ci_report,
-    serialize_check,
-    verdict_exit_code,
-    write_ci_report,
-)
+from core.audit.ci_output import (build_ci_report, serialize_check,
+                                  verdict_exit_code, write_ci_report)
 from core.audit.enums import CheckStatus
 from core.audit.result import TestResult
 from core.audit.verdict import Verdict
-
 
 # ── Fixtures ──────────────────────────────────────────────
 
@@ -30,9 +25,21 @@ from core.audit.verdict import Verdict
 def passing_results():
     """All checks pass."""
     return [
-        TestResult(name="volume_check_users", status=CheckStatus.PASS, message="Row count match: 1000/1000"),
-        TestResult(name="aggregate_check_users_age", status=CheckStatus.PASS, message="Aggregate within tolerance"),
-        TestResult(name="mapping_check_users_status", status=CheckStatus.PASS, message="All values valid"),
+        TestResult(
+            name="volume_check_users",
+            status=CheckStatus.PASS,
+            message="Row count match: 1000/1000",
+        ),
+        TestResult(
+            name="aggregate_check_users_age",
+            status=CheckStatus.PASS,
+            message="Aggregate within tolerance",
+        ),
+        TestResult(
+            name="mapping_check_users_status",
+            status=CheckStatus.PASS,
+            message="All values valid",
+        ),
     ]
 
 
@@ -41,8 +48,14 @@ def mixed_results():
     """Mix of PASS, WARN, and FAIL."""
     return [
         TestResult(name="volume_check_users", status=CheckStatus.PASS, message="OK"),
-        TestResult(name="aggregate_check_orders", status=CheckStatus.WARN, message="1.5% diff"),
-        TestResult(name="mapping_check_orders_status", status=CheckStatus.FAIL, message="Invalid value: 'unknown'"),
+        TestResult(
+            name="aggregate_check_orders", status=CheckStatus.WARN, message="1.5% diff"
+        ),
+        TestResult(
+            name="mapping_check_orders_status",
+            status=CheckStatus.FAIL,
+            message="Invalid value: 'unknown'",
+        ),
     ]
 
 
@@ -50,7 +63,11 @@ def mixed_results():
 def error_results():
     """Infrastructure error."""
     return [
-        TestResult(name="volume_check_users", status=CheckStatus.ERROR, message="Connection refused"),
+        TestResult(
+            name="volume_check_users",
+            status=CheckStatus.ERROR,
+            message="Connection refused",
+        ),
     ]
 
 
@@ -139,7 +156,7 @@ class TestWriteCiReport:
     def test_writes_json_file(self, passing_results):
         with tempfile.TemporaryDirectory() as tmpdir:
             path = os.path.join(tmpdir, "audit_result.json")
-            report = write_ci_report(passing_results, path)
+            write_ci_report(passing_results, path)
 
             assert os.path.exists(path)
             with open(path) as f:

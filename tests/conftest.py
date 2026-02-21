@@ -3,43 +3,47 @@
 Created by: Ron Swanson (QA Lead)
 Provides reusable test data and helpers across all QA test modules.
 """
-import pytest
-import os
-import tempfile
+
 import pandas as pd
+import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
+from core.audit.config_models import MappingConfig, TableConfig
 from core.audit.enums import CheckStatus
 from core.audit.result import TestResult
-from core.audit.config_models import TableConfig, MappingConfig, RelationshipConfig
-
 
 # ---------------------------------------------------------------------------
 # DataFrame Fixtures
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 def sample_src_df():
     """Standard source DataFrame for migration checks."""
-    return pd.DataFrame({
-        "id": [1, 2, 3, 4, 5],
-        "name": ["Alice", "Bob", "Charlie", "Diana", "Eve"],
-        "email": ["a@x.com", "b@x.com", "c@x.com", "d@x.com", "e@x.com"],
-        "amount": [100.0, 200.0, 300.0, 400.0, 500.0],
-        "status": ["active", "active", "inactive", "active", "pending"],
-    })
+    return pd.DataFrame(
+        {
+            "id": [1, 2, 3, 4, 5],
+            "name": ["Alice", "Bob", "Charlie", "Diana", "Eve"],
+            "email": ["a@x.com", "b@x.com", "c@x.com", "d@x.com", "e@x.com"],
+            "amount": [100.0, 200.0, 300.0, 400.0, 500.0],
+            "status": ["active", "active", "inactive", "active", "pending"],
+        }
+    )
 
 
 @pytest.fixture
 def sample_tgt_df():
     """Standard target DataFrame (exact copy of source)."""
-    return pd.DataFrame({
-        "id": [1, 2, 3, 4, 5],
-        "name": ["Alice", "Bob", "Charlie", "Diana", "Eve"],
-        "email": ["a@x.com", "b@x.com", "c@x.com", "d@x.com", "e@x.com"],
-        "amount": [100.0, 200.0, 300.0, 400.0, 500.0],
-        "status": ["active", "active", "inactive", "active", "pending"],
-    })
+    return pd.DataFrame(
+        {
+            "id": [1, 2, 3, 4, 5],
+            "name": ["Alice", "Bob", "Charlie", "Diana", "Eve"],
+            "email": ["a@x.com", "b@x.com", "c@x.com", "d@x.com", "e@x.com"],
+            "amount": [100.0, 200.0, 300.0, 400.0, 500.0],
+            "status": ["active", "active", "inactive", "active", "pending"],
+        }
+    )
 
 
 @pytest.fixture
@@ -52,18 +56,22 @@ def empty_df():
 def large_src_df():
     """Large DataFrame for stress-testing (10K rows)."""
     import numpy as np
+
     n = 10_000
     rng = np.random.default_rng(42)
-    return pd.DataFrame({
-        "id": range(n),
-        "amount": rng.uniform(1, 1000, n),
-        "status": rng.choice(["active", "inactive", "pending"], n),
-    })
+    return pd.DataFrame(
+        {
+            "id": range(n),
+            "amount": rng.uniform(1, 1000, n),
+            "status": rng.choice(["active", "inactive", "pending"], n),
+        }
+    )
 
 
 # ---------------------------------------------------------------------------
 # Config Fixtures
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def simple_table_meta():
@@ -74,7 +82,9 @@ def simple_table_meta():
         primary_key="id",
         aggregates=["amount"],
         mappings=[
-            MappingConfig(columns=["status"], allowed_values=["active", "inactive", "pending"]),
+            MappingConfig(
+                columns=["status"], allowed_values=["active", "inactive", "pending"]
+            ),
         ],
         data_constraints={"email": ["not_null"]},
     )
@@ -94,10 +104,12 @@ def meta_no_checks():
 # Auth DB Fixtures
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 def auth_db_session():
     """In-memory SQLite session with auth tables created."""
     from core.auth.models import Base
+
     engine = create_engine("sqlite:///:memory:")
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
@@ -110,19 +122,23 @@ def auth_db_session():
 # Temp File Fixtures
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 def tmp_csv(tmp_path):
     """Factory fixture — returns a function that writes a DataFrame to a temp CSV."""
+
     def _write(df: pd.DataFrame, name: str = "data.csv") -> str:
         path = tmp_path / name
         df.to_csv(path, index=False)
         return str(path)
+
     return _write
 
 
 # ---------------------------------------------------------------------------
 # TestResult Helpers
 # ---------------------------------------------------------------------------
+
 
 def make_result(status: CheckStatus, name: str = "test") -> TestResult:
     """Quick helper to build TestResult instances."""

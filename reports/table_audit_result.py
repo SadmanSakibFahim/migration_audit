@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 from typing import Dict, List
-from core.audit.result import TestResult
+
 from core.audit.enums import CheckStatus
+from core.audit.result import TestResult
 
 
 @dataclass
@@ -21,8 +22,4 @@ class TableAuditResult:
         for check in checks:
             summary[check.status] += 1
 
-        return cls(
-            table_name=table_name,
-            checks=checks,
-            summary=summary
-        )
+        return cls(table_name=table_name, checks=checks, summary=summary)

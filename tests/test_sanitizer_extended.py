@@ -3,8 +3,10 @@
 Comprehensive PII masking and sensitive column dropping tests
 for core/sanitization/masking.py DataSanitizer.
 """
-import pytest
+
 import pandas as pd
+import pytest
+
 from core.sanitization.masking import DataSanitizer
 
 
@@ -16,6 +18,7 @@ def sanitizer():
 # ===================================================================
 # PII Hashing
 # ===================================================================
+
 
 class TestPIIHashing:
     def test_email_hashed(self, sanitizer):
@@ -63,6 +66,7 @@ class TestPIIHashing:
 # Sensitive Column Dropping
 # ===================================================================
 
+
 class TestSensitiveColumnDropping:
     def test_ssn_dropped(self, sanitizer):
         df = pd.DataFrame({"ssn": ["123-45-6789"], "name": ["Bob"]})
@@ -86,12 +90,14 @@ class TestSensitiveColumnDropping:
         assert "medical_record_number" not in result.columns
 
     def test_multiple_sensitive_columns_all_dropped(self, sanitizer):
-        df = pd.DataFrame({
-            "ssn": ["123"],
-            "credit_card": ["456"],
-            "password": ["789"],
-            "safe_col": ["ok"],
-        })
+        df = pd.DataFrame(
+            {
+                "ssn": ["123"],
+                "credit_card": ["456"],
+                "password": ["789"],
+                "safe_col": ["ok"],
+            }
+        )
         result = sanitizer.sanitize(df)
         assert "ssn" not in result.columns
         assert "credit_card" not in result.columns
@@ -102,6 +108,7 @@ class TestSensitiveColumnDropping:
 # ===================================================================
 # Edge Cases
 # ===================================================================
+
 
 class TestSanitizerEdgeCases:
     def test_none_input_returns_none(self, sanitizer):
@@ -138,15 +145,17 @@ class TestSanitizerEdgeCases:
 
     def test_mixed_pii_and_sensitive(self, sanitizer):
         """DataFrame with both PII (hash) and sensitive (drop) columns."""
-        df = pd.DataFrame({
-            "email": ["test@x.com"],
-            "credit_card": ["4111"],
-            "normal": ["ok"],
-        })
+        df = pd.DataFrame(
+            {
+                "email": ["test@x.com"],
+                "credit_card": ["4111"],
+                "normal": ["ok"],
+            }
+        )
         result = sanitizer.sanitize(df)
         assert "credit_card" not in result.columns  # Dropped
-        assert result["email"][0] != "test@x.com"   # Hashed
-        assert result["normal"][0] == "ok"           # Untouched
+        assert result["email"][0] != "test@x.com"  # Hashed
+        assert result["normal"][0] == "ok"  # Untouched
 
     def test_row_count_preserved(self, sanitizer):
         """Sanitize preserves row count."""

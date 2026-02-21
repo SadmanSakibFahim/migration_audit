@@ -1,20 +1,28 @@
-from docx import Document
-from datetime import date, datetime
-from collections import defaultdict
-from core.audit.verdict import final_verdict
-from core.audit.enums import CheckStatus
-import os
 import base64
+import os
+from collections import defaultdict
+from datetime import date, datetime
 
+from docx import Document
 from xhtml2pdf import pisa  # For PDF generation
+
+from core.audit.enums import CheckStatus
+from core.audit.verdict import final_verdict
 
 SECTION_MAP = {
     "volume": ("Data Volume Checks", ["volume"]),
-    "aggregates": ("Aggregate Checks", ["sum", "average", "avg", "max", "min", "variance"]),
+    "aggregates": (
+        "Aggregate Checks",
+        ["sum", "average", "avg", "max", "min", "variance"],
+    ),
     "mappings": ("Mapping Checks", ["mapping"]),
     "relationships": ("Relationship Checks", ["foreign key"]),
-    "data_constraints": ("Data Constraint Checks", ["data constraint", "data constraints"])
+    "data_constraints": (
+        "Data Constraint Checks",
+        ["data constraint", "data constraints"],
+    ),
 }
+
 
 def group_results(results):
     grouped = defaultdict(list)
@@ -22,7 +30,7 @@ def group_results(results):
     for r in results:
         name_lower = r.name.lower()
         found = False
-        
+
         for key, (section_name, keywords) in SECTION_MAP.items():
             for keyword in keywords:
                 if keyword in name_lower:
@@ -31,7 +39,7 @@ def group_results(results):
                     break
             if found:
                 break
-        
+
         # If no section matched, try to group by key name as fallback
         if not found:
             for key, (section_name, keywords) in SECTION_MAP.items():
@@ -41,6 +49,7 @@ def group_results(results):
 
     return grouped
 
+
 def section_verdict(results):
     if any(r.status == CheckStatus.FAIL for r in results):
         return "FAIL"
@@ -48,19 +57,21 @@ def section_verdict(results):
         return "WARN"
     return "PASS"
 
+
 def _build_report_content(results, client="Client", migration="Source → Target"):
     """Build the core report content as a dictionary for reuse across formats."""
     grouped = group_results(results)
     final = final_verdict(results)
-    
+
     return {
         "client": client,
         "migration": migration,
         "date": str(date.today()),
         "final_verdict": final,
         "grouped_results": grouped,
-        "all_results": results
+        "all_results": results,
     }
+
 
 def _write_docx(content, output_path):
     """Generate DOCX report."""
@@ -81,12 +92,12 @@ def _write_docx(content, output_path):
 
     doc.add_paragraph(f"Final Verdict: {content['final_verdict']}\n")
 
-    for section, res in content['grouped_results'].items():
+    for section, res in content["grouped_results"].items():
         verdict = section_verdict(res)
         doc.add_paragraph(f"{section}: {verdict}")
 
     # Sections
-    for section, res in content['grouped_results'].items():
+    for section, res in content["grouped_results"].items():
         doc.add_heading(section, level=2)
 
         doc.add_paragraph("Checks Performed:")
@@ -95,67 +106,66 @@ def _write_docx(content, output_path):
 
         doc.add_paragraph("Findings:")
         for r in res:
-            doc.add_paragraph(
-                f"- [{r.status.value}] {r.message}",
-                style="List Bullet"
-            )
+            doc.add_paragraph(f"- [{r.status.value}] {r.message}", style="List Bullet")
 
         doc.add_paragraph(f"Section Verdict: {section_verdict(res)}")
 
     # Final Verdict
     doc.add_heading("Final Deployability Verdict", level=2)
-    doc.add_paragraph(content['final_verdict'])
+    doc.add_paragraph(content["final_verdict"])
 
     doc.save(output_path)
+
 
 def _write_markdown(content, output_path):
     """Generate Markdown report."""
     lines = []
-    
+
     lines.append("# Migration Validation & Risk Audit\n")
     lines.append(f"**Client:** {content['client']}\n")
     lines.append(f"**Migration:** {content['migration']}\n")
     lines.append(f"**Audit Date:** {content['date']}\n")
-    lines.append(f"**Auditor:** Independent Migration Audit\n")
-    
+    lines.append("**Auditor:** Independent Migration Audit\n")
+
     # Executive Summary
     lines.append("\n## Executive Summary\n")
     lines.append(f"**Final Verdict:** {content['final_verdict']}\n")
-    
-    for section, res in content['grouped_results'].items():
+
+    for section, res in content["grouped_results"].items():
         verdict = section_verdict(res)
         lines.append(f"- **{section}:** {verdict}")
-    
+
     # Detailed Sections
-    for section, res in content['grouped_results'].items():
+    for section, res in content["grouped_results"].items():
         lines.append(f"\n## {section}\n")
-        
+
         lines.append("### Checks Performed\n")
         for r in res:
             lines.append(f"- {r.name}")
-        
+
         lines.append("\n### Findings\n")
         for r in res:
             lines.append(f"- **[{r.status.value}]** {r.message}")
             if r.details:
                 lines.append(f"  - Details: {r.details}")
-        
+
         lines.append(f"\n**Section Verdict:** {section_verdict(res)}\n")
-    
+
     # Final Verdict
     lines.append("\n## Final Deployability Verdict\n")
     lines.append(f"{content['final_verdict']}\n")
-    
-    with open(output_path, 'w') as f:
-        f.write('\n'.join(lines))
 
-    with open(output_path, 'w') as f:
-        f.write('\n'.join(lines))
+    with open(output_path, "w") as f:
+        f.write("\n".join(lines))
+
+    with open(output_path, "w") as f:
+        f.write("\n".join(lines))
+
 
 def _write_text(content, output_path):
     """Generate plain text report."""
     lines = []
-    
+
     lines.append("=" * 80)
     lines.append("MIGRATION VALIDATION & RISK AUDIT")
     lines.append("=" * 80)
@@ -163,67 +173,70 @@ def _write_text(content, output_path):
     lines.append(f"Client:  {content['client']}")
     lines.append(f"Migration: {content['migration']}")
     lines.append(f"Audit Date: {content['date']}")
-    lines.append(f"Auditor: Independent Migration Audit")
+    lines.append("Auditor: Independent Migration Audit")
     lines.append("")
-    
+
     # Executive Summary
     lines.append("-" * 80)
     lines.append("EXECUTIVE SUMMARY")
     lines.append("-" * 80)
     lines.append(f"Final Verdict: {content['final_verdict']}")
     lines.append("")
-    
-    for section, res in content['grouped_results'].items():
+
+    for section, res in content["grouped_results"].items():
         verdict = section_verdict(res)
         lines.append(f"{section}: {verdict}")
-    
+
     lines.append("")
-    
+
     # Detailed Sections
-    for section, res in content['grouped_results'].items():
+    for section, res in content["grouped_results"].items():
         lines.append("-" * 80)
         lines.append(section.upper())
         lines.append("-" * 80)
         lines.append("")
-        
+
         lines.append("Checks Performed:")
         for r in res:
             lines.append(f"  - {r.name}")
-        
+
         lines.append("")
         lines.append("Findings:")
         for r in res:
             lines.append(f"  [{r.status.value}] {r.message}")
             if r.details:
                 lines.append(f"       Details: {r.details}")
-        
+
         lines.append("")
         lines.append(f"Section Verdict: {section_verdict(res)}")
         lines.append("")
-    
+
     # Final Verdict
     lines.append("=" * 80)
     lines.append("FINAL DEPLOYABILITY VERDICT")
     lines.append("=" * 80)
-    lines.append(content['final_verdict'])
+    lines.append(content["final_verdict"])
     lines.append("")
-    
-    with open(output_path, 'w') as f:
-        f.write('\n'.join(lines))
+
+    with open(output_path, "w") as f:
+        f.write("\n".join(lines))
+
 
 def _write_html(content, output_path, logo_path=None):
     """Generate HTML report."""
-    
+
     # Handle Logo (Base64 Encode)
     logo_html = ""
     if logo_path and os.path.exists(logo_path):
         try:
             with open(logo_path, "rb") as img_file:
-                b64_string = base64.b64encode(img_file.read()).decode('utf-8')
+                b64_string = base64.b64encode(img_file.read()).decode("utf-8")
                 # Determine mime type based on extension
-                ext = os.path.splitext(logo_path)[1].lower().replace('.', '')
+                ext = os.path.splitext(logo_path)[1].lower().replace(".", "")
                 mime_type = "image/png" if ext == "png" else "image/jpeg"
-                logo_html = f'<img src="data:{mime_type};base64,{b64_string}" class="logo" />'
+                logo_html = (
+                    f'<img src="data:{mime_type};base64,{b64_string}" class="logo" />'
+                )
         except Exception as e:
             print(f"Failed to load logo: {e}")
 
@@ -379,8 +392,8 @@ def _write_html(content, output_path, logo_path=None):
         
         <table class="summary-table">
     """
-    
-    for section, res in content['grouped_results'].items():
+
+    for section, res in content["grouped_results"].items():
         verdict = section_verdict(res)
         html += f"""
             <tr class="summary-row">
@@ -388,13 +401,13 @@ def _write_html(content, output_path, logo_path=None):
                 <td style="text-align: right;"><span class="verdict-{verdict}">{verdict}</span></td>
             </tr>
         """
-    
+
     html += """
         </table>
     """
-    
+
     # Detailed Sections
-    for section, res in content['grouped_results'].items():
+    for section, res in content["grouped_results"].items():
         html += f"""
         <div class="section-block">
             <h2>{section}</h2>
@@ -420,7 +433,7 @@ def _write_html(content, output_path, logo_path=None):
             </table>
         </div>
         """
-        
+
     html += f"""
         <div style="page-break-before: always;"></div>
         <h2>Final Deployability Verdict</h2>
@@ -434,25 +447,35 @@ def _write_html(content, output_path, logo_path=None):
     </body>
     </html>
     """
-    
-    with open(output_path, 'w', encoding='utf-8') as f:
+
+    with open(output_path, "w", encoding="utf-8") as f:
         f.write(html)
     return html
+
 
 def _write_pdf(html_content, output_path):
     """Generate PDF report from HTML content using xhtml2pdf."""
     try:
         with open(output_path, "wb") as pdf_file:
             pisa_status = pisa.CreatePDF(html_content, dest=pdf_file)
-        
+
         if pisa_status.err:
             print(f"Error generating PDF: {pisa_status.err}")
     except Exception as e:
         print(f"Failed to generate PDF: {e}")
 
-def build_report(results, output_path=None, client="Client", migration="Source → Target", base_dir="outputs", label="", logo_path=None):
+
+def build_report(
+    results,
+    output_path=None,
+    client="Client",
+    migration="Source → Target",
+    base_dir="outputs",
+    label="",
+    logo_path=None,
+):
     """Generate reports in all formats (DOCX, Markdown, Text, HTML, PDF).
-    
+
     Args:
         results: List of TestResult objects
         output_path: Path for the DOCX file (base name). If None, generated automatically.
@@ -475,28 +498,27 @@ def build_report(results, output_path=None, client="Client", migration="Source �
 
     # Build report content once
     content = _build_report_content(results, client, migration)
-    
+
     # Generate DOCX
     _write_docx(content, output_path)
-    
+
     # Generate Markdown, Text, HTML, PDF
     base_path = os.path.splitext(output_path)[0]
     md_path = base_path + ".md"
     txt_path = base_path + ".txt"
     html_path = base_path + ".html"
     pdf_path = base_path + ".pdf"
-    
 
     _write_markdown(content, md_path)
     _write_text(content, txt_path)
     # Pass logo_path to html generator
     html_content = _write_html(content, html_path, logo_path=logo_path)
     _write_pdf(html_content, pdf_path)
-    
+
     return {
         "docx": output_path,
         "markdown": md_path,
         "text": txt_path,
         "html": html_path,
-        "pdf": pdf_path
+        "pdf": pdf_path,
     }

@@ -2,10 +2,12 @@
 
 Stress testing and performance benchmarks for compliance features.
 """
-import pytest
+
 import time
+
 import pandas as pd
-import numpy as np
+import pytest
+
 from core.sanitization.masking import DataSanitizer
 
 
@@ -18,15 +20,18 @@ def sanitizer():
 # Large Dataset Masking Performance
 # ===================================================================
 
+
 class TestLargeDatasetMasking:
     def test_100k_rows_completes_in_time(self, sanitizer):
         """Masking 100K rows should complete within 30 seconds."""
         n = 100_000
-        df = pd.DataFrame({
-            "email": [f"user{i}@example.com" for i in range(n)],
-            "username": [f"user_{i}" for i in range(n)],
-            "normal_col": range(n),
-        })
+        df = pd.DataFrame(
+            {
+                "email": [f"user{i}@example.com" for i in range(n)],
+                "username": [f"user_{i}" for i in range(n)],
+                "normal_col": range(n),
+            }
+        )
 
         start = time.time()
         result = sanitizer.sanitize(df)
@@ -39,18 +44,20 @@ class TestLargeDatasetMasking:
     def test_10k_rows_with_all_pii_columns(self, sanitizer):
         """All 5 PII columns + 4 sensitive columns on 10K rows."""
         n = 10_000
-        df = pd.DataFrame({
-            "email": [f"u{i}@x.com" for i in range(n)],
-            "username": [f"user{i}" for i in range(n)],
-            "user_id": [f"UID{i}" for i in range(n)],
-            "customer_email": [f"cx{i}@x.com" for i in range(n)],
-            "patient_id": [f"PAT{i}" for i in range(n)],
-            "ssn": [f"000-00-{i:04d}" for i in range(n)],
-            "credit_card": [f"4111-{i:04d}" for i in range(n)],
-            "password": [f"hash{i}" for i in range(n)],
-            "medical_record_number": [f"MRN{i}" for i in range(n)],
-            "safe_col": range(n),
-        })
+        df = pd.DataFrame(
+            {
+                "email": [f"u{i}@x.com" for i in range(n)],
+                "username": [f"user{i}" for i in range(n)],
+                "user_id": [f"UID{i}" for i in range(n)],
+                "customer_email": [f"cx{i}@x.com" for i in range(n)],
+                "patient_id": [f"PAT{i}" for i in range(n)],
+                "ssn": [f"000-00-{i:04d}" for i in range(n)],
+                "credit_card": [f"4111-{i:04d}" for i in range(n)],
+                "password": [f"hash{i}" for i in range(n)],
+                "medical_record_number": [f"MRN{i}" for i in range(n)],
+                "safe_col": range(n),
+            }
+        )
 
         result = sanitizer.sanitize(df)
 
@@ -70,11 +77,13 @@ class TestLargeDatasetMasking:
     def test_shape_preserved(self, sanitizer):
         """Column count changes but row count stays the same."""
         n = 5_000
-        df = pd.DataFrame({
-            "email": [f"u{i}@x.com" for i in range(n)],
-            "ssn": ["000-00-0000"] * n,
-            "data": range(n),
-        })
+        df = pd.DataFrame(
+            {
+                "email": [f"u{i}@x.com" for i in range(n)],
+                "ssn": ["000-00-0000"] * n,
+                "data": range(n),
+            }
+        )
         result = sanitizer.sanitize(df)
         assert len(result) == n
         # One column dropped (ssn), so 2 remaining
@@ -84,6 +93,7 @@ class TestLargeDatasetMasking:
 # ===================================================================
 # Repeated Masking Idempotency
 # ===================================================================
+
 
 class TestMaskingIdempotency:
     def test_double_sanitize_is_stable(self, sanitizer):

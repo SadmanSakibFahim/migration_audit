@@ -11,7 +11,7 @@ ADR: ADR-001 — SQLAlchemy chosen for database abstraction
 
 import os
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 import pandas as pd
 from sqlalchemy import create_engine, inspect, text
@@ -289,7 +289,9 @@ class DatabaseDataSource(DataSource):
     @property
     def source_type(self) -> str:
         """Detect the database dialect from the URI."""
-        dialect = self.uri.split("://")[0].split("+")[0] if "://" in self.uri else "unknown"
+        dialect = (
+            self.uri.split("://")[0].split("+")[0] if "://" in self.uri else "unknown"
+        )
         return dialect
 
     @property
@@ -324,7 +326,7 @@ def create_data_source(path_or_uri: str, **kwargs) -> DataSource:
             # Count path depth after host (ignore leading slashes for sqlite)
             path_part = scheme_rest.split("/", 1)[1] if "/" in scheme_rest else ""
             segments = [s for s in path_part.split("/") if s]
-            
+
             if len(segments) >= 2:
                 # Has extra segment beyond DB name — treat last as table
                 path_or_uri, table_name = path_or_uri.rstrip("/").rsplit("/", 1)

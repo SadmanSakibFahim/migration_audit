@@ -6,11 +6,11 @@ computation in run_audit_background_task, and AUDIT_STATE schema.
 QA Engineer: Ben Wyatt (Software Testing Team)
 Reviewer: Ron Swanson (QA Lead)
 """
-import pytest
+
 from fastapi.testclient import TestClient
+
 from core.web.app import app
 from core.web.routes.api import AUDIT_STATE
-
 
 client = TestClient(app)
 
@@ -18,6 +18,7 @@ client = TestClient(app)
 # ===================================================================
 # AUDIT_STATE Schema Validation
 # ===================================================================
+
 
 class TestAuditStateSchema:
     """Ben Wyatt: AUDIT_STATE must contain all required keys."""
@@ -45,14 +46,22 @@ class TestAuditStateSchema:
 
     def test_state_has_all_required_keys(self):
         """Full AUDIT_STATE schema compliance check."""
-        required = {"status", "message", "logs", "progress",
-                     "last_run_id", "results_summary", "results_details"}
+        required = {
+            "status",
+            "message",
+            "logs",
+            "progress",
+            "last_run_id",
+            "results_summary",
+            "results_details",
+        }
         assert required.issubset(set(AUDIT_STATE.keys()))
 
 
 # ===================================================================
 # /api/audit/results endpoint
 # ===================================================================
+
 
 class TestAuditResultsEndpoint:
     """Ben Wyatt: /api/audit/results endpoint QA."""
@@ -85,6 +94,7 @@ class TestAuditResultsEndpoint:
 # /api/audit/start still works
 # ===================================================================
 
+
 class TestAuditStartEndpoint:
     """Ben Wyatt: Verify audit/start endpoint still functional."""
 
@@ -101,6 +111,7 @@ class TestAuditStartEndpoint:
 # ===================================================================
 # Results Summary Computation (Unit Test)
 # ===================================================================
+
 
 class TestResultsSummaryComputation:
     """Ben Wyatt: Testing the results aggregation logic in isolation."""
@@ -132,11 +143,13 @@ class TestResultsSummaryComputation:
             elif "error" in status_str:
                 summary["error"] += 1
             summary["total"] += 1
-            details.append({
-                "name": r.name,
-                "status": status_str,
-                "message": r.message,
-            })
+            details.append(
+                {
+                    "name": r.name,
+                    "status": status_str,
+                    "message": r.message,
+                }
+            )
 
         assert summary == {"pass": 2, "warn": 1, "fail": 1, "error": 1, "total": 5}
         assert len(details) == 5
@@ -181,12 +194,14 @@ class TestResultsSummaryComputation:
 # SSE Stream still includes results_summary
 # ===================================================================
 
+
 class TestSSEStreamSchema:
     """Ben Wyatt: The SSE event_generator should include results_summary."""
 
     def test_audit_state_serializable(self):
         """AUDIT_STATE must be JSON-serializable for SSE streaming."""
         import json
+
         # Should not raise
         serialized = json.dumps(AUDIT_STATE)
         parsed = json.loads(serialized)

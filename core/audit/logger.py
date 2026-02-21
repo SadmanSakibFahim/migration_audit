@@ -1,16 +1,17 @@
 # core/logger.py
+import json
 import logging
 import os
-import json
-import time
 from datetime import datetime, timezone
 
 # Ensure logs directory exists
 LOG_DIR = "logs"
 os.makedirs(LOG_DIR, exist_ok=True)
 
+
 class JsonFormatter(logging.Formatter):
     """Formats log records as JSON objects for SIEM ingestion."""
+
     def format(self, record):
         log_entry = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -27,8 +28,9 @@ class JsonFormatter(logging.Formatter):
             log_entry["action"] = record.action
         if hasattr(record, "ip_address"):
             log_entry["ip_address"] = record.ip_address
-            
+
         return json.dumps(log_entry)
+
 
 def get_logger(name: str) -> logging.Logger:
     logger = logging.getLogger(name)
@@ -51,7 +53,7 @@ def get_logger(name: str) -> logging.Logger:
     logger.addHandler(console_handler)
 
     # 2. File Handler (JSON for Audit/SIEM)
-    # We use a rotating file or just a simple file handler. 
+    # We use a rotating file or just a simple file handler.
     # For audit, we typically want a dedicated file.
     # Using .jsonl extension (Newline Delimited JSON) is standard for logs
     file_handler = logging.FileHandler(os.path.join(LOG_DIR, "audit.jsonl"))
@@ -60,10 +62,17 @@ def get_logger(name: str) -> logging.Logger:
 
     return logger
 
+
 # Dedicated Audit Logger Helper
 audit_logger = get_logger("audit")
 
-def log_audit_event(action: str, user_id: str = "anonymous", ip_address: str = "unknown", details: str = ""):
+
+def log_audit_event(
+    action: str,
+    user_id: str = "anonymous",
+    ip_address: str = "unknown",
+    details: str = "",
+):
     """Helper to log structured audit events."""
     extra = {"user_id": user_id, "action": action, "ip_address": ip_address}
     audit_logger.info(details, extra=extra)

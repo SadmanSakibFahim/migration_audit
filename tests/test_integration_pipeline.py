@@ -3,21 +3,20 @@
 Cross-component integration tests validating the interplay between
 DataSource, CheckRunner, Verdict, and Sanitizer.
 """
-import pytest
-import os
-import tempfile
-import pandas as pd
-from core.audit.check_runner import CheckRunner
-from core.audit.verdict import final_verdict, Verdict, is_migration_allowed
-from core.audit.enums import CheckStatus
-from core.audit.config_models import TableConfig, MappingConfig
-from core.db.data_source import create_data_source, CSVDataSource
-from core.sanitization.masking import DataSanitizer
 
+import pandas as pd
+import pytest
+
+from core.audit.check_runner import CheckRunner
+from core.audit.config_models import TableConfig
+from core.audit.verdict import Verdict, final_verdict, is_migration_allowed
+from core.db.data_source import CSVDataSource, create_data_source
+from core.sanitization.masking import DataSanitizer
 
 # ===================================================================
 # DataSource → CheckRunner → Verdict Pipeline
 # ===================================================================
+
 
 class TestDataSourceToVerdict:
     def test_csv_to_verdict_happy_path(self, tmp_path):
@@ -70,7 +69,9 @@ class TestDataSourceToVerdict:
             target=str(tgt_path),
             primary_key="id",
         )
-        runner = CheckRunner("mismatch_test", meta, src_df, tgt_df, config={"volume_tolerance": 0.1})
+        runner = CheckRunner(
+            "mismatch_test", meta, src_df, tgt_df, config={"volume_tolerance": 0.1}
+        )
         results = runner.execute_all()
         verdict = final_verdict(results)
 
@@ -82,14 +83,17 @@ class TestDataSourceToVerdict:
 # DataSource → Sanitizer Pipeline
 # ===================================================================
 
+
 class TestDataSourceToSanitizer:
     def test_csv_load_then_sanitize(self, tmp_path):
         """Load CSV with PII, sanitize, verify PII is masked."""
-        raw = pd.DataFrame({
-            "email": ["real@person.com", "ceo@corp.com"],
-            "ssn": ["123-45-6789", "987-65-4321"],
-            "amount": [100, 200],
-        })
+        raw = pd.DataFrame(
+            {
+                "email": ["real@person.com", "ceo@corp.com"],
+                "ssn": ["123-45-6789", "987-65-4321"],
+                "amount": [100, 200],
+            }
+        )
         csv_path = tmp_path / "pii_data.csv"
         raw.to_csv(csv_path, index=False)
 
@@ -105,11 +109,13 @@ class TestDataSourceToSanitizer:
 
     def test_sanitizer_on_audit_results(self):
         """Sanitize a DataFrame that resembles audit output."""
-        output = pd.DataFrame({
-            "check_name": ["Volume", "Identity"],
-            "status": ["PASS", "FAIL"],
-            "email": ["admin@co.com", "ops@co.com"],
-        })
+        output = pd.DataFrame(
+            {
+                "check_name": ["Volume", "Identity"],
+                "status": ["PASS", "FAIL"],
+                "email": ["admin@co.com", "ops@co.com"],
+            }
+        )
         sanitizer = DataSanitizer()
         clean = sanitizer.sanitize(output)
 
@@ -121,14 +127,17 @@ class TestDataSourceToSanitizer:
 # Full Pipeline: CSV → Audit → Sanitize → Verdic
 # ===================================================================
 
+
 class TestFullPipeline:
     def test_end_to_end_with_sanitizer(self, tmp_path):
         """Full pipeline: create CSVs → load → audit → verdict → sanitize report."""
-        src = pd.DataFrame({
-            "id": [1, 2, 3],
-            "email": ["a@x.com", "b@x.com", "c@x.com"],
-            "amount": [10, 20, 30],
-        })
+        src = pd.DataFrame(
+            {
+                "id": [1, 2, 3],
+                "email": ["a@x.com", "b@x.com", "c@x.com"],
+                "amount": [10, 20, 30],
+            }
+        )
         tgt = src.copy()
 
         src_path = tmp_path / "src.csv"
@@ -164,6 +173,7 @@ class TestFullPipeline:
 # ===================================================================
 # DataSource Validation
 # ===================================================================
+
 
 class TestDataSourceValidation:
     def test_csv_datasource_validates(self, tmp_path):

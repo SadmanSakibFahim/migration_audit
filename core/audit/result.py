@@ -1,6 +1,8 @@
 from dataclasses import dataclass
-from typing import Optional, Dict
+from typing import Dict, Optional
+
 from core.audit.enums import CheckStatus
+
 
 @dataclass
 class TestResult:

@@ -3,12 +3,13 @@
 Tests for _safe_run(), _validate_dataframes(), _normalize_result(), and execute_all()
 in core/audit/check_runner.py.
 """
-import pytest
+
 import pandas as pd
+
 from core.audit.check_runner import CheckRunner
+from core.audit.config_models import TableConfig
 from core.audit.enums import CheckStatus
 from core.audit.result import TestResult
-from core.audit.config_models import TableConfig
 
 
 def _meta(pk="id", aggregates=None):
@@ -34,6 +35,7 @@ def _runner(src_df=None, tgt_df=None, meta=None):
 # _normalize_result
 # ===================================================================
 
+
 class TestNormalizeResult:
     def test_none_returns_empty_list(self):
         runner = _runner()
@@ -57,6 +59,7 @@ class TestNormalizeResult:
 # ===================================================================
 # _safe_run
 # ===================================================================
+
 
 class TestSafeRun:
     def test_normal_function_returns_results(self):
@@ -119,6 +122,7 @@ class TestSafeRun:
 # _validate_dataframes
 # ===================================================================
 
+
 class TestValidateDataframes:
     def test_valid_dataframes_return_true(self):
         runner = _runner()
@@ -173,6 +177,7 @@ class TestValidateDataframes:
 # ===================================================================
 # execute_all
 # ===================================================================
+
 
 class TestExecuteAll:
     def test_returns_results_list(self, sample_src_df, sample_tgt_df):

@@ -6,19 +6,19 @@ relationship check loading parent table.
 QA Engineer: Leslie Knope (Software Testing Team)
 Reviewer: Ron Swanson (QA Lead)
 """
-import pytest
+
+from unittest.mock import MagicMock
+
 import pandas as pd
-from unittest.mock import MagicMock, patch
 
 from core.audit.check_runner import CheckRunner
+from core.audit.config_models import RelationshipConfig, TableConfig
 from core.audit.enums import CheckStatus
-from core.audit.result import TestResult
-from core.audit.config_models import TableConfig, RelationshipConfig
-
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _meta(pk="id", aggregates=None, relationships=None):
     kwargs = {
@@ -40,7 +40,10 @@ def _basic_runner(src_df=None, tgt_df=None, meta=None, progress_callback=None):
     if tgt_df is None:
         tgt_df = pd.DataFrame({"id": [1, 2, 3], "amount": [100.0, 200.0, 300.0]})
     return CheckRunner(
-        "test_table", meta, src_df, tgt_df,
+        "test_table",
+        meta,
+        src_df,
+        tgt_df,
         progress_callback=progress_callback,
     )
 
@@ -48,6 +51,7 @@ def _basic_runner(src_df=None, tgt_df=None, meta=None, progress_callback=None):
 # ===================================================================
 # progress_callback and _report_progress
 # ===================================================================
+
 
 class TestProgressCallback:
     """Leslie Knope: Verifying progress_callback integration."""
@@ -70,6 +74,7 @@ class TestProgressCallback:
 
     def test_callback_error_does_not_crash_audit(self):
         """If callback raises an exception, audit should still complete."""
+
         def bad_callback(msg):
             raise RuntimeError("callback exploded")
 
@@ -98,6 +103,7 @@ class TestProgressCallback:
 # ===================================================================
 # execute_chunked
 # ===================================================================
+
 
 class TestExecuteChunked:
     """Leslie Knope: Verifying chunked/streaming processing."""
@@ -140,7 +146,9 @@ class TestExecuteChunked:
 
         # Chunked (single chunk)
         runner_chunked = _basic_runner()
-        results_chunked = runner_chunked.execute_chunked(iter([src.copy()]), iter([tgt.copy()]))
+        results_chunked = runner_chunked.execute_chunked(
+            iter([src.copy()]), iter([tgt.copy()])
+        )
 
         # Same number of results, same statuses
         assert len(results_chunked) == len(results_normal)
@@ -167,20 +175,25 @@ class TestExecuteChunked:
     def test_large_chunked_data(self):
         """Stress test: 5 chunks of 2000 rows each."""
         import numpy as np
+
         rng = np.random.default_rng(42)
 
         chunks_src = [
-            pd.DataFrame({
-                "id": range(i * 2000, (i + 1) * 2000),
-                "amount": rng.uniform(1, 1000, 2000),
-            })
+            pd.DataFrame(
+                {
+                    "id": range(i * 2000, (i + 1) * 2000),
+                    "amount": rng.uniform(1, 1000, 2000),
+                }
+            )
             for i in range(5)
         ]
         chunks_tgt = [
-            pd.DataFrame({
-                "id": range(i * 2000, (i + 1) * 2000),
-                "amount": rng.uniform(1, 1000, 2000),
-            })
+            pd.DataFrame(
+                {
+                    "id": range(i * 2000, (i + 1) * 2000),
+                    "amount": rng.uniform(1, 1000, 2000),
+                }
+            )
             for i in range(5)
         ]
 
@@ -201,7 +214,7 @@ class TestExecuteChunked:
             pd.DataFrame({"id": [1, 2, 3]}),
         ]
         runner = _basic_runner()
-        results = runner.execute_chunked(iter(src_chunks), iter(tgt_chunks))
+        runner.execute_chunked(iter(src_chunks), iter(tgt_chunks))
         assert len(runner.src_df) == 3
         assert len(runner.tgt_df) == 3
 
@@ -209,6 +222,7 @@ class TestExecuteChunked:
 # ===================================================================
 # execute_all step-by-step progress
 # ===================================================================
+
 
 class TestExecuteAllProgress:
     """Leslie Knope: Verifying execute_all reports per-step progress."""
@@ -251,6 +265,7 @@ class TestExecuteAllProgress:
 # Relationship check — parent table loading
 # ===================================================================
 
+
 class TestRelationshipCheckFix:
     """Leslie Knope: Verifying relationship STUB is fixed."""
 
@@ -266,17 +281,21 @@ class TestRelationshipCheckFix:
             parent={"target": str(parent_csv), "pk_column": "parent_id"},
         )
 
-        child_df = pd.DataFrame({
-            "id": [1, 2, 3],
-            "parent_id": [10, 20, 99],  # 99 is orphan
-        })
+        child_df = pd.DataFrame(
+            {
+                "id": [1, 2, 3],
+                "parent_id": [10, 20, 99],  # 99 is orphan
+            }
+        )
 
         meta = _meta(relationships=[rel])
         runner = _basic_runner(tgt_df=child_df, meta=meta)
         results = runner.execute_all()
 
         # Should have relationship check results (check_links names them "Foreign Key Check")
-        rel_results = [r for r in results if "Foreign Key" in r.name or "Relationship" in r.name]
+        rel_results = [
+            r for r in results if "Foreign Key" in r.name or "Relationship" in r.name
+        ]
         assert len(rel_results) > 0
 
     def test_relationship_missing_parent_target_uses_fallback(self):

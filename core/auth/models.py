@@ -1,10 +1,14 @@
 from datetime import datetime
-from typing import Optional, List
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Enum as SqEnum
+
+from sqlalchemy import Boolean, Column, DateTime
+from sqlalchemy import Enum as SqEnum
+from sqlalchemy import ForeignKey, Integer, String
 from sqlalchemy.orm import declarative_base, relationship
-from core.auth.enums import UserRole, SubscriberType
+
+from core.auth.enums import SubscriberType, UserRole
 
 Base = declarative_base()
+
 
 class License(Base):
     __tablename__ = "licenses"
@@ -17,7 +21,10 @@ class License(Base):
     is_active = Column(Boolean, default=True)
 
     # Relationships
-    subscribers = relationship("Subscriber", back_populates="license", cascade="all, delete-orphan")
+    subscribers = relationship(
+        "Subscriber", back_populates="license", cascade="all, delete-orphan"
+    )
+
 
 class Subscriber(Base):
     __tablename__ = "subscribers"
@@ -32,16 +39,20 @@ class Subscriber(Base):
     users = relationship("User", back_populates="subscriber")
     enterprise = relationship("Enterprise", back_populates="subscriber", uselist=False)
 
+
 class Enterprise(Base):
     __tablename__ = "enterprises"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, unique=True, nullable=False)
-    subscriber_id = Column(Integer, ForeignKey("subscribers.id"), unique=True, nullable=False)
+    subscriber_id = Column(
+        Integer, ForeignKey("subscribers.id"), unique=True, nullable=False
+    )
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
     subscriber = relationship("Subscriber", back_populates="enterprise")
+
 
 class User(Base):
     __tablename__ = "users"
@@ -56,7 +67,10 @@ class User(Base):
 
     # Relationships
     subscriber = relationship("Subscriber", back_populates="users")
-    api_keys = relationship("ApiKey", back_populates="user", cascade="all, delete-orphan")
+    api_keys = relationship(
+        "ApiKey", back_populates="user", cascade="all, delete-orphan"
+    )
+
 
 class ApiKey(Base):
     __tablename__ = "api_keys"

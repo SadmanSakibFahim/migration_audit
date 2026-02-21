@@ -1,10 +1,12 @@
 class AuditError(Exception):
     """Base exception for all migration audit errors."""
+
     pass
 
 
 class DataLoadError(AuditError):
     """Raised when loading source or target data fails."""
+
     def __init__(self, table_name, source, original_exception):
         self.table_name = table_name
         self.source = source
@@ -16,9 +18,11 @@ class DataLoadError(AuditError):
 
 class ConfigError(AuditError):
     """Raised when config is missing or invalid."""
+
     pass
 
 
 class ValidationError(AuditError):
     """Raised when a check fails in a non-recoverable way."""
+
     pass

@@ -3,15 +3,17 @@
 Expanded coverage for all 5 aggregate functions:
   check_sum, check_avg, check_max, check_min, check_variance
 """
-import pytest
-import pandas as pd
-from checks.aggregates import check_sum, check_avg, check_max, check_min, check_variance
-from core.audit.enums import CheckStatus
 
+import pandas as pd
+
+from checks.aggregates import (check_avg, check_max, check_min, check_sum,
+                               check_variance)
+from core.audit.enums import CheckStatus
 
 # ===================================================================
 # check_sum
 # ===================================================================
+
 
 class TestCheckSum:
     def test_exact_match_pass(self):
@@ -50,6 +52,7 @@ class TestCheckSum:
 # check_avg
 # ===================================================================
 
+
 class TestCheckAvg:
     def test_exact_match_pass(self):
         src = pd.DataFrame({"val": [10, 20, 30]})
@@ -80,6 +83,7 @@ class TestCheckAvg:
 # check_max
 # ===================================================================
 
+
 class TestCheckMax:
     def test_exact_match_pass(self):
         src = pd.DataFrame({"val": [10, 20, 30]})
@@ -103,6 +107,7 @@ class TestCheckMax:
 # ===================================================================
 # check_min
 # ===================================================================
+
 
 class TestCheckMin:
     def test_exact_match_pass(self):
@@ -128,6 +133,7 @@ class TestCheckMin:
 # check_variance
 # ===================================================================
 
+
 class TestCheckVariance:
     def test_exact_match_pass(self):
         src = pd.DataFrame({"val": [10, 20, 30]})
@@ -143,7 +149,7 @@ class TestCheckVariance:
 
     def test_exceeds_tolerance_fail(self):
         src = pd.DataFrame({"val": [10, 10, 10]})  # variance = 0
-        tgt = pd.DataFrame({"val": [1, 10, 100]})   # large variance
+        tgt = pd.DataFrame({"val": [1, 10, 100]})  # large variance
         result = check_variance(src, tgt, "val", "test", tolerance=1.0)
         # When source var = 0 and target var > 0, should warn or fail
         assert result.status in (CheckStatus.WARN, CheckStatus.FAIL)

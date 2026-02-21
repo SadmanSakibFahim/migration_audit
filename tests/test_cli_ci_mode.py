@@ -9,8 +9,6 @@ import json
 import os
 import subprocess
 import sys
-import tempfile
-from unittest.mock import patch, MagicMock
 
 import pytest
 
@@ -32,13 +30,18 @@ class TestCliCiFlagParsing:
         from cli import build_parser
 
         parser = build_parser()
-        args = parser.parse_args([
-            "run",
-            "--config", "config/audit.yaml",
-            "--client", "Test",
-            "--migration", "A->B",
-            "--ci",
-        ])
+        args = parser.parse_args(
+            [
+                "run",
+                "--config",
+                "config/audit.yaml",
+                "--client",
+                "Test",
+                "--migration",
+                "A->B",
+                "--ci",
+            ]
+        )
         assert args.ci is True
 
     def test_ci_implies_test(self):
@@ -47,13 +50,18 @@ class TestCliCiFlagParsing:
         from cli import build_parser
 
         parser = build_parser()
-        args = parser.parse_args([
-            "run",
-            "--config", "config/audit.yaml",
-            "--client", "Test",
-            "--migration", "A->B",
-            "--ci",
-        ])
+        args = parser.parse_args(
+            [
+                "run",
+                "--config",
+                "config/audit.yaml",
+                "--client",
+                "Test",
+                "--migration",
+                "A->B",
+                "--ci",
+            ]
+        )
         # --ci implies --test in main(), but at parse time
         # test defaults to False until main() processes it
         assert args.ci is True
@@ -64,14 +72,19 @@ class TestCliCiFlagParsing:
         from cli import build_parser
 
         parser = build_parser()
-        args = parser.parse_args([
-            "run",
-            "--config", "config/audit.yaml",
-            "--client", "Test",
-            "--migration", "A->B",
-            "--ci",
-            "--fail-on-warnings",
-        ])
+        args = parser.parse_args(
+            [
+                "run",
+                "--config",
+                "config/audit.yaml",
+                "--client",
+                "Test",
+                "--migration",
+                "A->B",
+                "--ci",
+                "--fail-on-warnings",
+            ]
+        )
         assert args.fail_on_warnings is True
 
     def test_ci_without_fail_on_warnings(self):
@@ -80,13 +93,18 @@ class TestCliCiFlagParsing:
         from cli import build_parser
 
         parser = build_parser()
-        args = parser.parse_args([
-            "run",
-            "--config", "config/audit.yaml",
-            "--client", "Test",
-            "--migration", "A->B",
-            "--ci",
-        ])
+        args = parser.parse_args(
+            [
+                "run",
+                "--config",
+                "config/audit.yaml",
+                "--client",
+                "Test",
+                "--migration",
+                "A->B",
+                "--ci",
+            ]
+        )
         assert args.fail_on_warnings is False
 
 
@@ -111,11 +129,15 @@ class TestCiOutputIntegration:
         """Running with --ci should produce audit_result.json."""
         result = subprocess.run(
             [
-                sys.executable, CLI_PATH,
+                sys.executable,
+                CLI_PATH,
                 "run",
-                "--config", CONFIG_PATH,
-                "--client", "CI_Test",
-                "--migration", "Source -> Target",
+                "--config",
+                CONFIG_PATH,
+                "--client",
+                "CI_Test",
+                "--migration",
+                "Source -> Target",
                 "--ci",
             ],
             capture_output=True,
@@ -124,8 +146,12 @@ class TestCiOutputIntegration:
             timeout=120,
         )
 
-        json_path = os.path.join(PROJECT_ROOT, "test_outputs", "ci", "audit_result.json")
-        assert os.path.exists(json_path), f"JSON result file not found. stderr: {result.stderr[-500:]}"
+        json_path = os.path.join(
+            PROJECT_ROOT, "test_outputs", "ci", "audit_result.json"
+        )
+        assert os.path.exists(
+            json_path
+        ), f"JSON result file not found. stderr: {result.stderr[-500:]}"
 
         with open(json_path) as f:
             data = json.load(f)
@@ -141,11 +167,15 @@ class TestCiOutputIntegration:
         """Exit code should be 0 for GO, 1 for NO-GO/ERROR."""
         result = subprocess.run(
             [
-                sys.executable, CLI_PATH,
+                sys.executable,
+                CLI_PATH,
                 "run",
-                "--config", CONFIG_PATH,
-                "--client", "CI_Test",
-                "--migration", "Source -> Target",
+                "--config",
+                CONFIG_PATH,
+                "--client",
+                "CI_Test",
+                "--migration",
+                "Source -> Target",
                 "--ci",
             ],
             capture_output=True,
@@ -154,7 +184,9 @@ class TestCiOutputIntegration:
             timeout=120,
         )
 
-        json_path = os.path.join(PROJECT_ROOT, "test_outputs", "ci", "audit_result.json")
+        json_path = os.path.join(
+            PROJECT_ROOT, "test_outputs", "ci", "audit_result.json"
+        )
         if os.path.exists(json_path):
             with open(json_path) as f:
                 data = json.load(f)
@@ -168,11 +200,15 @@ class TestCiOutputIntegration:
         """CLI should print a formatted gate result banner."""
         result = subprocess.run(
             [
-                sys.executable, CLI_PATH,
+                sys.executable,
+                CLI_PATH,
                 "run",
-                "--config", CONFIG_PATH,
-                "--client", "CI_Test",
-                "--migration", "Source -> Target",
+                "--config",
+                CONFIG_PATH,
+                "--client",
+                "CI_Test",
+                "--migration",
+                "Source -> Target",
                 "--ci",
             ],
             capture_output=True,

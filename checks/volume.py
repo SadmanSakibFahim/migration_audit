@@ -1,21 +1,24 @@
 # This function validates data completeness
 # by comparing row counts between source and target datasets.
-import pandas as pd
-from core.audit.result import TestResult
-from core.audit.enums import CheckStatus
 from typing import Optional
 
+import pandas as pd
+
+from core.audit.enums import CheckStatus
+from core.audit.result import TestResult
+
+
 def check_volume(
-    name: str, 
-    src_df: pd.DataFrame, 
-    tgt_df: pd.DataFrame, 
+    name: str,
+    src_df: pd.DataFrame,
+    tgt_df: pd.DataFrame,
     tolerance_pct: float = 0.0,
     mapping_type: Optional[str] = None,
-    expected_ratio: Optional[float] = None
+    expected_ratio: Optional[float] = None,
 ) -> TestResult:
     """
     Validates data volume (row count) between source and target.
-    
+
     Args:
         name: Table name for logging
         src_df: Source DataFrame
@@ -37,8 +40,8 @@ def check_volume(
                 "src_rows": 0,
                 "tgt_rows": 0,
                 "difference": 0,
-                "tolerance": tolerance_pct
-            }
+                "tolerance": tolerance_pct,
+            },
         )
 
     # 2. Handle case where only source is empty (Warning)
@@ -51,21 +54,25 @@ def check_volume(
                 "src_rows": 0,
                 "tgt_rows": tgt_count,
                 "difference": tgt_count,
-                "tolerance": tolerance_pct
-            }
+                "tolerance": tolerance_pct,
+            },
         )
 
     # For complex mappings, adjust expectations
-    if mapping_type == '1:N' and expected_ratio:
+    if mapping_type == "1:N" and expected_ratio:
         expected_tgt_count = int(src_count * expected_ratio)
         diff = abs(tgt_count - expected_tgt_count)
         loss_pct = (diff / expected_tgt_count) * 100 if expected_tgt_count > 0 else 0
-        comparison_msg = f"Expected ~{expected_tgt_count} target rows (ratio {expected_ratio:.2f})"
-    elif mapping_type == 'N:1' and expected_ratio:
+        comparison_msg = (
+            f"Expected ~{expected_tgt_count} target rows (ratio {expected_ratio:.2f})"
+        )
+    elif mapping_type == "N:1" and expected_ratio:
         expected_tgt_count = int(src_count * expected_ratio)
         diff = abs(tgt_count - expected_tgt_count)
         loss_pct = (diff / expected_tgt_count) * 100 if expected_tgt_count > 0 else 0
-        comparison_msg = f"Expected ~{expected_tgt_count} target rows (ratio {expected_ratio:.2f})"
+        comparison_msg = (
+            f"Expected ~{expected_tgt_count} target rows (ratio {expected_ratio:.2f})"
+        )
     else:
         # Standard 1:1 comparison
         diff = abs(src_count - tgt_count)
@@ -76,7 +83,7 @@ def check_volume(
         "src_rows": src_count,
         "tgt_rows": tgt_count,
         "difference": diff,
-        "tolerance": tolerance_pct
+        "tolerance": tolerance_pct,
     }
 
     if loss_pct == 0:
@@ -87,7 +94,7 @@ def check_volume(
             name=f"Volume Check: {name}",
             status=CheckStatus.PASS,
             message=msg,
-            metrics=metrics
+            metrics=metrics,
         )
     elif loss_pct <= tolerance_pct:
         msg = f"Row count difference within tolerance for table '{name}'. Source: {src_count}, Target: {tgt_count}, Difference: {loss_pct:.2f}%."
@@ -97,7 +104,7 @@ def check_volume(
             name=f"Volume Check: {name}",
             status=CheckStatus.PASS,
             message=msg,
-            metrics=metrics
+            metrics=metrics,
         )
     else:
         msg = f"Row count difference exceeds tolerance for table '{name}'. Source: {src_count}, Target: {tgt_count}, Difference: {loss_pct:.2f}%."
@@ -107,5 +114,5 @@ def check_volume(
             name=f"Volume Check: {name}",
             status=CheckStatus.FAIL,
             message=msg,
-            metrics=metrics
+            metrics=metrics,
         )

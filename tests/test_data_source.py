@@ -7,20 +7,12 @@ to verify the unified data loading interface.
 Author: Howard Wolowitz (Software Engineering)
 """
 
-import os
-import tempfile
-
 import pandas as pd
 import pytest
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine
 
-from core.db.data_source import (
-    CSVDataSource,
-    DatabaseDataSource,
-    DataSource,
-    create_data_source,
-)
-
+from core.db.data_source import (CSVDataSource, DatabaseDataSource,
+                                 create_data_source)
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -31,12 +23,14 @@ from core.db.data_source import (
 def sample_csv(tmp_path):
     """Create a temporary CSV file with sample data."""
     csv_path = tmp_path / "test_data.csv"
-    df = pd.DataFrame({
-        "id": [1, 2, 3, 4, 5],
-        "name": ["Alice", "Bob", "Charlie", "Diana", "Eve"],
-        "amount": [100.50, 200.75, 300.00, 150.25, 450.00],
-        "status": ["active", "inactive", "active", "active", "inactive"],
-    })
+    df = pd.DataFrame(
+        {
+            "id": [1, 2, 3, 4, 5],
+            "name": ["Alice", "Bob", "Charlie", "Diana", "Eve"],
+            "amount": [100.50, 200.75, 300.00, 150.25, 450.00],
+            "status": ["active", "inactive", "active", "active", "inactive"],
+        }
+    )
     df.to_csv(csv_path, index=False)
     return str(csv_path)
 
@@ -53,11 +47,13 @@ def empty_csv(tmp_path):
 def sqlite_db():
     """Create a SQLite in-memory database with test data."""
     engine = create_engine("sqlite:///:memory:")
-    df = pd.DataFrame({
-        "id": [1, 2, 3, 4, 5],
-        "name": ["Alice", "Bob", "Charlie", "Diana", "Eve"],
-        "amount": [100.50, 200.75, 300.00, 150.25, 450.00],
-    })
+    df = pd.DataFrame(
+        {
+            "id": [1, 2, 3, 4, 5],
+            "name": ["Alice", "Bob", "Charlie", "Diana", "Eve"],
+            "amount": [100.50, 200.75, 300.00, 150.25, 450.00],
+        }
+    )
     df.to_sql("test_table", engine, index=False, if_exists="replace")
     return engine
 
@@ -68,10 +64,12 @@ def sqlite_db_file(tmp_path):
     db_path = tmp_path / "test.db"
     uri = f"sqlite:///{db_path}"
     engine = create_engine(uri)
-    df = pd.DataFrame({
-        "id": [10, 20, 30],
-        "value": [1.1, 2.2, 3.3],
-    })
+    df = pd.DataFrame(
+        {
+            "id": [10, 20, 30],
+            "value": [1.1, 2.2, 3.3],
+        }
+    )
     df.to_sql("scores", engine, index=False, if_exists="replace")
     engine.dispose()
     return str(db_path)

@@ -1,6 +1,7 @@
 from collections import Counter
-from core.audit.logger import get_logger
+
 from core.audit.enums import CheckStatus
+from core.audit.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -49,6 +50,7 @@ def final_verdict(results):
 
     logger.info("Final verdict: GO")
     return Verdict.GO
+
 
 def is_migration_allowed(verdict):
     """

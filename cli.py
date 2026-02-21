@@ -1,5 +1,6 @@
 import argparse
 
+
 def build_parser():
     parser = argparse.ArgumentParser(
         description="Migration Validation & Risk Audit CLI"
@@ -8,66 +9,58 @@ def build_parser():
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     run_parser = subparsers.add_parser(
-        "run",
-        help="Run migration audit and generate report"
+        "run", help="Run migration audit and generate report"
     )
 
     run_parser.add_argument(
-        "--config",
-        required=True,
-        help="Path to audit configuration YAML"
+        "--config", required=True, help="Path to audit configuration YAML"
     )
 
     run_parser.add_argument(
         "--out",
         required=False,
-        help="Output path for audit report (DOCX). Defaults to outputs/<timestamp>/Audit_Report.docx"
+        help="Output path for audit report (DOCX). Defaults to outputs/<timestamp>/Audit_Report.docx",
     )
 
-    run_parser.add_argument(
-        "--client",
-        required=True,
-        help="Client name for report"
-    )
+    run_parser.add_argument("--client", required=True, help="Client name for report")
 
     run_parser.add_argument(
-        "--migration",
-        required=True,
-        help="Migration description (source -> target)"
+        "--migration", required=True, help="Migration description (source -> target)"
     )
 
     run_parser.add_argument(
         "--log-level",
         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
         default="INFO",
-        help="Logging verbosity (default: INFO)"
+        help="Logging verbosity (default: INFO)",
     )
 
     run_parser.add_argument(
         "--ignore-invalid-rows",
         action="store_true",
-        help="Ignore invalid rows during audit. Invalid rows will be logged and exported to invalid_data subfolder."
+        help="Ignore invalid rows during audit. Invalid rows will be logged and exported to invalid_data subfolder.",
     )
 
     run_parser.add_argument(
         "--test",
         action="store_true",
-        help="Run in test mode (CI/CD). Saves results to timestamped subfolders in 'test_outputs' with a '_test' suffix."
+        help="Run in test mode (CI/CD). Saves results to timestamped subfolders in 'test_outputs' with a '_test' suffix.",
     )
 
     run_parser.add_argument(
         "--ci",
         action="store_true",
-        help="CI/CD gate mode. Implies --test. Writes JSON results to test_outputs and exits non-zero on NO-GO/ERROR verdict."
+        help="CI/CD gate mode. Implies --test. Writes JSON results to test_outputs and exits non-zero on NO-GO/ERROR verdict.",
     )
 
     run_parser.add_argument(
         "--fail-on-warnings",
         action="store_true",
-        help="When used with --ci, also exit non-zero on GO WITH WARNINGS verdict."
+        help="When used with --ci, also exit non-zero on GO WITH WARNINGS verdict.",
     )
 
     return parser
+
 
 def main():
     parser = build_parser()
@@ -79,27 +72,30 @@ def main():
 
     # 🔑 Set logging level globally BEFORE any logger is created
     import os
+
     os.environ["LOG_LEVEL"] = args.log_level
 
     if args.command == "run":
-        from run_audit import run_audit
-        from reports.report_builder import build_report
-        from core.audit.verdict import final_verdict, Verdict
         from core.audit.exceptions import AuditError
         from core.audit.logger import get_logger
+        from core.audit.verdict import Verdict, final_verdict
+        from reports.report_builder import build_report
+        from run_audit import run_audit
 
         logger = get_logger(__name__)
 
         logger.info(f"Running audit with log level: {args.log_level}")
 
         if args.ignore_invalid_rows:
-            logger.info("Invalid row filtering enabled. Invalid rows will be excluded from audit.")
+            logger.info(
+                "Invalid row filtering enabled. Invalid rows will be excluded from audit."
+            )
 
         try:
             results = run_audit(
                 config_path=args.config,
                 ignore_invalid_rows=args.ignore_invalid_rows,
-                no_auth=args.test  # Bypass auth in CI/Test mode
+                no_auth=args.test,  # Bypass auth in CI/Test mode
             )
         except AuditError as e:
             logger.error(f"Audit failed: {e}")
@@ -123,10 +119,7 @@ def main():
 
         # --- CI/CD gate mode ---
         if hasattr(args, "ci") and args.ci:
-            from core.audit.ci_output import (
-                write_ci_report,
-                verdict_exit_code,
-            )
+            from core.audit.ci_output import verdict_exit_code, write_ci_report
 
             # Write JSON results next to the report
             ci_output_dir = os.path.join("test_outputs", "ci")
@@ -135,14 +128,16 @@ def main():
             report = write_ci_report(results, json_path)
 
             print(f"\n{'='*50}")
-            print(f"  CI/CD Audit Gate Result")
+            print("  CI/CD Audit Gate Result")
             print(f"{'='*50}")
             print(f"  Verdict : {report['verdict']}")
             print(f"  Checks  : {report['total_checks']}")
-            print(f"  Pass={report['summary']['pass']}  "
-                  f"Warn={report['summary']['warn']}  "
-                  f"Fail={report['summary']['fail']}  "
-                  f"Error={report['summary']['error']}")
+            print(
+                f"  Pass={report['summary']['pass']}  "
+                f"Warn={report['summary']['warn']}  "
+                f"Fail={report['summary']['fail']}  "
+                f"Error={report['summary']['error']}"
+            )
             print(f"  Results : {json_path}")
             print(f"{'='*50}\n")
 
@@ -160,7 +155,9 @@ def main():
         print(f"\nAudit complete. Final verdict: {verdict}\n")
 
         if verdict in [Verdict.NO_GO, Verdict.ERROR]:
-            print(f"⚠️  WARNING: Migration audit indicates issues. Please review the report carefully.\n")
+            print(
+                "⚠️  WARNING: Migration audit indicates issues. Please review the report carefully.\n"
+            )
 
 
 if __name__ == "__main__":

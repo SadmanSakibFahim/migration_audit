@@ -3,10 +3,9 @@
 Tests for web dashboard endpoints using FastAPI TestClient.
 Covers: upload, config, reports, auth guards, security headers.
 """
-import pytest
-import os
-import io
+
 from fastapi.testclient import TestClient
+
 from core.web.app import app
 
 client = TestClient(app)
@@ -26,6 +25,7 @@ def _auth_session(c: TestClient) -> TestClient:
 # ===================================================================
 # Security Headers
 # ===================================================================
+
 
 class TestSecurityHeaders:
     def test_hsts_header_present(self):
@@ -49,29 +49,34 @@ class TestSecurityHeaders:
 # Auth Guards — all /api/* endpoints should require auth
 # ===================================================================
 
+
 class TestAuthGuards:
     def test_upload_requires_auth(self):
         response = client.post("/api/upload")
         assert response.status_code == 401 or (
-            response.status_code == 200 and response.json().get("error") == "Unauthorized"
+            response.status_code == 200
+            and response.json().get("error") == "Unauthorized"
         )
 
     def test_config_requires_auth(self):
         response = client.get("/api/config")
         assert response.status_code == 401 or (
-            response.status_code == 200 and response.json().get("error") == "Unauthorized"
+            response.status_code == 200
+            and response.json().get("error") == "Unauthorized"
         )
 
     def test_reports_requires_auth(self):
         response = client.get("/api/reports")
         assert response.status_code == 401 or (
-            response.status_code == 200 and response.json().get("error") == "Unauthorized"
+            response.status_code == 200
+            and response.json().get("error") == "Unauthorized"
         )
 
 
 # ===================================================================
 # Root redirect
 # ===================================================================
+
 
 class TestRootRedirect:
     def test_root_redirects(self):
@@ -87,6 +92,7 @@ class TestRootRedirect:
 # ===================================================================
 # API Endpoints (functional, with session injection)
 # ===================================================================
+
 
 class TestAPIEndpoints:
     """Tests that bypass auth by injecting session data."""
@@ -121,6 +127,7 @@ class TestAPIEndpoints:
 # ===================================================================
 # Static Files & Templates
 # ===================================================================
+
 
 class TestStaticAndTemplates:
     def test_static_directory_mounted(self):

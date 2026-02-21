@@ -2,13 +2,16 @@
 
 Tests for authentication edge cases, RBAC enforcement, and security posture.
 """
-import pytest
+
 from datetime import datetime, timedelta
+
+import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
+from core.auth.enums import UserRole
 from core.auth.models import Base
 from core.auth.service import AuthService
-from core.auth.enums import UserRole
 
 
 @pytest.fixture
@@ -31,12 +34,17 @@ def auth_setup():
     auditor = auth.create_user("auditor", "Auditor!Pass123", sub.id, UserRole.AUDITOR)
     viewer = auth.create_user("viewer", "Viewer!Pass123", sub.id, UserRole.VIEWER)
 
-    return auth, session, {"admin": admin, "auditor": auditor, "viewer": viewer, "sub": sub, "lic": lic}
+    return (
+        auth,
+        session,
+        {"admin": admin, "auditor": auditor, "viewer": viewer, "sub": sub, "lic": lic},
+    )
 
 
 # ===================================================================
 # Password Hashing
 # ===================================================================
+
 
 class TestPasswordSecurity:
     def test_same_password_different_hashes(self, auth_setup):
@@ -77,6 +85,7 @@ class TestPasswordSecurity:
 # Authentication
 # ===================================================================
 
+
 class TestAuthentication:
     def test_valid_login(self, auth_setup):
         auth, _, users = auth_setup
@@ -110,6 +119,7 @@ class TestAuthentication:
 # ===================================================================
 # RBAC — Role-Based Access Control
 # ===================================================================
+
 
 class TestRBAC:
     """Tests the check_permission() role matrix."""
@@ -147,6 +157,7 @@ class TestRBAC:
 # ===================================================================
 # License & Access Control
 # ===================================================================
+
 
 class TestLicenseAccess:
     def test_expired_license_blocks_access(self, auth_setup):

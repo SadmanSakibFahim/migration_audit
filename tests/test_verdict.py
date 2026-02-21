@@ -3,10 +3,10 @@
 Tests for final_verdict() and is_migration_allowed() in core/audit/verdict.py.
 Covers all verdict outcomes: GO, GO WITH WARNINGS, NO-GO, ERROR, and empty.
 """
-import pytest
-from core.audit.verdict import final_verdict, Verdict, is_migration_allowed
+
 from core.audit.enums import CheckStatus
 from core.audit.result import TestResult
+from core.audit.verdict import Verdict, final_verdict, is_migration_allowed
 
 
 def _r(status: CheckStatus, name: str = "test") -> TestResult:
@@ -16,6 +16,7 @@ def _r(status: CheckStatus, name: str = "test") -> TestResult:
 # ===================================================================
 # final_verdict
 # ===================================================================
+
 
 class TestFinalVerdict:
     def test_all_pass_returns_go(self):
@@ -65,6 +66,7 @@ class TestFinalVerdict:
 # is_migration_allowed
 # ===================================================================
 
+
 class TestIsMigrationAllowed:
     def test_go_is_allowed(self):
         assert is_migration_allowed(Verdict.GO) is True
@@ -82,6 +84,7 @@ class TestIsMigrationAllowed:
 # ===================================================================
 # Verdict constants
 # ===================================================================
+
 
 class TestVerdictConstants:
     def test_go_value(self):
