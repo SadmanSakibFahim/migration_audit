@@ -77,3 +77,29 @@ cover/
 *.swo
 *~
 .DS_Store
+
+# Node.js / Frontend
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Sheldon's standards: Strictly prevent intermediate/junk files
+*.ts
+*.d.ts
+*.bare
+rendered_dashboard.html
+rendered_*.html
+
+# Scratch scripts (root level)
+check_page.js
+parse_html.js
+test_ast.js
+test_browser.js
+test_unclosed.js
+test_vue.js
+test_unclosed.js
+
+# Data
+data/users.csv
