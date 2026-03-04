@@ -8,10 +8,11 @@ from sqlalchemy.orm import declarative_base, relationship
 from core.auth.enums import SubscriberType, UserRole
 
 from typing import Any
+
 Base: Any = declarative_base()
 
 
-class License(Base):
+class License(Base):  # type: ignore[misc]
     __tablename__ = "licenses"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -27,7 +28,7 @@ class License(Base):
     )
 
 
-class Subscriber(Base):
+class Subscriber(Base):  # type: ignore[misc]
     __tablename__ = "subscribers"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -41,7 +42,7 @@ class Subscriber(Base):
     enterprise = relationship("Enterprise", back_populates="subscriber", uselist=False)
 
 
-class Enterprise(Base):
+class Enterprise(Base):  # type: ignore[misc]
     __tablename__ = "enterprises"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -55,14 +56,16 @@ class Enterprise(Base):
     subscriber = relationship("Subscriber", back_populates="enterprise")
 
 
-class User(Base):
+class User(Base):  # type: ignore[misc]
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     username = Column(String, unique=True, nullable=False)
-    password_hash = Column(String, nullable=False)
+    password_hash = Column(String, nullable=True)  # Nullable for SSO users
     role: Any = Column(SqEnum(UserRole), default=UserRole.VIEWER)
     subscriber_id = Column(Integer, ForeignKey("subscribers.id"), nullable=False)
+    sso_provider = Column(String, nullable=True)
+    sso_id = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
@@ -73,7 +76,7 @@ class User(Base):
     )
 
 
-class ApiKey(Base):
+class ApiKey(Base):  # type: ignore[misc]
     __tablename__ = "api_keys"
 
     id = Column(Integer, primary_key=True, autoincrement=True)

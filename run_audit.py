@@ -4,7 +4,7 @@ import getpass
 import json
 import os
 from datetime import datetime
-from typing import List, Optional
+from typing import Any, List, Optional, cast
 
 import pandas as pd
 import yaml
@@ -43,13 +43,13 @@ def load_table_safe(
 ) -> "pd.DataFrame":
     """Load table and wrap exceptions in DataLoadError."""
     try:
-        return load_table(path, query=query)
+        return cast(pd.DataFrame, load_table(path, query=query))
     except Exception as e:
         logger.error(f"Failed to load table '{table_name}' from '{path}': {e}")
         raise DataLoadError(table_name=table_name, source=path, original_exception=e)
 
 
-def _normalize_results(results) -> List[TestResult]:
+def _normalize_results(results: Any) -> List[TestResult]:
     """
     Normalize any runner output into List[TestResult].
     This makes run_audit resilient to future changes.
@@ -65,7 +65,7 @@ def authenticate_cli_user() -> bool:
     """Prompt for credentials and verify access."""
 
     # Path to DB relative to execution
-    db_path = os.getenv("AUTH_DB_URI", "sqlite:///data/auth.db")
+    db_path = os.getenv("AUTH_DB_URI", "postgresql://postgres:postgres@localhost:5432/auth_db")
 
     # Check if DB exists (only required if using local sqlite)
     if db_path.startswith("sqlite"):
@@ -144,7 +144,7 @@ def run_audit(
     dry_run: bool = False,
     ignore_invalid_rows: bool = False,
     no_auth: bool = False,
-    progress_callback=None,
+    progress_callback: Optional[Any] = None,
 ) -> List[TestResult]:
 
     # 1. Authenticate CLI User
@@ -207,6 +207,7 @@ def run_audit(
         if (chunk_size or should_use_incremental) and not meta.is_complex_mapping():
             assert isinstance(meta.source, str)
             assert isinstance(meta.target, str)
+            assert chunk_size is not None
             logger.info(
                 f"Using IncrementalRunner for '{table_name}' (Chunk size: {chunk_size})"
             )
@@ -651,3 +652,62 @@ def run_audit(
             print(f"\n✓ Invalid rows summary log: {summary_log}\n")
 
     return all_results
+
+if __name__ == "__main__":
+    import argparse
+    import sys
+
+    parser = argparse.ArgumentParser(description="Migration Audit CLI")
+    parser.add_argument("--config", default="config/audit.yaml", help="Path to config file")
+    parser.add_argument("--tables", nargs="+", help="Specific tables to audit")
+    parser.add_argument("--dry-run", action="store_true", help="Skip running actual checks")
+    parser.add_argument("--ignore-invalid-rows", action="store_true", help="Filter out bad rows before check")
+    parser.add_argument("--no-auth", action="store_true", help="Skip authentication")
+    parser.add_argument("--headless", action="store_true", help="Run in continuous integration/headless mode. Outputs JSON results.")
+
+    args = parser.parse_args()
+
+    results = run_audit(
+        config_path=args.config,
+        tables_to_run=args.tables,
+        dry_run=args.dry_run,
+        ignore_invalid_rows=args.ignore_invalid_rows,
+        no_auth=args.no_auth
+    )
+
+    passes, fails, errors = 0, 0, 0
+    from core.audit.enums import CheckStatus
+    for r in results:
+        if r.status == CheckStatus.PASS:
+            passes += 1
+        elif r.status == CheckStatus.FAIL:
+            fails += 1
+        else:
+            errors += 1
+            
+    # Dispatch Webhooks
+    try:
+        from core.notifications.alerts import AlertManager
+        AlertManager().dispatch_all(passes, fails, errors)
+    except Exception as e:
+        logger.error(f"Failed to trigger webhooks: {e}")
+
+    if args.headless:
+        # In fully headless execution, suppress other logs if possible and dump json output.
+        out = []
+        for r in results:
+            out.append({
+                "name": r.name,
+                "status": str(r.status.value) if hasattr(r.status, "value") else str(r.status),
+                "message": r.message,
+                "details": r.details
+            })
+        print(json.dumps(out, indent=2))
+        sys.exit(0)
+    else:
+        # Normal CLI Output format backward compatibility
+        print("\n=== Audit Execution Summary ===")
+        print(f"Total Checks: {len(results)}")
+        print(f"PASSED: {passes} | FAILED: {fails} | ERRORS: {errors}")
+        sys.exit(1 if fails > 0 or errors > 0 else 0)
+

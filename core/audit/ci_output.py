@@ -31,7 +31,7 @@ def serialize_check(result: TestResult) -> Dict[str, Any]:
     return entry
 
 
-def build_ci_report(results: List[TestResult]) -> Dict:
+def build_ci_report(results: List[TestResult]) -> Dict[str, Any]:
     """
     Build a structured CI report from audit results.
 
@@ -62,7 +62,7 @@ def build_ci_report(results: List[TestResult]) -> Dict:
 def write_ci_report(
     results: List[TestResult],
     output_path: str,
-) -> Dict:
+) -> Dict[str, Any]:
     """
     Build and write CI report JSON to disk.
 

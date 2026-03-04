@@ -11,7 +11,7 @@ ADR: ADR-001 — SQLAlchemy chosen for database abstraction
 
 import os
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, cast
 
 import pandas as pd
 from sqlalchemy import create_engine, inspect, text
@@ -144,11 +144,11 @@ class CSVDataSource(DataSource):
         if chunk_size:
             read_kwargs["chunksize"] = chunk_size
             logger.info(f"Streaming CSV in chunks of {chunk_size} rows")
-            return pd.read_csv(**read_kwargs)  # returns TextFileReader
+            return cast(pd.DataFrame, pd.read_csv(**read_kwargs))  # returns TextFileReader
 
         df = pd.read_csv(**read_kwargs)
         logger.info(f"Loaded {len(df)} rows × {len(df.columns)} columns from CSV")
-        return df
+        return cast(pd.DataFrame, df)
 
     def validate(self) -> bool:
         if not os.path.exists(self.file_path):
@@ -164,7 +164,7 @@ class CSVDataSource(DataSource):
             delimiter=self.delimiter,
             nrows=5,
         )
-        return {col: str(dtype) for col, dtype in df.dtypes.items()}
+        return {str(col): str(dtype) for col, dtype in df.dtypes.items()}
 
     @property
     def source_type(self) -> str:
@@ -251,7 +251,7 @@ class DatabaseDataSource(DataSource):
         try:
             with self._db_engine.connect() as conn:
                 if chunk_size:
-                    return pd.read_sql(text(sql), conn, chunksize=chunk_size)
+                    return cast(pd.DataFrame, pd.read_sql(text(sql), conn, chunksize=chunk_size))
                 df = pd.read_sql(text(sql), conn)
                 logger.info(
                     f"Loaded {len(df)} rows × {len(df.columns)} columns "
@@ -304,7 +304,7 @@ class DatabaseDataSource(DataSource):
 # ---------------------------------------------------------------------------
 
 
-def create_data_source(path_or_uri: str, **kwargs) -> DataSource:
+def create_data_source(path_or_uri: str, **kwargs: Any) -> DataSource:
     """Factory function — choose the right DataSource based on the input.
 
     Args:

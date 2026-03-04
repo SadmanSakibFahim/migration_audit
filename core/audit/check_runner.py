@@ -1,3 +1,5 @@
+from typing import Any, Dict, List, Optional
+
 import pandas as pd
 
 from core.audit.enums import CheckStatus
@@ -10,13 +12,13 @@ logger = get_logger(__name__)
 class CheckRunner:
     def __init__(
         self,
-        table_name,
-        meta,
-        src_df,
-        tgt_df,
-        config=None,
-        progress_callback=None,
-    ):
+        table_name: str,
+        meta: Any,
+        src_df: pd.DataFrame,
+        tgt_df: pd.DataFrame,
+        config: Optional[Dict[str, Any]] = None,
+        progress_callback: Optional[Any] = None,
+    ) -> None:
         self.table_name = table_name
         self.meta = meta
         self.src_df = src_df
@@ -31,9 +33,9 @@ class CheckRunner:
             "identity_overlap_threshold", 95
         )
 
-        self.results = []
+        self.results: List[TestResult] = []
 
-    def _report_progress(self, message: str):
+    def _report_progress(self, message: str) -> None:
         """Report progress via callback if available."""
         logger.info(message)
         if self.progress_callback:
@@ -42,14 +44,14 @@ class CheckRunner:
             except Exception:
                 pass  # Never let callback errors break the audit
 
-    def _normalize_result(self, result):
+    def _normalize_result(self, result: Any) -> List[TestResult]:
         if result is None:
             return []
         if isinstance(result, list):
             return result
         return [result]
 
-    def _safe_run(self, category: str, fn, *args, **kwargs):
+    def _safe_run(self, category: str, fn: Any, *args: Any, **kwargs: Any) -> List[TestResult]:
         """Run a check function with graceful error handling."""
         try:
             result = fn(*args, **kwargs)
@@ -115,7 +117,7 @@ class CheckRunner:
 
         return True
 
-    def _run_volume_checks(self, check_registry):
+    def _run_volume_checks(self, check_registry: Dict[str, Any]) -> None:
         for fn in check_registry.get("volume", []):
             self.results.extend(
                 self._safe_run(
@@ -128,7 +130,7 @@ class CheckRunner:
                 )
             )
 
-    def _run_identity_checks(self):
+    def _run_identity_checks(self) -> None:
         pk = getattr(self.meta, "primary_key", None)
         if not (pk and pk in self.src_df.columns and pk in self.tgt_df.columns):
             return
@@ -185,7 +187,7 @@ class CheckRunner:
                 )
             )
 
-    def _run_aggregate_checks(self, check_registry):
+    def _run_aggregate_checks(self, check_registry: Dict[str, Any]) -> None:
         for col in getattr(self.meta, "aggregates", []):
             try:
                 # Handle column mapping for complex mappings
@@ -276,7 +278,7 @@ class CheckRunner:
                     )
                 )
 
-    def _run_mapping_checks(self, check_registry):
+    def _run_mapping_checks(self, check_registry: Dict[str, Any]) -> None:
         for mapping in getattr(self.meta, "mappings", []):
             for fn in check_registry.get("mappings", []):
                 self.results.extend(
@@ -290,7 +292,7 @@ class CheckRunner:
                     )
                 )
 
-    def _run_relationship_checks(self, check_registry):
+    def _run_relationship_checks(self, check_registry: Dict[str, Any]) -> None:
         from core.audit.loader import load_table
 
         for rel in getattr(self.meta, "relationships", []):
@@ -339,7 +341,7 @@ class CheckRunner:
                     )
                 )
 
-    def _run_data_constraint_checks(self):
+    def _run_data_constraint_checks(self) -> None:
         from checks.data_constraints import check_data_constraints
 
         for col, constraints in getattr(self.meta, "data_constraints", {}).items():
@@ -355,7 +357,7 @@ class CheckRunner:
                 )
             )
 
-    def execute_all(self):
+    def execute_all(self) -> List[TestResult]:
         from core.audit.check_registry import CHECK_REGISTRY
 
         # --- Validate DataFrames before running any checks ---
@@ -365,7 +367,8 @@ class CheckRunner:
             )
             return self.results
 
-        steps = [
+        from typing import Callable
+        steps: List[tuple[str, Callable[[], None]]] = [
             ("Volume checks", lambda: self._run_volume_checks(CHECK_REGISTRY)),
             ("Identity checks", lambda: self._run_identity_checks()),
             ("Aggregate checks", lambda: self._run_aggregate_checks(CHECK_REGISTRY)),
@@ -388,10 +391,10 @@ class CheckRunner:
 
     def execute_chunked(
         self,
-        src_iter,
-        tgt_iter,
+        src_iter: Any,
+        tgt_iter: Any,
         chunk_size: int = 10000,
-    ):
+    ) -> List[TestResult]:
         """Execute audit checks on chunked/streamed DataFrames.
 
         Useful for large datasets that cannot fit in memory.

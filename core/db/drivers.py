@@ -44,6 +44,24 @@ DB_DRIVERS = {
         "test_import": "sqlite3",
         "description": "SQLite (built-in)",
     },
+    "mongodb": {
+        "driver": "pymongo",
+        "install": "pip install pymongo",
+        "test_import": "pymongo",
+        "description": "MongoDB NoSQL driver",
+    },
+    "bigquery": {
+        "driver": "sqlalchemy-bigquery",
+        "install": "pip install sqlalchemy-bigquery",
+        "test_import": "google.cloud.bigquery",
+        "description": "Google Cloud BigQuery adapter",
+    },
+    "snowflake": {
+        "driver": "snowflake-sqlalchemy",
+        "install": "pip install snowflake-sqlalchemy",
+        "test_import": "snowflake.connector",
+        "description": "Snowflake data warehouse connector",
+    },
 }
 
 
@@ -75,6 +93,12 @@ def detect_db_type(uri: str) -> Optional[str]:
         return "oracle"
     elif uri_lower.startswith("sqlite://"):
         return "sqlite"
+    elif uri_lower.startswith("mongodb://") or uri_lower.startswith("mongodb+srv://"):
+        return "mongodb"
+    elif uri_lower.startswith("bigquery://"):
+        return "bigquery"
+    elif uri_lower.startswith("snowflake://"):
+        return "snowflake"
 
     return None
 
@@ -186,7 +210,7 @@ def check_all_drivers() -> Dict[str, bool]:
     return status
 
 
-def print_driver_status():
+def print_driver_status() -> None:
     """Print installation status of all database drivers."""
     print("\n" + "=" * 60)
     print("DATABASE DRIVER STATUS")

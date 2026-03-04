@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 from core.audit.enums import CheckStatus
 
@@ -9,5 +9,5 @@ class TestResult:
     name: str
     status: CheckStatus
     message: str
-    details: Optional[Dict] = None
+    details: Optional[Dict[str, Any]] = None
     metrics: Optional[Dict[str, float]] = None

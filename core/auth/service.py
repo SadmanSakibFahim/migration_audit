@@ -12,13 +12,27 @@ class AuthService:
         self.session = session
 
     def hash_password(self, password: str) -> str:
-        return argon2.using(rounds=4).hash(password)
+        return argon2.using(rounds=4).hash(password)  # type: ignore
 
     def verify_password(self, password: str, hashed: str) -> bool:
-        return argon2.verify(password, hashed)
+        return argon2.verify(password, hashed)  # type: ignore
+
+    def create_jwt_token(self, user: User, secret_key: str, expires_in_minutes: int = 1440) -> str:
+        import jwt
+        from datetime import datetime, timedelta
+        
+        payload = {
+            "sub": str(user.id),
+            "username": user.username,
+            "role": user.role.value if hasattr(user.role, "value") else str(user.role),
+            "exp": datetime.utcnow() + timedelta(minutes=expires_in_minutes),
+            "iat": datetime.utcnow()
+        }
+        return jwt.encode(payload, secret_key, algorithm="HS256")
+
 
     def create_license(
-        self, key_hash: str, valid_from: datetime, valid_until: datetime, plan="basic"
+        self, key_hash: str, valid_from: datetime, valid_until: datetime, plan: str = "basic"
     ) -> License:
         lic = License(
             key_hash=key_hash,

@@ -3,6 +3,7 @@ import json
 import logging
 import os
 from datetime import datetime, timezone
+from typing import Any
 
 # Ensure logs directory exists
 LOG_DIR = "logs"
@@ -12,7 +13,7 @@ os.makedirs(LOG_DIR, exist_ok=True)
 class JsonFormatter(logging.Formatter):
     """Formats log records as JSON objects for SIEM ingestion."""
 
-    def format(self, record):
+    def format(self, record: logging.LogRecord) -> str:
         log_entry = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "level": record.levelname,
@@ -72,7 +73,17 @@ def log_audit_event(
     user_id: str = "anonymous",
     ip_address: str = "unknown",
     details: str = "",
-):
-    """Helper to log structured audit events."""
+    db: Any = None, 
+) -> None:
+    """Helper to log structured audit events and optionally persist to Db."""
     extra = {"user_id": user_id, "action": action, "ip_address": ip_address}
     audit_logger.info(details, extra=extra)
+
+    # Persist database event if active session was mapped
+    if db:
+        try:
+            from core.compliance.service import ComplianceService
+            service = ComplianceService(db)
+            service.log_event(action, user_id, ip_address, details)
+        except Exception as e:
+            audit_logger.error(f"Failed to persist audit event to DB: {str(e)}", extra=extra)

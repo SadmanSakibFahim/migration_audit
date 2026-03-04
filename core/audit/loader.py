@@ -1,4 +1,4 @@
-from typing import Any, List, Optional
+from typing import Any, List, Optional, cast
 
 import pandas as pd
 
@@ -211,7 +211,7 @@ def load_and_merge_sources(
 
     if len(sources) == 1:
         # Load with custom query if provided
-        df = load_table(sources[0].path, query=sources[0].query)
+        df = cast(pd.DataFrame, load_table(sources[0].path, query=sources[0].query))
         # Apply column mapping if specified
         if sources[0].column_mapping:
             df = df.rename(columns=sources[0].column_mapping)
@@ -221,7 +221,7 @@ def load_and_merge_sources(
     dataframes = []
     for src in sources:
         # Load with custom query if provided
-        df = load_table(src.path, query=src.query)
+        df = cast(pd.DataFrame, load_table(src.path, query=src.query))
         # Apply column mapping if specified
         if src.column_mapping:
             df = df.rename(columns=src.column_mapping)
@@ -288,7 +288,7 @@ def load_and_merge_targets(
 
     if len(targets) == 1:
         # Load with custom query if provided
-        df = load_table(targets[0].path, query=targets[0].query)
+        df = cast(pd.DataFrame, load_table(targets[0].path, query=targets[0].query))
         # Apply column mapping if specified
         if targets[0].column_mapping:
             df = df.rename(columns=targets[0].column_mapping)
@@ -298,7 +298,7 @@ def load_and_merge_targets(
     dataframes = []
     for tgt in targets:
         # Load with custom query if provided
-        df = load_table(tgt.path, query=tgt.query)
+        df = cast(pd.DataFrame, load_table(tgt.path, query=tgt.query))
         # Apply column mapping if specified
         if tgt.column_mapping:
             df = df.rename(columns=tgt.column_mapping)

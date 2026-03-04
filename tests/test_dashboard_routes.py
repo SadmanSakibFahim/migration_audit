@@ -55,32 +55,19 @@ def test_run_audit_unauthorized(mock_template, unauth_mock):
 
 @patch("core.web.routes.dashboard.templates.TemplateResponse")
 @patch("core.audit.logger.log_audit_event")
-def test_run_audit_authorized(mock_log, mock_template, mock_auth):
+@patch("subprocess.run")
+def test_run_audit_authorized(mock_subprocess, mock_log, mock_template, mock_auth):
     mock_template.return_value = "mock_template_response"
     response = client.post("/run-audit")
     assert response.status_code == 200
     mock_template.assert_called_once()
     assert mock_log.called
 
+@patch("core.web.routes.dashboard.get_current_user")
+def test_dashboard_no_config(mock_user):
+    mock_user.return_value = {"username": "admin", "role": "admin"}
+    # os.path.exists returns False by default for our mocked paths unless patched
+    with patch("os.path.exists", return_value=False):
+        response = client.get("/dashboard")
+        assert response.status_code == 200
 
-@patch("core.web.routes.api.get_current_user")
-def test_api_upload_rbac_enforced(mock_user):
-    # user fixture returns viewer (no run_audit permission)
-    mock_user.return_value = {"username": "viewer", "role": "viewer", "id": 3}
-    response = client.post("/api/upload", files={})
-    assert response.status_code == 403 or response.status_code == 401
-
-
-@patch("core.web.routes.api.get_current_user")
-def test_api_upload_allowed_for_auditor(mock_user):
-    mock_user.return_value = {"username": "auditor", "role": "auditor", "id": 2}
-    # we also need a dummy db session so decorator doesn't crash
-    from core.web.routes.auth import SessionLocal
-    def attach_db(request, call_next):
-        request.state.db = SessionLocal()
-        return call_next(request)
-
-    # simple call: it will hit permission decorator but no actual file processing
-    response = client.post("/api/upload", files={})
-    # since there is no config/data sent, endpoint returns ok or empty but must not be 403
-    assert response.status_code in [200, 422]

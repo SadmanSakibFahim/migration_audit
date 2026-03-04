@@ -116,4 +116,8 @@ class AuditConfig(BaseModel):
         default=50.0,
         description="Threshold (MB) to auto-trigger incremental processing for compatible tables.",
     )
+    strict_schema: bool = Field(
+        default=False,
+        description="If set, unexpected columns in target cause a FAIL.",
+    )
 

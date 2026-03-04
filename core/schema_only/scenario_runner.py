@@ -81,7 +81,7 @@ class ScenarioRunner:
             "audit_config": audit_config_dict,
         }
 
-    def _apply_mutation(self, mutation: Dict[str, Any]):
+    def _apply_mutation(self, mutation: Dict[str, Any]) -> None:
         table = mutation.get("table")
         m_type = mutation.get("type")
         target_file = os.path.join(self.temp_dir, f"{table}_target.csv")

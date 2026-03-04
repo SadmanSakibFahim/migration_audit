@@ -4,7 +4,7 @@ from typing import Any, Dict
 
 
 class SchemaConverter:
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
     def convert_to_config(

@@ -6,7 +6,7 @@ across multiple table loads during audit execution.
 """
 
 import threading
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 from sqlalchemy import create_engine, event, pool
 from sqlalchemy.engine import Engine
@@ -28,19 +28,22 @@ class DatabaseConnectionPool:
     - Thread-safe singleton pattern
     """
 
-    _instance = None
+    _instance: Optional["DatabaseConnectionPool"] = None
     _lock = threading.Lock()
+    _initialized: bool = False
+    _pools: Dict[str, Engine] = {}
 
-    def __new__(cls):
+    def __new__(cls) -> "DatabaseConnectionPool":
         if cls._instance is None:
             with cls._lock:
                 if cls._instance is None:
-                    cls._instance = super().__new__(cls)
-                    cls._instance._pools = {}
-                    cls._instance._initialized = False
+                    instance = super().__new__(cls)
+                    instance._pools = {}
+                    instance._initialized = False
+                    cls._instance = instance
         return cls._instance
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the connection pool manager."""
         if not self._initialized:
             self._pools: Dict[str, Engine] = {}
@@ -88,7 +91,7 @@ class DatabaseConnectionPool:
 
                 # Add event listener for connection checkout (for debugging)
                 @event.listens_for(engine, "connect")
-                def receive_connect(dbapi_conn, connection_record):
+                def receive_connect(dbapi_conn: Any, connection_record: Any) -> None:
                     logger.debug(f"Database connection established: {safe_uri}")
 
                 self._pools[connection_string] = engine
@@ -104,7 +107,7 @@ class DatabaseConnectionPool:
 
         return self._pools[connection_string]
 
-    def close_all(self):
+    def close_all(self) -> None:
         """Close all connection pools and release resources."""
         logger.info(f"Closing {len(self._pools)} connection pool(s)")
         for uri, engine in self._pools.items():
@@ -118,7 +121,7 @@ class DatabaseConnectionPool:
         self._pools.clear()
         logger.info("All connection pools closed")
 
-    def get_pool_status(self, connection_string: str) -> Optional[Dict]:
+    def get_pool_status(self, connection_string: str) -> Optional[Dict[str, Any]]:
         """
         Get status information about a connection pool.
 
@@ -135,11 +138,11 @@ class DatabaseConnectionPool:
         pool_obj = engine.pool
 
         return {
-            "size": getattr(pool_obj, "size", lambda: 0)(),  # type: ignore
-            "checked_in": getattr(pool_obj, "checkedin", lambda: 0)(),  # type: ignore
-            "checked_out": getattr(pool_obj, "checkedout", lambda: 0)(),  # type: ignore
-            "overflow": getattr(pool_obj, "overflow", lambda: 0)(),  # type: ignore
-            "status": getattr(pool_obj, "status", lambda: "")(),  # type: ignore
+            "size": getattr(pool_obj, "size", lambda: 0)(),
+            "checked_in": getattr(pool_obj, "checkedin", lambda: 0)(),
+            "checked_out": getattr(pool_obj, "checkedout", lambda: 0)(),
+            "overflow": getattr(pool_obj, "overflow", lambda: 0)(),
+            "status": getattr(pool_obj, "status", lambda: "")(),
         }
 
     @staticmethod
@@ -159,7 +162,7 @@ class DatabaseConnectionPool:
         pattern = r"(://[^:]+:)([^@]+)(@)"
         return re.sub(pattern, r"\1***\3", uri)
 
-    def __del__(self):
+    def __del__(self) -> None:
         """Cleanup on garbage collection."""
         if hasattr(self, "_pools") and self._pools:
             self.close_all()

@@ -4,7 +4,7 @@ Row validation module for identifying and filtering invalid rows.
 
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional
+from typing import Any, Dict, List, Tuple, Optional
 
 import pandas as pd
 
@@ -14,7 +14,7 @@ from core.audit.logger import get_logger
 logger = get_logger(__name__)
 
 # Global log of all invalid rows across the audit
-_invalid_rows_log: List[Dict] = []
+_invalid_rows_log: List[Dict[str, Any]] = []
 
 
 class InvalidRowInfo:
@@ -25,7 +25,7 @@ class InvalidRowInfo:
         self.row_data = row_data
         self.reasons = reasons
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> Dict[Any, Any]:
         """Convert to dictionary for CSV export."""
         result = self.row_data.to_dict()
         result["_row_index"] = self.row_index
@@ -95,7 +95,7 @@ def validate_rows(
                                 "message": "Row validation failure",
                                 "data": {
                                     "table_name": table_name,
-                                    "row_index": int(idx),
+                                    "row_index": int(str(idx)),
                                     "reasons": reasons,
                                     "sample_values": {
                                         col: str(row[col])[:50]
@@ -142,7 +142,7 @@ def validate_rows(
                         )
 
         if reasons:
-            invalid_rows.append(InvalidRowInfo(idx, row, reasons))
+            invalid_rows.append(InvalidRowInfo(int(str(idx)), row, reasons))
         else:
             valid_indices.append(idx)
 
@@ -273,7 +273,7 @@ def create_invalid_rows_summary_log(output_dir: str) -> Optional[str]:
     return str(log_file)
 
 
-def reset_invalid_rows_log():
+def reset_invalid_rows_log() -> None:
     """Reset the global invalid rows log (useful for testing)."""
     global _invalid_rows_log
     _invalid_rows_log = []

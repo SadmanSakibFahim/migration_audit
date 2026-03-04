@@ -1,10 +1,13 @@
 import base64
 import os
+import json
+import hashlib
 from collections import defaultdict
 from datetime import date, datetime
 
 from docx import Document
-from xhtml2pdf import pisa  # For PDF generation
+from xhtml2pdf import pisa  # type: ignore[import-untyped]
+from typing import Any, Dict, List, Optional
 
 from core.audit.enums import CheckStatus
 from core.audit.verdict import final_verdict
@@ -23,8 +26,35 @@ SECTION_MAP = {
     ),
 }
 
+def get_content_hash(content: Dict[str, Any]) -> str:
+    """Generate a canonical SHA-256 hash of the report content to ensure data integrity."""
+    serializable = {
+        "client": content["client"],
+        "migration": content["migration"],
+        "date": content["date"],
+        "final_verdict": content["final_verdict"],
+        "results": [
+            {"name": r.name, "status": str(r.status.value) if hasattr(r.status, "value") else str(r.status), "message": r.message} 
+            for r in content.get("all_results", [])
+        ]
+    }
+    content_str = json.dumps(serializable, sort_keys=True)
+    return hashlib.sha256(content_str.encode("utf-8")).hexdigest()
 
-def group_results(results):
+def sign_report(file_path: str) -> str:
+    """Generate a .sha256 signature file for a generated report."""
+    if not os.path.exists(file_path):
+        return ""
+    hasher = hashlib.sha256()
+    with open(file_path, 'rb') as f:
+        hasher.update(f.read())
+    file_hash = hasher.hexdigest()
+    with open(f"{file_path}.sha256", "w") as f:
+        f.write(f"{file_hash} *{os.path.basename(file_path)}\n")
+    return file_hash
+
+
+def group_results(results: List[Any]) -> Dict[str, List[Any]]:
     grouped = defaultdict(list)
 
     for r in results:
@@ -50,7 +80,7 @@ def group_results(results):
     return grouped
 
 
-def section_verdict(results):
+def section_verdict(results: List[Any]) -> str:
     if any(r.status == CheckStatus.FAIL for r in results):
         return "FAIL"
     if any(r.status == CheckStatus.WARN for r in results):
@@ -58,12 +88,12 @@ def section_verdict(results):
     return "PASS"
 
 
-def _build_report_content(results, client="Client", migration="Source → Target"):
+def _build_report_content(results: List[Any], client: str = "Client", migration: str = "Source → Target") -> Dict[str, Any]:
     """Build the core report content as a dictionary for reuse across formats."""
     grouped = group_results(results)
     final = final_verdict(results)
 
-    return {
+    content = {
         "client": client,
         "migration": migration,
         "date": str(date.today()),
@@ -71,9 +101,11 @@ def _build_report_content(results, client="Client", migration="Source → Target
         "grouped_results": grouped,
         "all_results": results,
     }
+    content["integrity_hash"] = get_content_hash(content)
+    return content
 
 
-def _write_docx(content, output_path):
+def _write_docx(content: Dict[str, Any], output_path: str) -> None:
     """Generate DOCX report."""
     doc = Document()
 
@@ -114,10 +146,14 @@ def _write_docx(content, output_path):
     doc.add_heading("Final Deployability Verdict", level=2)
     doc.add_paragraph(content["final_verdict"])
 
+    if "integrity_hash" in content:
+        doc.add_heading("Cryptographic Signature", level=2)
+        doc.add_paragraph(f"SHA-256 Data Footprint: {content['integrity_hash']}")
+
     doc.save(output_path)
 
 
-def _write_markdown(content, output_path):
+def _write_markdown(content: Dict[str, Any], output_path: str) -> None:
     """Generate Markdown report."""
     lines = []
 
@@ -155,14 +191,15 @@ def _write_markdown(content, output_path):
     lines.append("\n## Final Deployability Verdict\n")
     lines.append(f"{content['final_verdict']}\n")
 
-    with open(output_path, "w") as f:
-        f.write("\n".join(lines))
+    if "integrity_hash" in content:
+        lines.append("\n## Cryptographic Signature\n")
+        lines.append(f"**SHA-256 Data Footprint:** `{content['integrity_hash']}`\n")
 
     with open(output_path, "w") as f:
         f.write("\n".join(lines))
 
 
-def _write_text(content, output_path):
+def _write_text(content: Dict[str, Any], output_path: str) -> None:
     """Generate plain text report."""
     lines = []
 
@@ -218,11 +255,18 @@ def _write_text(content, output_path):
     lines.append(content["final_verdict"])
     lines.append("")
 
+    if "integrity_hash" in content:
+        lines.append("-" * 80)
+        lines.append("CRYPTOGRAPHIC SIGNATURE")
+        lines.append("-" * 80)
+        lines.append(f"SHA-256 Data Footprint: {content['integrity_hash']}")
+        lines.append("")
+
     with open(output_path, "w") as f:
         f.write("\n".join(lines))
 
 
-def _write_html(content, output_path, logo_path=None):
+def _write_html(content: Dict[str, Any], output_path: str, logo_path: Optional[str] = None) -> str:
     """Generate HTML report."""
 
     # Handle Logo (Base64 Encode)
@@ -441,6 +485,11 @@ def _write_html(content, output_path, logo_path=None):
              <span class="verdict-{content['final_verdict'].replace(' ', '-')}">{content['final_verdict']}</span>
         </div>
         
+        <h2>Cryptographic Signature</h2>
+        <div style="font-family: monospace; font-size: 10pt; color: #7f8c8d; background: #ecf0f1; padding: 10px; border-radius: 4px;">
+            SHA-256 Data Footprint: {content.get('integrity_hash', 'N/A')}
+        </div>
+        
         <div id="footerContent">
             Automatically generated by Coral &nbsp;|&nbsp; Page <pdf:pagenumber> of <pdf:pagecount>
         </div>
@@ -453,7 +502,7 @@ def _write_html(content, output_path, logo_path=None):
     return html
 
 
-def _write_pdf(html_content, output_path):
+def _write_pdf(html_content: str, output_path: str) -> None:
     """Generate PDF report from HTML content using xhtml2pdf."""
     try:
         with open(output_path, "wb") as pdf_file:
@@ -466,14 +515,14 @@ def _write_pdf(html_content, output_path):
 
 
 def build_report(
-    results,
-    output_path=None,
-    client="Client",
-    migration="Source → Target",
-    base_dir="outputs",
-    label="",
-    logo_path=None,
-):
+    results: List[Any],
+    output_path: Optional[str] = None,
+    client: str = "Client",
+    migration: str = "Source → Target",
+    base_dir: str = "outputs",
+    label: str = "",
+    logo_path: Optional[str] = None,
+) -> Dict[str, str]:
     """Generate reports in all formats (DOCX, Markdown, Text, HTML, PDF).
 
     Args:
@@ -515,10 +564,15 @@ def build_report(
     html_content = _write_html(content, html_path, logo_path=logo_path)
     _write_pdf(html_content, pdf_path)
 
-    return {
+    paths = {
         "docx": output_path,
         "markdown": md_path,
         "text": txt_path,
         "html": html_path,
         "pdf": pdf_path,
     }
+    
+    for fmt, p in paths.items():
+        sign_report(p)
+
+    return paths

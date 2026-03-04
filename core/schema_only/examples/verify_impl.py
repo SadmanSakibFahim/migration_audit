@@ -10,7 +10,7 @@ if root_dir not in sys.path:
 from core.schema_only.scenario_runner import ScenarioRunner
 
 
-def run_test():
+def run_test() -> None:
     runner = ScenarioRunner(temp_dir="audit_testing_grounds/verification_temp")
 
     schema_path = os.path.join(current_dir, "simple_schema.sql")

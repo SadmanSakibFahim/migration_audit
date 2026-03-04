@@ -6,12 +6,12 @@ from typing import Any, Dict, List
 
 
 class DataGenerator:
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
     def generate_data_for_config(
         self, config: Dict[str, Any], output_dir: str, row_count: int = 100
-    ):
+    ) -> List[str]:
         """
         Generates CSV files for each table in the config.
         """
@@ -114,7 +114,7 @@ class DataGenerator:
 
     def _write_csv(
         self, filepath: str, data: List[Dict[str, Any]], table_config: Dict[str, Any]
-    ):
+    ) -> None:
         if not data:
             return
 

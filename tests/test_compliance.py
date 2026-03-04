@@ -15,9 +15,12 @@ from core.web.routes.auth import engine
 
 @pytest.fixture(autouse=True)
 def ensure_auth_tables():
-    """Recreate auth tables on the current engine before each test.
-    Handles import order issues when other test files import app first."""
+    """Recreate auth tables on the current engine before each test."""
+    from core.compliance.models import Base as ComplianceBase
+    Base.metadata.drop_all(bind=engine)
+    ComplianceBase.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
+    ComplianceBase.metadata.create_all(bind=engine)
     yield
 
 def test_security_headers():

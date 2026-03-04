@@ -47,6 +47,14 @@ class TestCheckSum:
         result = check_sum(src, tgt, "amount", "orders", tolerance=0.1)
         assert result.status == CheckStatus.WARN
 
+    def test_all_nan_warns(self):
+        """When a column contains entirely NaN values, check_sum returns WARN."""
+        import numpy as np
+        src = pd.DataFrame({"amount": [np.nan, np.nan]})
+        tgt = pd.DataFrame({"amount": [1, 2]})
+        result = check_sum(src, tgt, "amount", "orders", tolerance=0.1)
+        assert result.status == CheckStatus.WARN
+
 
 # ===================================================================
 # check_avg

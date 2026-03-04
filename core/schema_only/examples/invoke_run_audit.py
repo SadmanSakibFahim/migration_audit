@@ -16,7 +16,7 @@ from reports.report_builder import build_report
 from run_audit import run_audit
 
 
-def main():
+def main() -> None:
     # Setup paths
     temp_dir = os.path.join(root_dir, "audit_testing_grounds", "temp_run_audit")
     if not os.path.exists(temp_dir):

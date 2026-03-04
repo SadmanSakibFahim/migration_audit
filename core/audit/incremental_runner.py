@@ -46,7 +46,7 @@ class IncrementalRunner:
         # For true streaming, we'll mark which sampled IDs were found in the target.
         self.sampled_ids_found: Dict[Any, bool] = {}  # {id: found_bool}
 
-    def process_source(self, path: str):
+    def process_source(self, path: str) -> None:
         """Iterate through source path in chunks and accumulate metrics."""
         chunks = load_table(path, chunk_size=self.chunk_size)
 
@@ -77,7 +77,7 @@ class IncrementalRunner:
                         chunk[col], errors="coerce"
                     ).sum()
 
-    def process_target(self, path: str):
+    def process_target(self, path: str) -> None:
         """Iterate through target path in chunks, accumulate metrics and run row-level checks."""
         from checks.data_constraints import check_data_constraints
         from core.audit.check_registry import CHECK_REGISTRY

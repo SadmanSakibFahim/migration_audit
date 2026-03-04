@@ -7,7 +7,7 @@ class AuditError(Exception):
 class DataLoadError(AuditError):
     """Raised when loading source or target data fails."""
 
-    def __init__(self, table_name, source, original_exception):
+    def __init__(self, table_name: str, source: str, original_exception: Exception) -> None:
         self.table_name = table_name
         self.source = source
         self.original_exception = original_exception

@@ -2,6 +2,7 @@ import json
 import os
 import shutil
 from datetime import datetime, timedelta
+from typing import Any
 
 
 class ComplianceEngine:
@@ -40,7 +41,7 @@ class ComplianceEngine:
                 shutil.rmtree(path)
 
     @classmethod
-    def log_event(cls, event: str, **data) -> None:
+    def log_event(cls, event: str, **data: Any) -> None:
         """Append a compliance-related event to the audit log."""
         os.makedirs(os.path.dirname(cls.AUDIT_LOG_PATH), exist_ok=True)
         record = {"timestamp": datetime.utcnow().isoformat() + "Z", "event": event}

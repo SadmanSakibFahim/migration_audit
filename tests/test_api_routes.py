@@ -10,20 +10,28 @@ import io
 
 client = TestClient(app)
 
+from unittest.mock import patch, MagicMock, PropertyMock
+
 @pytest.fixture
 def mock_auth():
-    # Patch get_current_user dependency or the session middleware directly
-    # Or just mock the route dependencies
-    # fastapi TestClient doesn't easily mock request.session.get("user") unless we use middleware
-    # Let's mock get_current_user in the router
-    with patch("core.web.routes.api.get_current_user") as mock_user:
+    with patch("core.web.routes.api.get_current_user") as mock_user, \
+         patch("starlette.requests.Request.session", new_callable=PropertyMock) as mock_session_prop, \
+         patch("core.auth.decorators.AuthService") as mock_auth_service_cls, \
+         patch("core.web.routes.auth.SessionLocal"):
+        
+        mock_auth_service = mock_auth_service_cls.return_value
+        mock_auth_service.check_permission.return_value = True
+        
         mock_user.return_value = {"username": "admin", "role": "admin", "id": 1}
+        mock_session_prop.return_value = {"user": {"username": "admin", "role": "admin", "id": 1}}
         yield mock_user
 
 @pytest.fixture
 def unauth_mock():
-    with patch("core.web.routes.api.get_current_user") as mock_user:
+    with patch("core.web.routes.api.get_current_user") as mock_user, \
+         patch("starlette.requests.Request.session", new_callable=PropertyMock) as mock_session_prop:
         mock_user.return_value = None
+        mock_session_prop.return_value = {}
         yield mock_user
 
 def test_api_upload_unauthorized(unauth_mock):
@@ -184,4 +192,28 @@ def test_api_reports_unauthorized(unauth_mock):
     """GET /api/reports should return 401 when not authenticated."""
     response = client.get("/api/reports")
     assert response.status_code == 401
+
+
+def test_api_run_audit_background_task(mock_auth):
+    """Test the background task logic directly."""
+    from core.web.routes.api import run_audit_background_task, AUDIT_STATE
+    
+    with patch("run_audit.run_audit") as mock_run_audit, \
+         patch("reports.report_builder.build_report") as mock_build_report:
+        
+        # Mock run_audit to return some dummy results
+        mock_run_audit.return_value = []
+        
+        run_audit_background_task(["users"])
+        
+        assert AUDIT_STATE["status"] == "completed"
+
+def test_api_run_audit_background_task_exception(mock_auth):
+    """Test background task failure handling."""
+    from core.web.routes.api import run_audit_background_task, AUDIT_STATE
+    
+    with patch("run_audit.run_audit", side_effect=Exception("Test Error"), create=True):
+        run_audit_background_task(["users"])
+        assert AUDIT_STATE["status"] == "error"
+        assert "Test Error" in AUDIT_STATE["message"]
 

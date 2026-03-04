@@ -13,7 +13,9 @@ class Verdict:
     ERROR = "ERROR"
 
 
-def final_verdict(results):
+from typing import List, Any
+
+def final_verdict(results: List[Any]) -> str:
     """
     Determine final migration verdict based on check results.
 
@@ -52,7 +54,7 @@ def final_verdict(results):
     return Verdict.GO
 
 
-def is_migration_allowed(verdict):
+def is_migration_allowed(verdict: str) -> bool:
     """
     Check if migration is allowed based on the final verdict.
     """
