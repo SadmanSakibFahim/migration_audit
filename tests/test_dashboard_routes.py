@@ -61,3 +61,26 @@ def test_run_audit_authorized(mock_log, mock_template, mock_auth):
     assert response.status_code == 200
     mock_template.assert_called_once()
     assert mock_log.called
+
+
+@patch("core.web.routes.api.get_current_user")
+def test_api_upload_rbac_enforced(mock_user):
+    # user fixture returns viewer (no run_audit permission)
+    mock_user.return_value = {"username": "viewer", "role": "viewer", "id": 3}
+    response = client.post("/api/upload", files={})
+    assert response.status_code == 403 or response.status_code == 401
+
+
+@patch("core.web.routes.api.get_current_user")
+def test_api_upload_allowed_for_auditor(mock_user):
+    mock_user.return_value = {"username": "auditor", "role": "auditor", "id": 2}
+    # we also need a dummy db session so decorator doesn't crash
+    from core.web.routes.auth import SessionLocal
+    def attach_db(request, call_next):
+        request.state.db = SessionLocal()
+        return call_next(request)
+
+    # simple call: it will hit permission decorator but no actual file processing
+    response = client.post("/api/upload", files={})
+    # since there is no config/data sent, endpoint returns ok or empty but must not be 403
+    assert response.status_code in [200, 422]

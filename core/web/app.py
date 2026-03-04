@@ -13,6 +13,21 @@ load_dotenv()
 
 app = FastAPI(title="Migration Audit Platform")
 
+# --- Middleware for DB session injection (used by auth decorators) ---
+@app.middleware("http")
+async def db_session_middleware(request: Request, call_next):
+    from core.web.routes.auth import SessionLocal
+
+    request.state.db = SessionLocal()
+    try:
+        response = await call_next(request)
+    finally:
+        try:
+            request.state.db.close()
+        except Exception:
+            pass
+    return response
+
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):

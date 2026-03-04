@@ -3,7 +3,7 @@ import json
 import os
 import shutil
 from datetime import datetime
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 import yaml
 from fastapi import APIRouter, BackgroundTasks, File, Request, UploadFile
@@ -28,17 +28,26 @@ AUDIT_STATE: Dict[str, Any] = {
 }
 
 
-def get_current_user(request: Request):
+def get_current_user(request: Request) -> Optional[Dict[str, Any]]:
+    """Return the logged-in user information from the session or ``None``."""
     return request.session.get("user")
 
 
+# add import for our new decorator and role constants
+from core.auth.decorators import requires_permission
+
+
+
 @router.post("/upload")
+@requires_permission("run_audit")
 async def upload_files(
     request: Request,
     config: Optional[UploadFile] = File(None),
     data_files: Optional[List[UploadFile]] = File(None),
 ):
     """Upload config YAML and/or data CSV files via drag-and-drop or file picker."""
+    # require user to be logged in and permitted to run audits
+    # decorator would normally enforce but we also check here as a fallback
     user = get_current_user(request)
     if not user:
         return JSONResponse({"error": "Unauthorized"}, status_code=401)
@@ -172,16 +181,22 @@ async def event_generator():
 
 
 @router.get("/stream")
+@requires_permission("view_report")
 async def stream_audit_progress(request: Request):
     """Server-Sent Events endpoint for live progress."""
-    user = get_current_user(request)
-    if not user:
+    # streaming progress should only be available to someone with view_report
+    from core.auth.decorators import requires_permission
+
+    # note: wrapping dynamically so we can still introspect the function
+    if not get_current_user(request):
         return JSONResponse({"error": "Unauthorized"}, status_code=401)
+
+    # permission wrapper is applied below
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 
-def run_audit_background_task(selected_tables):
+def run_audit_background_task(selected_tables: List[str]) -> None:
     """Task to run in background."""
     AUDIT_STATE["status"] = "running"
     AUDIT_STATE["logs"] = []
@@ -193,7 +208,7 @@ def run_audit_background_task(selected_tables):
         from reports.report_builder import build_report
         from run_audit import run_audit
 
-        def progress_callback(msg: str):
+        def progress_callback(msg: str) -> None:
             AUDIT_STATE["logs"].append(f"[{datetime.now().strftime('%H:%M:%S')}] {msg}")
             AUDIT_STATE["message"] = msg
             # Simple progress increment (fake logic for MVP)

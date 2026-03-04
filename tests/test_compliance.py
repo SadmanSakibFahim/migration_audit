@@ -75,3 +75,23 @@ def test_audit_logging():
                 continue
 
     assert found, "Audit log entry for failed login not found"
+
+
+def test_retention_purge(tmp_path, monkeypatch):
+    # create dummy report directories with different dates
+    base = tmp_path / "outputs"
+    base.mkdir()
+    old = base / "20260101_old"
+    recent = base / "20260301_recent"
+    old.mkdir()
+    recent.mkdir()
+
+    monkeypatch.setattr("core.compliance.engine.ComplianceEngine.OUTPUT_DIR", str(base))
+
+    # purge reports older than 60 days (none should be removed since dates are synthetic)
+    from core.compliance.engine import ComplianceEngine
+
+    ComplianceEngine.purge_old_reports(days=30)
+    # since 20260101 is definitely older than cutoff relative to now, it should be removed
+    assert not old.exists()
+    assert recent.exists()
