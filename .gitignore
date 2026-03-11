@@ -103,3 +103,25 @@ test_unclosed.js
 
 # Data
 data/users.csv
+
+# Self-study & AI generated docs
+docs/AGENT_WORK_SUMMARY.md
+docs/AI_ML_OPPORTUNITIES.md
+docs/AUTH_SECURITY_DESIGN.md
+docs/BUSINESS_VIABILITY_SCORECARD.md
+docs/COMPLEX_MAPPING_ANALYSIS.md
+docs/COMPLIANCE_FRAMEWORK.md
+docs/dashboard_analysis.md
+docs/database_integration_walkthrough.md
+docs/EDGE_CASE_CATALOG.md
+docs/FUTURE_VISION_AND_GAPS.md
+docs/GO_TO_MARKET.md
+docs/LATEST_CHANGES_20260201_1008.md
+docs/PM_STRATEGY_IP_AND_TRUST.md
+docs/pricing_strategy.md
+docs/QA_FINDINGS.md
+docs/QA_PROCESS.md
+docs/QA_SIGNOFF.md
+docs/roadmap.md
+docs/TECH_DEBT_ANALYSIS.md
+docs/ui_first_pass_implementation.md
