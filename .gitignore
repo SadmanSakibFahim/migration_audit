@@ -92,6 +92,13 @@ yarn-error.log*
 rendered_dashboard.html
 rendered_*.html
 
+# Data
+data/users.csv
+project_structure.graphql
+*.txt
+*.graphql
+sample_command.md
+
 # Scratch scripts (root level)
 check_page.js
 parse_html.js
@@ -99,10 +106,16 @@ test_ast.js
 test_browser.js
 test_unclosed.js
 test_vue.js
-test_unclosed.js
+debug_*.py
+sample_*.py
+append_tasks.py
+verify_auth_db.py
+verify_manual.py
+test_server.py
+test_cli_auth.py
+admin.py
+run_dashboard.py
 
-# Data
-data/users.csv
 
 # AI Agent and IDE folders
 .agent/
