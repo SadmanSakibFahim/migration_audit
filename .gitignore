@@ -125,9 +125,18 @@ run_dashboard.py
 # Documentation
 docs/
 
+# Data and Databases
+data/*.db
+data/auth.db
+*.db
+audit_testing_grounds/
+test_data_2/
+sample_data_docs/
+
 # Extra caches
 .mypy_cache/
 .ruff_cache/
 .pytype/
 .ipynb_checkpoints/
+
 

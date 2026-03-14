@@ -322,11 +322,8 @@ migration_audit/
 │   ├── test_auth_service.py           # Auth service tests
 │   ├── test_compliance.py             # Security/compliance tests
 │   └── test_db_integration.py         # Database integration tests
-├── docs/                              # Design documentation
-│   ├── AI_ML_OPPORTUNITIES.md         # ML augmentation analysis
-│   ├── AUTH_SECURITY_DESIGN.md        # Auth & RBAC design
-│   ├── COMPLIANCE_FRAMEWORK.md        # SOC 2 / GDPR compliance plan
-│   └── EDGE_CASE_CATALOG.md           # Known edge cases & remediation
+├── docs/                              # Project documentation
+
 ├── Dockerfile                         # Multi-stage Docker build
 ├── docker-compose.yml                 # Container orchestration
 ├── requirements.txt                   # Python dependencies
@@ -433,8 +430,9 @@ Architecture Decision Records (ADRs) are maintained in `.antigravity/context/dec
 
 ## License
 
-Internal / Client-specific usage.
+This project is licensed under the **GNU General Public License v3.0 (GPLv3)**. See the [LICENSE](LICENSE) file for the full license text.
 
 ---
 
-**For questions or support**, refer to documentation in the `docs/` directory.
+**For feedback or contributions**, please open an issue or submit a pull request on the GitHub repository.
+
