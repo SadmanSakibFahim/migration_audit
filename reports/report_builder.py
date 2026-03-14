@@ -266,6 +266,38 @@ def _write_text(content: Dict[str, Any], output_path: str) -> None:
         f.write("\n".join(lines))
 
 
+def _write_json(content: Dict[str, Any], output_path: str) -> None:
+    """Generate JSON report."""
+    serializable = {
+        "metadata": {
+            "client": content["client"],
+            "migration": content["migration"],
+            "date": content["date"],
+            "auditor": "Independent Migration Audit",
+            "integrity_hash": content.get("integrity_hash", "")
+        },
+        "summary": {
+            "final_verdict": content["final_verdict"],
+            "section_verdicts": {
+                section: section_verdict(res)
+                for section, res in content["grouped_results"].items()
+            }
+        },
+        "results": [
+            {
+                "name": r.name,
+                "status": r.status.value if hasattr(r.status, "value") else str(r.status),
+                "message": r.message,
+                "details": r.details,
+                "metrics": r.metrics
+            }
+            for r in content.get("all_results", [])
+        ]
+    }
+    with open(output_path, "w") as f:
+        json.dump(serializable, f, indent=4)
+
+
 def _write_html(content: Dict[str, Any], output_path: str, logo_path: Optional[str] = None) -> str:
     """Generate HTML report."""
 
@@ -551,18 +583,20 @@ def build_report(
     # Generate DOCX
     _write_docx(content, output_path)
 
-    # Generate Markdown, Text, HTML, PDF
+    # Generate Markdown, Text, HTML, PDF, JSON
     base_path = os.path.splitext(output_path)[0]
     md_path = base_path + ".md"
     txt_path = base_path + ".txt"
     html_path = base_path + ".html"
     pdf_path = base_path + ".pdf"
+    json_path = base_path + ".json"
 
     _write_markdown(content, md_path)
     _write_text(content, txt_path)
     # Pass logo_path to html generator
     html_content = _write_html(content, html_path, logo_path=logo_path)
     _write_pdf(html_content, pdf_path)
+    _write_json(content, json_path)
 
     paths = {
         "docx": output_path,
@@ -570,6 +604,7 @@ def build_report(
         "text": txt_path,
         "html": html_path,
         "pdf": pdf_path,
+        "json": json_path,
     }
     
     for fmt, p in paths.items():
