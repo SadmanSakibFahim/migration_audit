@@ -13,6 +13,7 @@ __pycache__/
 *$py.class
 
 # Test and Execution Outputs
+test_output/
 test_outputs/
 outputs/
 logs/
