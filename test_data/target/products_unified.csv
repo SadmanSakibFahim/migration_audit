@@ -1,0 +1,7 @@
+id,product_name,price,stock_quantity,category,source_category
+1,Laptop,999.99,50,electronics,electronics
+2,Smartphone,699.99,100,electronics,electronics
+3,Tablet,399.99,75,electronics,electronics
+4,T-Shirt,19.99,200,clothing,clothing
+5,Jeans,49.99,150,clothing,clothing
+6,Jacket,89.99,80,clothing,clothing

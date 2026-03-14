@@ -1,0 +1,30 @@
+tables:
+  orders:
+    aggregates:
+    - amount
+    data_constraints:
+      amount: []
+      id: []
+      status: []
+      user_id:
+      - not_null
+    mappings: []
+    primary_key: id
+    relationships: []
+    source: D:\AnotherAttemptAtCoding\migration_audit\audit_testing_grounds\temp_run_audit\orders_source.csv
+    target: D:\AnotherAttemptAtCoding\migration_audit\audit_testing_grounds\temp_run_audit\orders_target.csv
+  users:
+    aggregates: []
+    data_constraints:
+      created_at:
+      - date
+      email:
+      - not_null
+      id: []
+      username:
+      - not_null
+    mappings: []
+    primary_key: id
+    relationships: []
+    source: D:\AnotherAttemptAtCoding\migration_audit\audit_testing_grounds\temp_run_audit\users_source.csv
+    target: D:\AnotherAttemptAtCoding\migration_audit\audit_testing_grounds\temp_run_audit\users_target.csv

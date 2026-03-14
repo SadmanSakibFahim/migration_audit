@@ -1,0 +1,4 @@
+id,product_name,price,stock_quantity,category,_row_index,_validation_errors
+4.0,,19.99,200.0,,0,Column 'product_name' is null (not_null constraint)
+5.0,,49.99,150.0,,1,Column 'product_name' is null (not_null constraint)
+6.0,,89.99,80.0,,2,Column 'product_name' is null (not_null constraint)

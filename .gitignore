@@ -130,8 +130,6 @@ docs/
 data/*.db
 data/auth.db
 *.db
-audit_testing_grounds/
-test_data_2/
 sample_data_docs/
 
 # Extra caches

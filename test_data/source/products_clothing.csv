@@ -1,0 +1,4 @@
+id,product_name,price,stock_quantity,category
+4,T-Shirt,19.99,200,clothing
+5,Jeans,49.99,150,clothing
+6,Jacket,89.99,80,clothing

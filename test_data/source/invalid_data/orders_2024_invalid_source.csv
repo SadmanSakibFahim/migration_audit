@@ -1,0 +1,6 @@
+id,user_id,order_date,amount,quantity,order_status,_row_index,_validation_errors
+6.0,105.0,,175.25,2.0,,0,Column 'order_date' is null (not_null constraint)
+7.0,102.0,,95.5,1.0,,1,Column 'order_date' is null (not_null constraint)
+8.0,106.0,,320.0,4.0,,2,Column 'order_date' is null (not_null constraint)
+9.0,103.0,,145.99,2.0,,3,Column 'order_date' is null (not_null constraint)
+10.0,107.0,,210.75,3.0,,4,Column 'order_date' is null (not_null constraint)

@@ -1,0 +1,4 @@
+id,product_name,price,stock_quantity,category
+1,Laptop,999.99,50,electronics
+2,Smartphone,699.99,100,electronics
+3,Tablet,399.99,75,electronics
