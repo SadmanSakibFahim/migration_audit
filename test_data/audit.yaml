@@ -2,55 +2,56 @@
 # This config demonstrates N:1, 1:N, and N:M table mappings
 
 tables:
-  # Example 1: N:1 Mapping - Multiple source tables (orders_2023, orders_2024) 
+  # Example 1: N:1 Mapping - Multiple source tables (orders_2023, orders_2024)
   # merge into one target table (orders_consolidated)
   orders_consolidated:
     complex_mapping:
       mapping_type: "N:1"
-      aggregation_strategy: "merge"  # Options: sum, count, merge, first, last
+      aggregation_strategy: "merge" # Options: sum, count, merge, first, last
       sources:
-        - path: test_data_2/source/orders_2023.csv
+        - path: test_data/source/orders_2023.csv
           primary_key: id
-        - path: test_data_2/source/orders_2024.csv
+        - path: test_data/source/orders_2024.csv
           primary_key: id
       targets:
-        - path: test_data_2/target/orders_consolidated.csv
+        - path: test_data/target/orders_consolidated.csv
           primary_key: id
     primary_key: id
     aggregates:
       - amount
       - quantity
     data_constraints:
-      order_date: 
+      order_date:
         - not_null
         - date
       amount: [not_null]
       user_id: [not_null]
     mappings:
       - columns: [order_status]
-        allowed_values: [pending, processing, shipped, delivered, cancelled, refunded]
+        allowed_values:
+          [pending, processing, shipped, delivered, cancelled, refunded]
     relationships: []
 
-  # Example 2: 1:N Mapping - One source table (customers) splits into 
+  # Example 2: 1:N Mapping - One source table (customers) splits into
   # multiple target tables (customers_active, customers_inactive)
   customers_split:
     complex_mapping:
       mapping_type: "1:N"
-      split_strategy: "filter"  # Options: copy, distribute, filter
+      split_strategy: "filter" # Options: copy, distribute, filter
       sources:
-        - path: test_data_2/source/customers.csv
+        - path: test_data/source/customers.csv
           primary_key: id
       targets:
-        - path: test_data_2/target/customers_active.csv
+        - path: test_data/target/customers_active.csv
           primary_key: id
-        - path: test_data_2/target/customers_inactive.csv
+        - path: test_data/target/customers_inactive.csv
           primary_key: id
     primary_key: id
     aggregates:
       - balance
     data_constraints:
       email: [not_null]
-      registration_date: 
+      registration_date:
         - not_null
         - date
     mappings:
@@ -65,12 +66,12 @@ tables:
       mapping_type: "N:1"
       aggregation_strategy: "merge"
       sources:
-        - path: test_data_2/source/products_electronics.csv
+        - path: test_data/source/products_electronics.csv
           primary_key: id
-        - path: test_data_2/source/products_clothing.csv
+        - path: test_data/source/products_clothing.csv
           primary_key: id
       targets:
-        - path: test_data_2/target/products_unified.csv
+        - path: test_data/target/products_unified.csv
           primary_key: id
     primary_key: id
     aggregates:
@@ -82,7 +83,8 @@ tables:
       stock_quantity: [not_null]
     mappings:
       - columns: [category]
-        allowed_values: [electronics, clothing, books, home, sports, toys, other]
+        allowed_values:
+          [electronics, clothing, books, home, sports, toys, other]
     relationships: []
 
 tolerances:

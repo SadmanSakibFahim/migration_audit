@@ -34,7 +34,7 @@ class AlertManager:
             return
             
         color = "#36a64f" if fails == 0 and errors == 0 else "#ff0000"
-        title = "✅ Migration Audit Completed" if fails == 0 and errors == 0 else "🚨 Migration Audit Failed Constraints"
+        title = "✅ Albatross Audit Completed" if fails == 0 and errors == 0 else "🚨 Albatross Audit Failed Constraints"
         
         payload = {
             "attachments": [
@@ -56,7 +56,7 @@ class AlertManager:
             return
             
         color = "00ff00" if fails == 0 and errors == 0 else "ff0000"
-        title = "Migration Audit Completed" if fails == 0 and errors == 0 else "Migration Audit Failure"
+        title = "Albatross Audit Completed" if fails == 0 and errors == 0 else "Albatross Audit Failure"
         
         payload = {
             "@type": "MessageCard",

@@ -11,7 +11,7 @@ from starlette.middleware.sessions import SessionMiddleware
 # Load env for SECRET_KEY
 load_dotenv()
 
-app = FastAPI(title="Migration Audit Platform")
+app = FastAPI(title="Albatross Platform")
 
 # --- Middleware for DB session injection (used by auth decorators) ---
 @app.middleware("http")

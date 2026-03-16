@@ -125,7 +125,7 @@ def _write_docx(content: Dict[str, Any], output_path: str) -> None:
         f"Client: {content['client']}\n"
         f"Migration: {content['migration']}\n"
         f"Audit Date: {content['date']}\n"
-        f"Auditor: Independent Migration Audit"
+        f"Auditor: Albatross Audit"
     )
 
     # Executive Summary
@@ -167,7 +167,7 @@ def _write_markdown(content: Dict[str, Any], output_path: str) -> None:
     lines.append(f"**Client:** {content['client']}\n")
     lines.append(f"**Migration:** {content['migration']}\n")
     lines.append(f"**Audit Date:** {content['date']}\n")
-    lines.append("**Auditor:** Independent Migration Audit\n")
+    lines.append("**Auditor:** Albatross Audit\n")
 
     # Executive Summary
     lines.append("\n## Executive Summary\n")
@@ -213,7 +213,7 @@ def _write_text(content: Dict[str, Any], output_path: str) -> None:
     lines.append(f"Client:  {content['client']}")
     lines.append(f"Migration: {content['migration']}")
     lines.append(f"Audit Date: {content['date']}")
-    lines.append("Auditor: Independent Migration Audit")
+    lines.append("Auditor: Albatross Audit")
     lines.append("")
 
     # Executive Summary
@@ -272,7 +272,7 @@ def _write_json(content: Dict[str, Any], output_path: str) -> None:
             "client": content["client"],
             "migration": content["migration"],
             "date": content["date"],
-            "auditor": "Independent Migration Audit",
+            "auditor": "Albatross Audit",
             "integrity_hash": content.get("integrity_hash", "")
         },
         "summary": {

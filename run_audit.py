@@ -106,7 +106,7 @@ def authenticate_cli_user() -> bool:
         return True
 
     # 2. Interactive Prompt
-    print("\n=== Migration Audit Authentication ===")
+    print("\n=== Albatross Authentication ===")
     try:
         # flush stdout to ensure prompt appears before input
         import sys
@@ -657,7 +657,7 @@ if __name__ == "__main__":
     import argparse
     import sys
 
-    parser = argparse.ArgumentParser(description="Migration Audit CLI")
+    parser = argparse.ArgumentParser(description="Albatross CLI")
     parser.add_argument("--config", default="config/audit.yaml", help="Path to config file")
     parser.add_argument("--tables", nargs="+", help="Specific tables to audit")
     parser.add_argument("--dry-run", action="store_true", help="Skip running actual checks")
