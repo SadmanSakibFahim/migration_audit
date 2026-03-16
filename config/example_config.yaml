@@ -1,0 +1,40 @@
+# Example Configuration snippet demonstrating the 4 new Reddit Feedback checks
+tables:
+  orders:
+    source: "data/source/orders.csv"
+    target: "data/target/orders.csv"
+    primary_key: "id"
+    
+    # 1. Silent String Truncation
+    # Checks if any values in source exceed 255 chars (or inferred target max).
+    string_columns:
+      - column: "description"
+        max_length: 255
+        
+    # 2. Enum Equivalence
+    # Verifies mapping from source values to target values.
+    # Flags unmapped values or unexpected values in target.
+    enum_columns:
+      - column: "status"
+        mapping:
+          "active": "A"
+          "inactive": "I"
+
+  customers:
+    source: "data/source/customers.csv"
+    target: "data/target/customers.csv"
+    primary_key: "id"
+    
+    # 3. Timezone/DST Chaos
+    # Parses both sides. Flags if one is tz-aware and other is naïve.
+    # Connects rows on PK to detect systematic 1-hour offsets (DST drift).
+    datetime_columns:
+      - column: "created_at"
+        expected_tz: "UTC"
+        
+    # 4. Null / Sentinel Value Normalization
+    # Normalizes all sentinels to None, then compares null-rates
+    # before and after to distinguish logical equivalence from physical data loss.
+    null_sentinels:
+      - column: "customer_group"
+        sentinels: [0, -1, "N/A", ""]

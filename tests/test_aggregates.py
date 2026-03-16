@@ -161,3 +161,21 @@ class TestCheckVariance:
         result = check_variance(src, tgt, "val", "test", tolerance=1.0)
         # When source var = 0 and target var > 0, should warn or fail
         assert result.status in (CheckStatus.WARN, CheckStatus.FAIL)
+
+
+class TestCheckNumericPrecision:
+    def test_precision_scale_pass(self):
+        from checks.aggregates import check_numeric_precision
+        src = pd.DataFrame({"amount": ["10.50", "20.75"]})
+        tgt = pd.DataFrame({"amount": ["10.50", "20.75"]})
+        result = check_numeric_precision(src, tgt, "amount", "orders", expected_precision=4, expected_scale=2)
+        assert result[0].status == CheckStatus.PASS
+
+    def test_scale_loss_fail(self):
+        from checks.aggregates import check_numeric_precision
+        src = pd.DataFrame({"amount": ["10.505", "20.751"]})
+        tgt = pd.DataFrame({"amount": ["10.50", "20.75"]})
+        result = check_numeric_precision(src, tgt, "amount", "orders", expected_scale=2)
+        assert result[0].status == CheckStatus.FAIL
+        assert "truncation" in result[0].message
+

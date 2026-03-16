@@ -357,6 +357,193 @@ class CheckRunner:
                 )
             )
 
+    # ── Reddit Feedback checks ────────────────────────────────────────────────
+
+    def _run_string_checks(self) -> None:
+        from checks.string_checks import (
+            check_string_truncation,
+            check_whitespace_corruption,
+            check_encoding_corruption
+        )
+
+        for cfg in getattr(self.meta, "string_columns", []):
+            col = cfg.column
+            max_length = getattr(cfg, "max_length", None)
+            
+            # 1. Truncation Check
+            self.results.extend(
+                self._safe_run(
+                    f"String Truncation Check ({col})",
+                    check_string_truncation,
+                    self.src_df,
+                    self.tgt_df,
+                    col,
+                    self.table_name,
+                    max_length,
+                )
+            )
+
+            # 2. Whitespace Corruption Check
+            if getattr(cfg, "check_whitespace", False):
+                self.results.extend(
+                    self._safe_run(
+                        f"Whitespace Corruption Check ({col})",
+                        check_whitespace_corruption,
+                        self.src_df,
+                        self.tgt_df,
+                        col,
+                        self.table_name,
+                    )
+                )
+
+            # 3. Encoding Corruption Check
+            if getattr(cfg, "check_encoding", False):
+                self.results.extend(
+                    self._safe_run(
+                        f"Encoding Corruption Check ({col})",
+                        check_encoding_corruption,
+                        self.src_df,
+                        self.tgt_df,
+                        col,
+                        self.table_name,
+                    )
+                )
+
+    def _run_enum_checks(self) -> None:
+        from checks.enum_checks import (
+            check_enum_equivalence,
+            check_categorical_distribution
+        )
+
+        for cfg in getattr(self.meta, "enum_columns", []):
+            col = cfg.column
+            mapping = getattr(cfg, "mapping", None)
+            
+            # 1. Equivalence Check
+            self.results.extend(
+                self._safe_run(
+                    f"Enum Equivalence Check ({col})",
+                    check_enum_equivalence,
+                    self.src_df,
+                    self.tgt_df,
+                    col,
+                    self.table_name,
+                    mapping,
+                )
+            )
+
+            # 2. Distribution Check
+            if getattr(cfg, "check_distribution", False):
+                tolerance = getattr(cfg, "distribution_tolerance_pct", 0.05)
+                self.results.extend(
+                    self._safe_run(
+                        f"Categorical Distribution Check ({col})",
+                        check_categorical_distribution,
+                        self.src_df,
+                        self.tgt_df,
+                        col,
+                        self.table_name,
+                        tolerance,
+                    )
+                )
+
+    def _run_datetime_checks(self) -> None:
+        from checks.datetime_checks import check_timezone_consistency
+
+        pk_column = getattr(self.meta, "primary_key", None)
+        for cfg in getattr(self.meta, "datetime_columns", []):
+            col = cfg.column
+            expected_tz = getattr(cfg, "expected_tz", None)
+            self.results.extend(
+                self._safe_run(
+                    f"Datetime/TZ Check ({col})",
+                    check_timezone_consistency,
+                    self.src_df,
+                    self.tgt_df,
+                    col,
+                    self.table_name,
+                    expected_tz,
+                    pk_column,
+                )
+            )
+
+    def _run_null_sentinel_checks(self) -> None:
+        from checks.null_sentinel_checks import check_null_sentinel_equivalence
+
+        for cfg in getattr(self.meta, "null_sentinels", []):
+            col = cfg.column
+            sentinels = cfg.sentinels
+            self.results.extend(
+                self._safe_run(
+                    f"Null/Sentinel Check ({col})",
+                    check_null_sentinel_equivalence,
+                    self.src_df,
+                    self.tgt_df,
+                    col,
+                    self.table_name,
+                    sentinels,
+                )
+            )
+
+    # ── Phase 2: Advanced Constraint Checks ───────────────────────────────────
+
+    def _run_numeric_precision_checks(self) -> None:
+        from checks.aggregates import check_numeric_precision
+
+        for cfg in getattr(self.meta, "numeric_precision_columns", []):
+            col = cfg.column
+            precision = getattr(cfg, "expected_precision", None)
+            scale = getattr(cfg, "expected_scale", None)
+            self.results.extend(
+                self._safe_run(
+                    f"Numeric Precision Check ({col})",
+                    check_numeric_precision,
+                    self.src_df,
+                    self.tgt_df,
+                    col,
+                    self.table_name,
+                    precision,
+                    scale,
+                )
+            )
+
+    def _run_boolean_checks(self) -> None:
+        from checks.enum_checks import check_boolean_normalization
+
+        for cfg in getattr(self.meta, "boolean_columns", []):
+            col = cfg.column
+            t_vals = cfg.true_values
+            f_vals = cfg.false_values
+            self.results.extend(
+                self._safe_run(
+                    f"Boolean Normalization Check ({col})",
+                    check_boolean_normalization,
+                    self.src_df,
+                    self.tgt_df,
+                    col,
+                    self.table_name,
+                    t_vals,
+                    f_vals,
+                )
+            )
+
+    def _run_uniqueness_checks(self) -> None:
+        from checks.data_constraints import check_uniqueness
+
+        for col in getattr(self.meta, "unique_columns", []):
+            self.results.extend(
+                self._safe_run(
+                    f"Uniqueness Check ({col})",
+                    check_uniqueness,
+                    self.src_df,
+                    self.tgt_df,
+                    col,
+                    self.table_name,
+                )
+            )
+
+    # ─────────────────────────────────────────────────────────────────────────
+
     def execute_all(self) -> List[TestResult]:
         from core.audit.check_registry import CHECK_REGISTRY
 
@@ -378,6 +565,15 @@ class CheckRunner:
                 lambda: self._run_relationship_checks(CHECK_REGISTRY),
             ),
             ("Data constraint checks", lambda: self._run_data_constraint_checks()),
+            # Reddit Feedback checks
+            ("String truncation checks", lambda: self._run_string_checks()),
+            ("Enum equivalence checks", lambda: self._run_enum_checks()),
+            ("Datetime/TZ checks", lambda: self._run_datetime_checks()),
+            ("Null/sentinel checks", lambda: self._run_null_sentinel_checks()),
+            # Phase 2 checks
+            ("Numeric precision checks", lambda: self._run_numeric_precision_checks()),
+            ("Boolean checks", lambda: self._run_boolean_checks()),
+            ("Uniqueness checks", lambda: self._run_uniqueness_checks()),
         ]
 
         for i, (step_name, step_fn) in enumerate(steps, 1):

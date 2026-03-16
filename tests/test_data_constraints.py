@@ -48,3 +48,20 @@ def test_constraint_multiple_pass():
     constraints = {"name": ["not_null"], "dob": ["date", "not_null"]}
     result = check_data_constraints(df, constraints, "test_table")
     assert result.status == CheckStatus.PASS
+
+
+def test_uniqueness_pass():
+    from checks.data_constraints import check_uniqueness
+    src = pd.DataFrame({"id": [1, 2, 3]})
+    tgt = pd.DataFrame({"id": [1, 2, 3]})
+    result = check_uniqueness(src, tgt, "id", "test_table")
+    assert result[0].status == CheckStatus.PASS
+
+
+def test_uniqueness_fail_duplicates_introduced():
+    from checks.data_constraints import check_uniqueness
+    src = pd.DataFrame({"id": [1, 2, 3]})
+    tgt = pd.DataFrame({"id": [1, 2, 2, 3, 3]})
+    result = check_uniqueness(src, tgt, "id", "test_table")
+    assert result[0].status == CheckStatus.FAIL
+    assert "Loss of uniqueness" in result[0].message

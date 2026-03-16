@@ -1,0 +1,6 @@
+[submodule "albatross_pro"]
+	path = albatross_pro
+	url = https://github.com/YOUR_USER/albatross_pro.git
+[submodule "albatross_docs"]
+	path = albatross_docs
+	url = https://github.com/YOUR_USER/albatross_pro.git

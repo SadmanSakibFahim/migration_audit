@@ -76,7 +76,7 @@ class TestAuditGateScript:
         # Check Step Summary
         with open(self.github_step_summary) as f:
             content = f.read()
-            assert "## 🔍 Albatross Gate" in content
+            assert "## 🔍 Migration Audit Gate" in content
             assert "### ✅ Verdict: GO" in content
             assert "| ❌ Fail | 0 |" in content
 

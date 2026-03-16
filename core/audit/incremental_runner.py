@@ -56,6 +56,8 @@ class IncrementalRunner:
             self.src_aggregates[col] = 0.0
 
         for chunk in chunks:
+            if getattr(self.meta, "column_mapping", None):
+                chunk = chunk.rename(columns=self.meta.column_mapping)
             self.src_row_count += len(chunk)
 
             # Identity Sampling (Reservoir Sampling)

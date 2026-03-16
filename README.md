@@ -139,10 +139,10 @@ The web dashboard provides a 3-step wizard for running audits:
 2. **Select Scope** — Choose which tables to audit
 3. **Monitor** — Watch live progress via Server-Sent Events (SSE)
 
-### Starting the Dashboard
+### Starting the Dashboard (Premium)
 
 ```bash
-uvicorn core.web.app:app --host 0.0.0.0 --port 8000 --reload
+uvicorn albatross_pro.web.app:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 Then open [http://localhost:8000](http://localhost:8000) in your browser.
@@ -170,7 +170,6 @@ docker build -t migration-audit .
 docker compose up -d
 
 # Verify health
-docker compose ps
 curl http://localhost:8000/health
 ```
 
@@ -275,60 +274,28 @@ data_constraints:
 ## Project Structure
 
 ```
-migration_audit/
-├── config/
-│   └── audit.yaml                     # Audit configuration (ONLY file to edit per migration)
-├── core/
-│   ├── audit/                         # Core audit engine
-│   │   ├── check_runner.py            # Execution with _safe_run() and _validate_dataframes()
-│   │   ├── config_models.py           # Pydantic configuration models
-│   │   ├── loader.py                  # Data loading utilities
-│   │   ├── verdict.py                 # Verdict computation
-│   │   ├── result.py                  # TestResult data structures
-│   │   └── logger.py                  # Logging configuration
-│   ├── db/                            # Database abstraction layer
-│   │   ├── data_source.py             # DataSource ABC + CSV + Database implementations
-│   │   ├── drivers.py                 # Database driver detection and validation
-│   │   └── exceptions.py              # DatabaseConnectionError, DatabaseQueryError
-│   ├── web/                           # Web dashboard
-│   │   ├── app.py                     # FastAPI application + security middleware
-│   │   ├── routes/
-│   │   │   └── api.py                 # REST API endpoints (upload, audit, stream, reports)
-│   │   ├── templates/
-│   │   │   └── dashboard.html         # Vue.js dashboard with wizard UI
-│   │   └── static/js/
-│   │       └── app.js                 # Frontend application logic
-│   ├── auth/                          # Authentication & authorization
-│   │   └── service.py                 # AuthService with Argon2 hashing
-│   └── sanitization/                  # PII/data masking
-│       └── masking.py                 # DataSanitizer (SHA-256 hashing, column dropping)
-├── checks/                            # 5-dimension validation checks
-│   ├── volume.py                      # Volume integrity (row count comparison)
-│   ├── relationships.py               # Referential integrity (FK validation)
-│   ├── aggregates.py                  # Aggregate consistency (sum/avg/min/max)
-│   ├── mappings.py                    # Mapping validation (allowed values)
-│   └── data_constraints.py            # Data constraints (not_null, date format)
-├── reports/                           # Report generation
-│   ├── report_builder.py              # Multi-format report generator
-│   └── table_audit_result.py          # Table result formatting
-├── scripts/
-│   └── smoke_test.sh                  # Docker container health validation
-├── tests/                             # Test suite (82 tests)
-│   ├── test_data_source.py            # DataSource abstraction tests (20 tests)
-│   ├── test_volume.py                 # Volume check tests
-│   ├── test_relationships.py          # Relationship check tests
-│   ├── test_mappings.py               # Mapping check tests
-│   ├── test_data_constraints.py       # Constraint check tests
-│   ├── test_auth_service.py           # Auth service tests
-│   ├── test_compliance.py             # Security/compliance tests
-│   └── test_db_integration.py         # Database integration tests
-├── docs/                              # Project documentation
-
-├── Dockerfile                         # Multi-stage Docker build
-├── docker-compose.yml                 # Container orchestration
-├── requirements.txt                   # Python dependencies
-├── run_audit.py                       # CLI entry point
-└── debug_data.py                      # Data exploration tool
+albatross/
+├── albatross_pro/             # Premium Module (Auth, Compliance, Web, Sanitization)
+│   ├── auth/                  # RBAC, SSO, License Management
+│   ├── compliance/            # Audit Trail, Retention, Reporting
+│   ├── sanitization/          # PII Masking & Data Redaction
+│   └── web/                   # FastAPI Web Dashboard & API
+├── albatross_docs/            # Project Documentation & Architecture
+├── core/                      # Open Core Audit Engine
+│   ├── audit/                 # Execution, Config, Verdicts, Logging
+│   ├── db/                    # Multi-source Data Loading (CSV/SQL)
+│   ├── notifications/         # Webhook & Alert Dispatchers
+│   └── schema_only/           # Metadata-only validation
+├── checks/                    # 5-Dimension Validation Plugins
+├── config/                    # Migration configurations (audit.yaml)
+├── reports/                   # Open Core JSON Report Builder
+├── tests/                     # Core Test Suite
+├── run_audit.py               # CLI Orchestrator
+└── cli.py                     # Command-line interface
+├── Dockerfile                 # Multi-stage Docker build
+├── docker-compose.yml         # Container orchestration
+├── requirements.txt           # Python dependencies
+└── debug_data.py              # Data exploration tool
 ```
 
 ## Configuration
@@ -435,4 +402,3 @@ This project is licensed under the **GNU General Public License v3.0 (GPLv3)**. 
 ---
 
 **For feedback or contributions**, please open an issue or submit a pull request on the GitHub repository.
-

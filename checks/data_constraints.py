@@ -64,3 +64,58 @@ def check_data_constraints(
             + "; ".join(issues),
             details={"issues": issues},
         )
+
+def check_uniqueness(
+    src_df: pd.DataFrame,
+    tgt_df: pd.DataFrame,
+    column: str,
+    name: str
+) -> List[TestResult]:
+    """
+    Compare uniqueness (nunique / count) ratio between source and target.
+    Detects if a column that was unique (or highly unique) in source received duplicated data in target.
+    """
+    results: List[TestResult] = []
+    check_name = f"Uniqueness Check: {name} - {column}"
+
+    if column not in src_df.columns or column not in tgt_df.columns:
+        results.append(TestResult(
+            name=check_name, status=CheckStatus.FAIL, 
+            message=f"Column '{column}' missing from source or target."
+        ))
+        return results
+
+    src_count = src_df[column].count()
+    tgt_count = tgt_df[column].count()
+
+    if src_count == 0:
+        results.append(TestResult(name=check_name, status=CheckStatus.WARN, message=f"Column '{column}' is empty in source."))
+        return results
+
+    src_unique = src_df[column].nunique()
+    tgt_unique = tgt_df[column].nunique()
+
+    src_ratio = src_unique / src_count
+    tgt_ratio = tgt_unique / tgt_count if tgt_count > 0 else 0.0
+
+    details = {
+        "src_unique_ratio": round(src_ratio, 5),
+        "tgt_unique_ratio": round(tgt_ratio, 5),
+        "src_unique_count": int(src_unique),
+        "tgt_unique_count": int(tgt_unique),
+    }
+
+    if tgt_ratio < src_ratio - 0.001:  # Allow tiny floating precision tolerance
+        results.append(TestResult(
+            name=check_name, status=CheckStatus.FAIL,
+            message=f"Loss of uniqueness in column '{column}'. Source ratio ({src_ratio:.4f}) dropped to Target ratio ({tgt_ratio:.4f}). Migration likely introduced duplicates.",
+            details=details
+        ))
+    else:
+        results.append(TestResult(
+            name=check_name, status=CheckStatus.PASS,
+            message=f"Uniqueness constraint preserved for column '{column}'.",
+            details=details
+        ))
+
+    return results

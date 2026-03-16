@@ -92,12 +92,12 @@ class TestProgressCallback:
         callback.assert_called_once_with("test message")
 
     def test_step_numbering_in_messages(self):
-        """Messages should contain step numbers like (1/6), (2/6), etc."""
+        """Messages should contain step numbers like (1/13), (2/13), etc."""
         messages = []
         runner = _basic_runner(progress_callback=lambda msg: messages.append(msg))
         runner.execute_all()
         step_messages = [m for m in messages if "/" in m and "(" in m]
-        assert len(step_messages) == 6  # Exactly 6 numbered steps
+        assert len(step_messages) == 13  # Exactly 13 numbered steps
 
 
 # ===================================================================
@@ -227,8 +227,8 @@ class TestExecuteChunked:
 class TestExecuteAllProgress:
     """Leslie Knope: Verifying execute_all reports per-step progress."""
 
-    def test_all_six_steps_reported(self):
-        """All 6 check categories should be reported."""
+    def test_all_steps_reported(self):
+        """All check categories should be reported."""
         messages = []
         runner = _basic_runner(progress_callback=lambda msg: messages.append(msg))
         runner.execute_all()
@@ -240,6 +240,13 @@ class TestExecuteAllProgress:
             "Mapping checks",
             "Relationship checks",
             "Data constraint checks",
+            "String truncation checks",
+            "Enum equivalence checks",
+            "Datetime/TZ checks",
+            "Null/sentinel checks",
+            "Numeric precision checks",
+            "Boolean checks",
+            "Uniqueness checks",
         ]
         for step in expected_steps:
             assert any(step in m for m in messages), f"Missing progress for: {step}"

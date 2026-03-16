@@ -1,13 +1,13 @@
 tables:
   orders:
     aggregates:
-    - amount
+      - amount
     data_constraints:
       amount: []
       id: []
       status: []
       user_id:
-      - not_null
+        - not_null
     mappings: []
     primary_key: id
     relationships: []
@@ -17,12 +17,12 @@ tables:
     aggregates: []
     data_constraints:
       created_at:
-      - date
+        - date
       email:
-      - not_null
+        - not_null
       id: []
       username:
-      - not_null
+        - not_null
     mappings: []
     primary_key: id
     relationships: []

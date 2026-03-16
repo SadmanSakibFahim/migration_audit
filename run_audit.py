@@ -22,7 +22,6 @@ from core.audit.logger import get_logger
 from core.audit.result import TestResult
 from core.audit.row_validator import (create_invalid_rows_summary_log,
                                       export_invalid_rows, validate_rows)
-from core.auth.service import AuthService
 
 logger = get_logger(__name__)
 
@@ -79,6 +78,13 @@ def authenticate_cli_user() -> bool:
         # Let's try to connect regardless.
 
     try:
+        try:
+            from albatross_pro.auth.service import AuthService
+        except ImportError:
+            # Fallback if albatross_pro is not installed/present
+            logger.info("Premium Auth Service not available. Skipping CLI authentication.")
+            return True
+
         engine = create_engine(db_path)
         Session = sessionmaker(bind=engine)
         session = Session()
@@ -515,6 +521,10 @@ def run_audit(
                 tgt_df = load_table_safe(
                     target_path, table_name, query=meta.target_query
                 )
+
+                # Apply column mapping if specified
+                if getattr(meta, "column_mapping", None):
+                    src_df = src_df.rename(columns=meta.column_mapping)
 
                 # Validate and filter invalid rows if requested
                 if ignore_invalid_rows:

@@ -5,7 +5,7 @@ import pandas as pd
 
 from core.audit.enums import CheckStatus
 from core.audit.result import TestResult
-from typing import Optional
+from typing import Optional, List
 
 
 def _is_numeric_col(df: pd.DataFrame, column: str) -> bool:
@@ -308,3 +308,83 @@ def check_variance(
             message=f"Variance difference exceeds tolerance for column '{column}' in table '{name}'. Source: {src_var}, Target: {tgt_var}, Difference: {pct_diff:.2f}%.",
             details={"pct_difference": pct_diff},
         )
+
+
+def check_numeric_precision(
+    src_df: pd.DataFrame, 
+    tgt_df: pd.DataFrame, 
+    column: str, 
+    name: str, 
+    expected_precision: Optional[int] = None, 
+    expected_scale: Optional[int] = None
+) -> List[TestResult]:
+    """
+    Detects numeric precision and scale drift by stringifying numeric values.
+    precision = total digits, scale = digits after the decimal point.
+    """
+    results: List[TestResult] = []
+    check_name = f"Numeric Precision Check: {name} - {column}"
+
+    if column not in src_df.columns or column not in tgt_df.columns:
+        results.append(TestResult(
+            name=check_name, status=CheckStatus.FAIL, 
+            message=f"Column '{column}' missing from source or target."
+        ))
+        return results
+
+    # Convert to numeric, format as string to analyze properly
+    src_vals = pd.to_numeric(src_df[column], errors="coerce").dropna().astype(str)
+    tgt_vals = pd.to_numeric(tgt_df[column], errors="coerce").dropna().astype(str)
+
+    if src_vals.empty:
+        results.append(TestResult(name=check_name, status=CheckStatus.WARN, message=f"Column '{column}' is empty."))
+        return results
+
+    # Calculate max scale (digits after '.')
+    def _compute_scale(s):
+        parts = s.split(".")
+        return len(parts[1]) if len(parts) > 1 else 0
+
+    def _compute_precision(s):
+        return len(s.replace(".", "").replace("-", ""))
+
+    src_max_scale = src_vals.apply(_compute_scale).max()
+    tgt_max_scale = tgt_vals.apply(_compute_scale).max()
+    src_max_precision = src_vals.apply(_compute_precision).max()
+    tgt_max_precision = tgt_vals.apply(_compute_precision).max()
+
+    failures = []
+    
+    # Scale check
+    if expected_scale is not None and tgt_max_scale < expected_scale and src_max_scale > tgt_max_scale:
+        failures.append(f"Scale loss: Expected scale {expected_scale}, Target max {tgt_max_scale}, Source max {src_max_scale}.")
+    elif expected_scale is None and src_max_scale > tgt_max_scale:
+        failures.append(f"Silent scale truncation: Target max scale {tgt_max_scale} < Source max scale {src_max_scale}.")
+
+    # Precision check
+    if expected_precision is not None and tgt_max_precision < expected_precision and src_max_precision > tgt_max_precision:
+        failures.append(f"Precision loss: Expected precision {expected_precision}, Target max {tgt_max_precision}, Source max {src_max_precision}.")
+    elif expected_precision is None and src_max_precision > tgt_max_precision:
+        failures.append(f"Silent precision truncation: Target max precision {tgt_max_precision} < Source max precision {src_max_precision}.")
+
+    details = {
+        "src_max_scale": int(src_max_scale) if pd.notna(src_max_scale) else 0,
+        "tgt_max_scale": int(tgt_max_scale) if pd.notna(tgt_max_scale) else 0,
+        "src_max_precision": int(src_max_precision) if pd.notna(src_max_precision) else 0,
+        "tgt_max_precision": int(tgt_max_precision) if pd.notna(tgt_max_precision) else 0,
+    }
+
+    if failures:
+        results.append(TestResult(
+            name=check_name, status=CheckStatus.FAIL,
+            message="Numeric Precision/Scale Issues: " + " | ".join(failures),
+            details=details
+        ))
+    else:
+        results.append(TestResult(
+            name=check_name, status=CheckStatus.PASS,
+            message=f"Numeric precision and scale well-preserved for column '{column}'.",
+            details=details
+        ))
+
+    return results

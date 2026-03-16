@@ -79,7 +79,10 @@ def main():
         from core.audit.exceptions import AuditError
         from core.audit.logger import get_logger
         from core.audit.verdict import Verdict, final_verdict
-        from reports.report_builder import build_report
+        try:
+            from albatross_pro.reports.premium_builder import build_report
+        except ImportError:
+            from reports.report_builder import build_report
         from run_audit import run_audit
 
         logger = get_logger(__name__)
