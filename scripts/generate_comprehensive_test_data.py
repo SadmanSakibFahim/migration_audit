@@ -9,6 +9,7 @@ This script generates source and target datasets that:
 - Generate valid YAML config to tie it all together
 """
 
+import argparse
 import os
 import random
 import string
@@ -18,8 +19,8 @@ from typing import Any, Dict, List, Optional
 import pandas as pd
 import yaml
 
-# Seeds for reproducibility if desired
-RANDOM_SEED = 42
+# Seeds for reproducibility if desired (leave None for nondeterministic output)
+RANDOM_SEED = None
 
 
 def set_seed(seed: Optional[int] = RANDOM_SEED):
@@ -370,46 +371,54 @@ def display_expected_errors(fail_rate: float = 0.35, num_rows: int = 150):
 
 def main():
     """Main: Generate all test data and config."""
-    set_seed(RANDOM_SEED)
-    
+    parser = argparse.ArgumentParser(description="Generate comprehensive test data for the audit engine.")
+    parser.add_argument("--seed", type=int, default=RANDOM_SEED, help="Optional random seed (omit for nondeterministic output).")
+    parser.add_argument("--rows", type=int, default=150, help="Number of rows to generate for source/target tables.")
+    parser.add_argument("--fail-rate", type=float, default=0.35, help="Fraction of rows to inject failures into (0-1).")
+    parser.add_argument("--out-dir", type=str, default="random_data", help="Output base directory for generated files.")
+    args = parser.parse_args()
+
+    set_seed(args.seed)
+
+    base_out = args.out_dir
     # Create directories
-    os.makedirs("random_data/source", exist_ok=True)
-    os.makedirs("random_data/target", exist_ok=True)
-    os.makedirs("random_data/config", exist_ok=True)
-    
+    os.makedirs(os.path.join(base_out, "source"), exist_ok=True)
+    os.makedirs(os.path.join(base_out, "target"), exist_ok=True)
+    os.makedirs(os.path.join(base_out, "config"), exist_ok=True)
+
     print("Generating comprehensive test data...")
-    
+
     # Show expected errors before generation
-    NUM_ROWS = 150
-    FAIL_RATE = 0.35
+    NUM_ROWS = args.rows
+    FAIL_RATE = args.fail_rate
     display_expected_errors(fail_rate=FAIL_RATE, num_rows=NUM_ROWS)
-    
+
     # Generate main test data
     source_df = generate_source_data(num_rows=NUM_ROWS, fail_rate=0)
     target_df = generate_target_data(num_rows=NUM_ROWS, fail_rate=FAIL_RATE)
-    
+
     # Save main tables
-    source_df.to_csv("random_data/source/orders.csv", index=False)
-    target_df.to_csv("random_data/target/orders.csv", index=False)
+    source_df.to_csv(os.path.join(base_out, "source", "orders.csv"), index=False)
+    target_df.to_csv(os.path.join(base_out, "target", "orders.csv"), index=False)
     print(f"✓ Generated {NUM_ROWS} rows of test data")
     print(f"  - Source: {len(source_df)} rows")
     print(f"  - Target: {len(target_df)} rows ({FAIL_RATE*100:.0f}% with random failures)")
-    
+
     # Generate reference tables
     customers_df, warehouses_df = generate_reference_tables(num_rows=100)
-    customers_df.to_csv("random_data/source/customers.csv", index=False)
-    customers_df.to_csv("random_data/target/customers.csv", index=False)
-    warehouses_df.to_csv("random_data/source/warehouses.csv", index=False)
-    warehouses_df.to_csv("random_data/target/warehouses.csv", index=False)
+    customers_df.to_csv(os.path.join(base_out, "source", "customers.csv"), index=False)
+    customers_df.to_csv(os.path.join(base_out, "target", "customers.csv"), index=False)
+    warehouses_df.to_csv(os.path.join(base_out, "source", "warehouses.csv"), index=False)
+    warehouses_df.to_csv(os.path.join(base_out, "target", "warehouses.csv"), index=False)
     print("✓ Generated reference tables for relationship checks")
-    
+
     # Generate comprehensive config
     config = generate_audit_config()
-    config_path = "random_data/config/audit.yaml"
+    config_path = os.path.join(base_out, "config", "audit.yaml")
     with open(config_path, "w") as f:
         yaml.dump(config, f, default_flow_style=False, sort_keys=False)
     print(f"✓ Generated config at {config_path}")
-    
+
     # Print summary
     print("\nTest Data Summary:")
     print(f"  {len(source_df)} source rows × {len(source_df.columns)} columns")

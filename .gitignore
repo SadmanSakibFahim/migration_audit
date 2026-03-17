@@ -19,6 +19,7 @@ albatross_pro/*.py[cod]
 albatross_pro/.pytest_cache/
 albatross_pro/.mypy_cache/
 *cache/
+albatross_pro/reports/__pycache__/
 
 # Test and Execution Outputs
 test_output/
@@ -103,6 +104,8 @@ rendered_dashboard.html
 rendered_*.html
 
 # Data
+random_data/
+data/
 data/users.csv
 project_structure.graphql
 *.txt

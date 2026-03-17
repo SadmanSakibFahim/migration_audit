@@ -54,11 +54,22 @@ This tool provides a standardized, reusable framework for auditing data migratio
 | **PII Masking**            | SHA-256 hashing and column dropping for sensitive data                  |
 | **Auth & RBAC**            | Role-based access control (Admin / Auditor / Viewer)                    |
 
+## Open Core vs Premium
+
+This repository is structured as an **open-core project**:
+
+- ✅ **Open Core (this repo)**: contains the **CLI audit engine**, configuration-driven checks, reporting, and the core data validation framework.
+- 🔒 **Premium (optional)**: advanced features live under `albatross_pro/`, including the **web dashboard**, **auth/RBAC**, **user management**, and **enterprise deployment helpers**.
+
+> The core CLI audit engine can be used standalone without installing or running the premium modules.
+
+> If `albatross_pro` is installed & configured, `run_audit.py` will attempt to authenticate users via the premium auth service. Use `--no-auth` to skip this and run in open-core mode.
+
 ## Architecture
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│                     Web Dashboard (Vue.js)                    │
+│               Web Dashboard (FastAPI + Jinja2)               │
 │               Drag-and-drop Upload · Live SSE Progress       │
 ├──────────────────────────────────────────────────────────────┤
 │                     FastAPI + Uvicorn                         │
@@ -109,17 +120,45 @@ python3 -c "import pandas; import sqlalchemy; import fastapi; print('✓ All dep
 
 ## Usage
 
-### CLI Audit
+### CLI Audit (Core Engine)
 
 ```bash
-# Run audit on all configured tables
+# Run audit on all configured tables (default: config/audit.yaml)
 python3 run_audit.py
 
 # Run audit on specific tables
 python3 run_audit.py --tables users orders
 
-# Debug data exploration
-python3 debug_data.py
+# Run audit without authentication (no `albatross_pro` required)
+python3 run_audit.py --no-auth
+
+# Run in fully headless/CI mode (outputs JSON)
+python3 run_audit.py --no-auth --headless
+
+# Dry-run (validates configuration and data loading without running checks)
+python3 run_audit.py --dry-run
+
+# Ignore/strip invalid rows (writes invalid rows to a summary log)
+python3 run_audit.py --ignore-invalid-rows
+
+# Override config path
+python3 run_audit.py --config path/to/your/audit.yaml
+```
+
+### Generating Random Test Data
+
+A helper script can generate randomized source/target CSVs plus a matching YAML config to exercise every check type. By default it writes to `random_data/`.
+
+```bash
+python3 scripts/generate_comprehensive_test_data.py --rows 150 --fail-rate 0.35
+```
+
+By default this script produces non-deterministic test data each run. Use `--seed <n>` to reproduce the same dataset.
+
+You can also change the output location:
+
+```bash
+python3 scripts/generate_comprehensive_test_data.py --out-dir random_data/test_case
 ```
 
 ### What Happens During Audit
@@ -142,10 +181,14 @@ The web dashboard provides a 3-step wizard for running audits:
 ### Starting the Dashboard (Premium)
 
 ```bash
+# Direct: run Uvicorn against the FastAPI app
 uvicorn albatross_pro.web.app:app --host 0.0.0.0 --port 8000 --reload
+
+# Shortcut: use the helper script (runs on port 8001)
+python3 run_dashboard.py
 ```
 
-Then open [http://localhost:8000](http://localhost:8000) in your browser.
+Then open [http://localhost:8000](http://localhost:8000) (or [http://localhost:8001](http://localhost:8001) when using the helper script) in your browser.
 
 ### API Endpoints
 
@@ -190,6 +233,8 @@ The smoke test builds the image, verifies size (<400MB target), starts the conta
 
 ## Validation Dimensions
 
+The audit engine performs validation across **13+ check types** organized into five core dimensions:
+
 ### 1. Volume Integrity
 
 Compares record counts between source and target. Supports 1:N and N:1 mapping types with configurable tolerance.
@@ -199,19 +244,39 @@ tolerances:
   volume_loss_pct: 0.1 # Max 0.1% loss allowed
 ```
 
-### 2. Relationship Integrity
+**Checks**: Row count comparison, 1:N/N:1 mapping validation, loss percentage calculation
+
+### 2. Identity Integrity
+
+Validates primary key overlap and detects null PKs or missing record identifiers.
+
+```yaml
+tables:
+  orders:
+    primary_key: id
+    identity_overlap_threshold: 95  # Min % of PKs that must match
+```
+
+**Checks**: PK overlap percentage, null PK detection, record traceability
+
+### 3. Relationship Integrity
 
 Validates foreign key references exist in parent tables. Detects orphaned records and null foreign keys.
 
 ```yaml
 relationships:
   - child:
-      target: data/target/orders.csv
+      table: orders
       fk_column: user_id
-      parent_table: users
+    parent:
+      table: customers
+      pk_column: id
+      target: data/target/customers.csv
 ```
 
-### 3. Aggregate Consistency
+**Checks**: Foreign key constraint validation, orphaned record detection, referential integrity
+
+### 4. Aggregate Consistency
 
 Compares sums, counts, averages, min/max of numeric columns with percentage drift thresholds.
 
@@ -220,28 +285,128 @@ aggregates:
   - amount
   - quantity
 tolerances:
-  aggregate_drift_pct: 1.0
+  aggregate_pct_diff: 1.0  # Max 1% drift allowed
 ```
 
-### 4. Mapping & Transformation Validity
+**Checks**: SUM, AVG, MIN, MAX, VARIANCE for numeric columns
 
-Validates enum, status, and code transformations against allowed value lists.
+### 5. Mapping & Transformation Validity
+
+Validates enum, status, and code transformations against allowed value lists. Includes distribution checks for categorical data.
 
 ```yaml
-mappings:
-  - columns: [status, order_status]
-    allowed_values: [active, inactive, pending, completed]
+enum_columns:
+  - column: status
+    mapping: {NEW: NEW, PROCESSING: PROCESSING, SHIPPED: SHIPPED}
+    check_distribution: true
+    distribution_tolerance_pct: 0.05
 ```
 
-### 5. Data Constraints
+**Checks**: Valid enum values, enum equivalence, categorical distribution, mapping accuracy
 
-Enforces not-null rules, date format validity, and data type checks.
+### 6. Data Constraints ⭐ (New)
+
+Enforces not-null rules, date format validity, positive/range constraints, and data type validation.
 
 ```yaml
 data_constraints:
   email: [not_null]
-  birth_date: [not_null, date]
+  age: [positive, between_0_150]
+  created_at: [not_null, date]
 ```
+
+**Checks**: NOT NULL, POSITIVE, BETWEEN ranges, date format, type consistency
+
+### 7. String Data Quality ⭐ (New)
+
+Detects truncation, whitespace corruption, and encoding issues in text fields.
+
+```yaml
+string_columns:
+  - column: product_name
+    max_length: 255
+    check_whitespace: true
+    check_encoding: true
+```
+
+**Checks**: Truncation detection, whitespace corruption (leading/trailing spaces), UTF-8 encoding validation
+
+### 8. Datetime & Timezone Consistency ⭐ (New)
+
+Validates timezone awareness, handles DST transitions, and checks timestamp consistency.
+
+```yaml
+datetime_columns:
+  - column: created_at
+    expected_tz: UTC
+  - column: updated_at
+    expected_tz: null  # Nullable TZ
+```
+
+**Checks**: Timezone consistency, null datetime handling, timestamp ordering
+
+### 9. Null & Sentinel Equivalence ⭐ (New)
+
+Treats null sentinels (empty strings, "N/A", "-", "null") as equivalent to actual NULLs.
+
+```yaml
+null_sentinels:
+  - column: customer_notes
+    sentinels: ['', 'N/A', '-', 'null', 'NO DATA']
+  - column: internal_notes
+    sentinels: ['']
+```
+
+**Checks**: Sentinel recognition, equivalence mapping, null handling consistency
+
+### 10. Boolean Normalization ⭐ (New)
+
+Validates True/False representations (1/0, Y/N, true/false, yes/no) and detects invalid boolean values.
+
+```yaml
+boolean_columns:
+  - column: is_premium
+    true_values: [true, 1, Y, yes]
+    false_values: [false, 0, N, no]
+```
+
+**Checks**: Valid boolean values, representation consistency, invalid boolean detection
+
+### 11. Numeric Precision ⭐ (New)
+
+Validates decimal places, significant digits, and precision loss (e.g., 0.1234 → 0.1).
+
+```yaml
+numeric_precision_columns:
+  - column: discount_rate
+    expected_precision: 5    # Total digits
+    expected_scale: 4        # Decimal places
+```
+
+**Checks**: Precision loss detection, scale/decimal validation, numeric truncation
+
+### 12. Uniqueness Constraints ⭐ (New)
+
+Detects duplicate values in columns that should be unique (transaction IDs, UUIDs, etc.).
+
+```yaml
+unique_columns:
+  - transaction_hash
+  - order_uuid
+```
+
+**Checks**: Duplicate detection, uniqueness enforcement
+
+### 13. Incremental & Large-File Processing ⭐ (New)
+
+Automatically chunks large CSVs/database queries to avoid memory exhaustion. Configured via:
+
+```yaml
+large_file_threshold_mb: 100     # Auto-enable chunking if file > 100MB
+chunk_size: 50000                # Process in 50K row chunks
+```
+
+**Checks**: Streamed aggregation, chunked identity/volume validation, memory-efficient processing
 
 ## Output & Verdict
 
