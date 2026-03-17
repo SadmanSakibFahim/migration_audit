@@ -1,96 +1,106 @@
-# Complex Mapping Audit Configuration
-# This config demonstrates N:1, 1:N, and N:M table mappings
-
 tables:
-  # Example 1: N:1 Mapping - Multiple source tables (orders_2023, orders_2024)
-  # merge into one target table (orders_consolidated)
-  orders_consolidated:
-    complex_mapping:
-      mapping_type: "N:1"
-      aggregation_strategy: "merge" # Options: sum, count, merge, first, last
-      sources:
-        - path: test_data/source/orders_2023.csv
-          primary_key: id
-        - path: test_data/source/orders_2024.csv
-          primary_key: id
-      targets:
-        - path: test_data/target/orders_consolidated.csv
-          primary_key: id
+  orders:
+    source: random_data/source/orders.csv
+    target: random_data/target/orders.csv
     primary_key: id
+    volume_tolerance: 0.1
+    aggregate_tolerance: 1.0
+    identity_overlap_threshold: 95
+    string_columns:
+    - column: product_name
+      max_length: 255
+      check_whitespace: true
+      check_encoding: true
+    - column: description
+      max_length: 500
+      check_whitespace: false
+      check_encoding: true
+    enum_columns:
+    - column: status
+      mapping:
+        NEW: NEW
+        PROCESSING: PROCESSING
+        SHIPPED: SHIPPED
+        DELIVERED: DELIVERED
+        CANCELLED: CANCELLED
+      check_distribution: true
+      distribution_tolerance_pct: 0.05
+    - column: payment_method
+      mapping:
+        CARD: CARD
+        BANK: BANK
+        PAYPAL: PAYPAL
+        CRYPTO: CRYPTO
+      check_distribution: false
+    boolean_columns:
+    - column: is_premium
+      true_values:
+      - 'true'
+      - '1'
+      - Y
+      - 'yes'
+      false_values:
+      - 'false'
+      - '0'
+      - N
+      - 'no'
+    datetime_columns:
+    - column: created_at
+      expected_tz: UTC
+    - column: updated_at
+      expected_tz: null
+    null_sentinels:
+    - column: customer_notes
+      sentinels:
+      - ''
+      - N/A
+      - '-'
+      - 'null'
+      - NO DATA
+    - column: internal_notes
+      sentinels:
+      - ''
+    numeric_precision_columns:
+    - column: discount_rate
+      expected_precision: 5
+      expected_scale: 4
+    - column: price_usd
+      expected_precision: 8
+      expected_scale: 2
     aggregates:
-      - amount
-      - quantity
+    - subtotal
+    - price_usd
+    - quantity
+    unique_columns:
+    - transaction_hash
     data_constraints:
-      order_date:
-        - not_null
-        - date
-      amount: [not_null]
-      user_id: [not_null]
+      quantity:
+      - positive
+      discount_rate:
+      - between_0_1
+      customer_id:
+      - not_null
     mappings:
-      - columns: [order_status]
-        allowed_values:
-          [pending, processing, shipped, delivered, cancelled, refunded]
-    relationships: []
-
-  # Example 2: 1:N Mapping - One source table (customers) splits into
-  # multiple target tables (customers_active, customers_inactive)
-  customers_split:
-    complex_mapping:
-      mapping_type: "1:N"
-      split_strategy: "filter" # Options: copy, distribute, filter
-      sources:
-        - path: test_data/source/customers.csv
-          primary_key: id
-      targets:
-        - path: test_data/target/customers_active.csv
-          primary_key: id
-        - path: test_data/target/customers_inactive.csv
-          primary_key: id
-    primary_key: id
-    aggregates:
-      - balance
-    data_constraints:
-      email: [not_null]
-      registration_date:
-        - not_null
-        - date
-    mappings:
-      - columns: [status]
-        allowed_values: [active, inactive, suspended, pending]
-    relationships: []
-
-  # Example 3: N:1 Mapping - Multiple product source tables (electronics, clothing)
-  # merge into one unified products table
-  products_unified:
-    complex_mapping:
-      mapping_type: "N:1"
-      aggregation_strategy: "merge"
-      sources:
-        - path: test_data/source/products_electronics.csv
-          primary_key: id
-        - path: test_data/source/products_clothing.csv
-          primary_key: id
-      targets:
-        - path: test_data/target/products_unified.csv
-          primary_key: id
-    primary_key: id
-    aggregates:
-      - price
-      - stock_quantity
-    data_constraints:
-      product_name: [not_null]
-      price: [not_null]
-      stock_quantity: [not_null]
-    mappings:
-      - columns: [category]
-        allowed_values:
-          [electronics, clothing, books, home, sports, toys, other]
-    relationships: []
-
-tolerances:
-  volume_loss_pct: 0.1
-  aggregate_pct_diff: 1.0
-
-logging:
-  level: DEBUG
-  file: logs/audit.log
+    - columns:
+      - status
+      allowed_values:
+      - NEW
+      - PROCESSING
+      - SHIPPED
+      - DELIVERED
+      - CANCELLED
+    relationships:
+    - child:
+        table: orders
+        fk_column: customer_id
+      parent:
+        table: customers
+        pk_column: id
+        target: random_data/target/customers.csv
+    - child:
+        table: orders
+        fk_column: warehouse_id
+      parent:
+        table: warehouses
+        pk_column: id
+        target: random_data/target/warehouses.csv

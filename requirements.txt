@@ -29,3 +29,4 @@ xhtml2pdf
 # Testing
 pytest
 pytest-cov
+PyJWT>=2.8.0

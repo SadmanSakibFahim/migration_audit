@@ -10,16 +10,38 @@ from core.audit.verdict import final_verdict
 
 SECTION_MAP = {
     "volume": ("Data Volume Checks", ["volume"]),
+    "identity": ("Identity Checks", ["identity", "primary key", "pk"]),
     "aggregates": (
         "Aggregate Checks",
-        ["sum", "average", "avg", "max", "min", "variance"],
+        ["sum", "average", "avg", "max", "min", "variance", "aggregate"],
     ),
     "mappings": ("Mapping Checks", ["mapping"]),
-    "relationships": ("Relationship Checks", ["foreign key"]),
+    "relationships": ("Relationship Checks", ["foreign key", "relationship"]),
     "data_constraints": (
         "Data Constraint Checks",
-        ["data constraint", "data constraints"],
+        ["data constraint", "data constraints", "uniqueness"],
     ),
+    "string": (
+        "String Data Quality Checks",
+        ["truncation", "whitespace", "encoding", "string"],
+    ),
+    "enum": (
+        "Enum & Categorical Checks",
+        ["enum", "categorical", "equivalence", "distribution"],
+    ),
+    "datetime": (
+        "Datetime & Timezone Checks",
+        ["datetime", "timezone", "tz"],
+    ),
+    "null_sentinel": (
+        "Null & Sentinel Value Checks",
+        ["null", "sentinel"],
+    ),
+    "numeric_precision": (
+        "Numeric Precision Checks",
+        ["precision", "scale", "numeric"],
+    ),
+    "boolean": ("Boolean Normalization Checks", ["boolean"]),
 }
 
 def get_content_hash(content: Dict[str, Any]) -> str:
