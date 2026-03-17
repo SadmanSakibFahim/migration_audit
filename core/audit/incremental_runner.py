@@ -1,4 +1,4 @@
-from typing import Any, List, Dict, Set
+from typing import Any, List, Dict, Set, Optional
 import random
 import pandas as pd
 
@@ -20,12 +20,14 @@ class IncrementalRunner:
         volume_tolerance: float = 0.1,
         aggregate_tolerance: float = 1.0,
         chunk_size: int = 50000,
+        is_cancelled_callback: Optional[Any] = None,
     ):
         self.table_name = table_name
         self.meta = meta
         self.volume_tolerance = volume_tolerance
         self.aggregate_tolerance = aggregate_tolerance
         self.chunk_size = chunk_size
+        self.is_cancelled_callback = is_cancelled_callback
         self.results: List[TestResult] = []
 
         # State Accumulators
@@ -56,6 +58,8 @@ class IncrementalRunner:
             self.src_aggregates[col] = 0.0
 
         for chunk in chunks:
+            if self.is_cancelled_callback and self.is_cancelled_callback():
+                return
             if getattr(self.meta, "column_mapping", None):
                 chunk = chunk.rename(columns=self.meta.column_mapping)
             self.src_row_count += len(chunk)
@@ -95,6 +99,8 @@ class IncrementalRunner:
             self.tgt_aggregates[col] = 0.0
 
         for chunk in chunks:
+            if self.is_cancelled_callback and self.is_cancelled_callback():
+                return
             self.tgt_row_count += len(chunk)
 
             # Identity Check: Do any of our sampled Source IDs exist in this Target chunk?

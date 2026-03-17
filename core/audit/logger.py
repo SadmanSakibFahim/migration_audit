@@ -82,7 +82,7 @@ def log_audit_event(
     # Persist database event if active session was mapped
     if db:
         try:
-            from core.compliance.service import ComplianceService
+            from albatross_pro.compliance.service import ComplianceService
             service = ComplianceService(db)
             service.log_event(action, user_id, ip_address, details)
         except Exception as e:

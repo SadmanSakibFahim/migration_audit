@@ -151,6 +151,7 @@ def run_audit(
     ignore_invalid_rows: bool = False,
     no_auth: bool = False,
     progress_callback: Optional[Any] = None,
+    is_cancelled_callback: Optional[Any] = None,
 ) -> List[TestResult]:
 
     # 1. Authenticate CLI User
@@ -181,6 +182,12 @@ def run_audit(
         if table_name not in tables_cfg:
             logger.warning(f"Table '{table_name}' not found in config. Skipping.")
             continue
+
+        if is_cancelled_callback and is_cancelled_callback():
+            logger.info("Audit cancelled by user.")
+            if progress_callback:
+                progress_callback("Audit cancelled.")
+            break
 
         meta = tables_cfg[table_name]
         logger.info(f"Auditing table: {table_name}")
@@ -224,6 +231,7 @@ def run_audit(
                     volume_tolerance=volume_tolerance,
                     aggregate_tolerance=aggregate_tolerance,
                     chunk_size=chunk_size,
+                    is_cancelled_callback=is_cancelled_callback,
                 )
                 runner.process_source(meta.source)
                 runner.process_target(meta.target)

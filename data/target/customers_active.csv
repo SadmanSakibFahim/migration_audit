@@ -1,0 +1,5 @@
+id,name,email,registration_date,balance
+1,John Doe,john@example.com,2020-01-15,1500.00
+2,Jane Smith,jane@example.com,2020-02-20,2300.50
+4,Alice Williams,alice@example.com,2021-04-05,1800.75
+6,Diana Prince,diana@example.com,2022-06-18,3200.00

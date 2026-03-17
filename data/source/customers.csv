@@ -1,0 +1,7 @@
+id,name,email,status,registration_date,balance
+1,John Doe,john@example.com,active,2020-01-15,1500.00
+2,Jane Smith,jane@example.com,active,2020-02-20,2300.50
+3,Bob Johnson,bob@example.com,inactive,2019-03-10,500.00
+4,Alice Williams,alice@example.com,active,2021-04-05,1800.75
+5,Charlie Brown,charlie@example.com,inactive,2018-05-12,200.00
+6,Diana Prince,diana@example.com,active,2022-06-18,3200.00
