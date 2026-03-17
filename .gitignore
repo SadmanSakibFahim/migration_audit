@@ -12,10 +12,19 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Albatross pro caches (nested repo)
+albatross_pro/.git/
+albatross_pro/__pycache__/
+albatross_pro/*.py[cod]
+albatross_pro/.pytest_cache/
+albatross_pro/.mypy_cache/
+*cache/
+
 # Test and Execution Outputs
 test_output/
 test_outputs/
 outputs/
+random_data/
 logs/
 audit_testing_grounds/temp_data/
 cicd-test-results/
