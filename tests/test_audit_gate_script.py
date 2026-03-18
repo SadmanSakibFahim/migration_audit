@@ -42,7 +42,18 @@ class TestAuditGateScript:
 
         self.env["GITHUB_OUTPUT"] = self.github_output
         self.env["GITHUB_STEP_SUMMARY"] = self.github_step_summary
-        self.env["INPUT_CONFIG_PATH"] = "config/audit.yaml"
+        self.config_path = os.path.join(self.temp_dir, "minimal_audit.yaml")
+        minimal_config = """
+tables:
+  customers:
+    source: random_data/source/customers.csv
+    target: random_data/target/customers.csv
+    primary_key: id
+        """
+        with open(self.config_path, "w") as f:
+            f.write(minimal_config.strip())
+            
+        self.env["INPUT_CONFIG_PATH"] = self.config_path
         self.env["INPUT_CLIENT_NAME"] = "TestClient"
         self.env["INPUT_MIGRATION_DESC"] = "TestMig"
 

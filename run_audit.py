@@ -15,7 +15,6 @@ from tqdm import tqdm
 from core.audit.check_runner import CheckRunner
 from core.audit.config_models import AuditConfig
 from core.audit.exceptions import DataLoadError
-from core.audit.incremental_runner import IncrementalRunner
 from core.audit.loader import load_table
 # Core Audit
 from core.audit.logger import get_logger
@@ -221,10 +220,13 @@ def run_audit(
             assert isinstance(meta.source, str)
             assert isinstance(meta.target, str)
             assert chunk_size is not None
-            logger.info(
-                f"Using IncrementalRunner for '{table_name}' (Chunk size: {chunk_size})"
-            )
+            
             try:
+                from albatross_pro.core.incremental_runner import IncrementalRunner
+                
+                logger.info(
+                    f"Using premium IncrementalRunner for '{table_name}' (Chunk size: {chunk_size})"
+                )
                 runner = IncrementalRunner(
                     table_name=table_name,
                     meta=meta,
@@ -238,6 +240,12 @@ def run_audit(
                 table_results = runner.finalize()
                 all_results.extend(_normalize_results(table_results))
                 continue
+            except ImportError:
+                logger.warning(
+                    f"Chunked processing requested for '{table_name}', but large file chunking is a premium feature. "
+                    "Skipping chunked execution and falling back to standard in-memory audit. "
+                    "Install the 'albatross_pro' package to enable large-file scaling."
+                )
             except Exception as e:
                 logger.error(f"Incremental audit failed for '{table_name}': {e}")
                 logger.info(
