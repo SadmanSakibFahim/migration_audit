@@ -32,6 +32,7 @@ cicd-test-results/
 cicd-test-results.zip
 tests/verification_output/
 *.log
+*results.md
 
 # C extensions
 *.so
