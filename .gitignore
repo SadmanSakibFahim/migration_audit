@@ -8,7 +8,7 @@ env.bak/
 venv.bak/
 
 # Byte-compiled / optimized / DLL files
-__pycache__/
+**/__pycache__/
 *.py[cod]
 *$py.class
 
@@ -16,8 +16,8 @@ __pycache__/
 albatross_pro/.git/
 albatross_pro/__pycache__/
 albatross_pro/*.py[cod]
-albatross_pro/.pytest_cache/
-albatross_pro/.mypy_cache/
+**/.pytest_cache/
+**/.mypy_cache/
 *cache/
 albatross_pro/reports/__pycache__/
 
@@ -79,7 +79,7 @@ coverage.xml
 *.cover
 *.py,cover
 .hypothesis/
-.pytest_cache/
+**/.pytest_cache/
 cover/
 
 # IDEs and Editors
@@ -146,9 +146,9 @@ data/auth.db
 sample_data_docs/
 
 # Extra caches
-.mypy_cache/
-.ruff_cache/
-.pytype/
+**/.mypy_cache/
+**/.ruff_cache/
+**/.pytype/
 .ipynb_checkpoints/
 
 
