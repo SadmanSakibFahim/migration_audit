@@ -1,5 +1,7 @@
 # Migration Validation & Risk Audit Framework
 
+![Web Dashboard](screenshots/web_dashboard.png)
+
 A production-grade, configuration-driven data migration audit framework that validates correctness, integrity, and deployment readiness of data migrations across multiple dimensions.
 
 **Version**: 0.9.0 · **Sprint**: Foundation & Polish (Feb 10–24, 2026)
@@ -145,6 +147,8 @@ python3 run_audit.py --ignore-invalid-rows
 python3 run_audit.py --config path/to/your/audit.yaml
 ```
 
+![CLI Audit Demo](screenshots/terminal_demo_snap.png)
+
 ### Generating Random Test Data
 
 A helper script can generate randomized source/target CSVs plus a matching YAML config to exercise every check type. By default it writes to `random_data/`.
@@ -177,6 +181,8 @@ The web dashboard provides a 3-step wizard for running audits:
 1. **Upload** — Drag-and-drop config YAML and CSV data files
 2. **Select Scope** — Choose which tables to audit
 3. **Monitor** — Watch live progress via Server-Sent Events (SSE)
+
+![Audit Results Page](screenshots/results_page.png)
 
 ### Starting the Dashboard (Premium)
 
