@@ -1,5 +1,4 @@
 # tests/test_string_checks.py
-# Leslie Knope: "I made a binder for every possible string truncation scenario.
 # Ron said it was excessive. Ron is wrong."
 
 import pandas as pd

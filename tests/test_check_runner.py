@@ -1,4 +1,4 @@
-"""CheckRunner Unit Tests — Leslie Knope (T014)
+"""CheckRunner Unit Tests
 
 Tests for _safe_run(), _validate_dataframes(), _normalize_result(), and execute_all()
 in core/audit/check_runner.py.

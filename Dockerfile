@@ -28,7 +28,6 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
 # =============================================================================
 FROM python:3.11-slim AS runtime
 
-LABEL maintainer="Sheldon Cooper <sheldon@migration-audit.dev>"
 LABEL description="Migration Validation & Risk Audit Framework"
 LABEL version="0.9.0"
 

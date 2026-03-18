@@ -1,7 +1,4 @@
 # checks/enum_checks.py
-# Sheldon Cooper: "An enum that doesn't enumerate correctly is barely better than a VARCHAR.
-# I have 97 reasons why this happens and Leonard is going to implement all of them."
-# Leonard Hofstadter: Implemented a reasonable subset.
 
 from typing import Any, Dict, List, Optional
 

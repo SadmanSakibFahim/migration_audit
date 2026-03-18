@@ -357,7 +357,7 @@ class CheckRunner:
                 )
             )
 
-    # ── Reddit Feedback checks ────────────────────────────────────────────────
+    # ── Advanced Data Quality Checks ──────────────────────────────────────────
 
     def _run_string_checks(self) -> None:
         from checks.string_checks import (
@@ -565,7 +565,7 @@ class CheckRunner:
                 lambda: self._run_relationship_checks(CHECK_REGISTRY),
             ),
             ("Data constraint checks", lambda: self._run_data_constraint_checks()),
-            # Reddit Feedback checks
+            # Advanced data quality checks
             ("String truncation checks", lambda: self._run_string_checks()),
             ("Enum equivalence checks", lambda: self._run_enum_checks()),
             ("Datetime/TZ checks", lambda: self._run_datetime_checks()),

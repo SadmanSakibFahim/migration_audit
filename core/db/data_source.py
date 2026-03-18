@@ -4,7 +4,6 @@ Data Source Abstraction Layer
 Provides a unified interface for loading data from various sources
 (CSV files, databases) into pandas DataFrames.
 
-Author: Howard Wolowitz (Software Engineering)
 Component: database
 ADR: ADR-001 — SQLAlchemy chosen for database abstraction
 """

@@ -1,4 +1,4 @@
-"""Aggregate Check Tests — Leslie Knope (T014)
+"""Aggregate Check Tests
 
 Expanded coverage for all 5 aggregate functions:
   check_sum, check_avg, check_max, check_min, check_variance

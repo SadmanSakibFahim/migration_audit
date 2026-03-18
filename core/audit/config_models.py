@@ -13,7 +13,7 @@ class MappingConfig(BaseModel):
     allowed_values: List[str]
 
 
-# ── Reddit Feedback: new check config models ──────────────────────────────────
+# ── Advanced Validation Config Models ─────────────────────────────────────────
 
 class StringColumnConfig(BaseModel):
     """Config for string validation checks on a single column."""
@@ -170,7 +170,7 @@ class TableConfig(BaseModel):
     relationships: List[RelationshipConfig] = Field(default_factory=list)
     data_constraints: Dict[str, List[str]] = Field(default_factory=dict)
 
-    # Reddit Feedback: new check configurations
+    # Advanced check configurations
     string_columns: List[StringColumnConfig] = Field(
         default_factory=list,
         description="Columns to check for silent string truncation.",

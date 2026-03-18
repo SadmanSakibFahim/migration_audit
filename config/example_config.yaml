@@ -1,4 +1,4 @@
-# Example Configuration snippet demonstrating the 4 new Reddit Feedback checks
+# Example Configuration snippet demonstrating advanced data validation features
 tables:
   orders:
     source: "data/source/orders.csv"

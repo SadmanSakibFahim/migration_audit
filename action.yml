@@ -1,6 +1,5 @@
 name: "Albatross Gate"
 description: "Run migration validation audit and use the verdict as a deployment gate"
-author: "Albatross Team"
 
 branding:
   icon: "shield"

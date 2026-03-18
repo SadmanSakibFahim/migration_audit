@@ -1,7 +1,4 @@
 # checks/datetime_checks.py
-# Sheldon Cooper: "Timezone errors are the hallmark of engineers who treat time as a social
-# construct rather than a physical constant. This check corrects that hubris."
-# Leonard Hofstadter: Implemented with an appropriate level of detail.
 
 from typing import List, Optional
 

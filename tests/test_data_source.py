@@ -4,7 +4,6 @@ Tests for the DataSource abstraction layer.
 Tests CSVDataSource and DatabaseDataSource (using SQLite in-memory)
 to verify the unified data loading interface.
 
-Author: Howard Wolowitz (Software Engineering)
 """
 
 import pandas as pd

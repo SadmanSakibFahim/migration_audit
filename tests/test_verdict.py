@@ -1,4 +1,4 @@
-"""Verdict Logic Tests — Leslie Knope (T014)
+"""Verdict Logic Tests
 
 Tests for final_verdict() and is_migration_allowed() in core/audit/verdict.py.
 Covers all verdict outcomes: GO, GO WITH WARNINGS, NO-GO, ERROR, and empty.

@@ -3,8 +3,6 @@
 New features: execute_chunked(), progress_callback, _report_progress(),
 relationship check loading parent table.
 
-QA Engineer: Leslie Knope (Software Testing Team)
-Reviewer: Ron Swanson (QA Lead)
 """
 
 from unittest.mock import MagicMock
@@ -54,7 +52,7 @@ def _basic_runner(src_df=None, tgt_df=None, meta=None, progress_callback=None):
 
 
 class TestProgressCallback:
-    """Leslie Knope: Verifying progress_callback integration."""
+    """Verifying progress_callback integration."""
 
     def test_callback_receives_messages(self):
         """Callback should be called with progress messages during execute_all."""
@@ -106,7 +104,7 @@ class TestProgressCallback:
 
 
 class TestExecuteChunked:
-    """Leslie Knope: Verifying chunked/streaming processing."""
+    """Verifying chunked/streaming processing."""
 
     def test_chunks_merged_correctly(self):
         """Chunks should be concatenated into a single DataFrame for processing."""
@@ -225,7 +223,7 @@ class TestExecuteChunked:
 
 
 class TestExecuteAllProgress:
-    """Leslie Knope: Verifying execute_all reports per-step progress."""
+    """Verifying execute_all reports per-step progress."""
 
     def test_all_steps_reported(self):
         """All check categories should be reported."""
@@ -274,7 +272,7 @@ class TestExecuteAllProgress:
 
 
 class TestRelationshipCheckFix:
-    """Leslie Knope: Verifying relationship STUB is fixed."""
+    """Verifying relationship STUB is fixed."""
 
     def test_relationship_loads_parent_from_target(self, tmp_path):
         """Relationship check should load parent table via load_table()."""

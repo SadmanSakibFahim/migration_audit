@@ -1,6 +1,4 @@
 # tests/test_null_sentinel_checks.py
-# Leslie Knope: "NULL is not the same as 0, and anyone who disagrees can take it up
-# with my meticulously maintained data contract binder, volume 3, section 4."
 
 import pandas as pd
 import pytest

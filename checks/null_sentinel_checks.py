@@ -1,7 +1,4 @@
 # checks/null_sentinel_checks.py
-# Sheldon Cooper: "NULL, zero, -1, and 'N/A' are not semantically equivalent.
-# Yet here we are, writing a check to accommodate people who think they are."
-# Leonard Hofstadter: This is actually a really common real-world problem. Just implement it.
 
 from typing import Any, List
 

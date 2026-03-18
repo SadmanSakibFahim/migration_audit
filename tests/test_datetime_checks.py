@@ -1,6 +1,4 @@
 # tests/test_datetime_checks.py
-# Leslie Knope: "Time is precious. Timezones are chaos. I have filed a formal complaint
-# against DST with both the municipal and federal government. It is pending review."
 
 import pandas as pd
 import pytest

@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
 # Smoke Test — Validate the Docker container is healthy and serving traffic
-# Author: Sheldon Cooper (Senior Software Engineer)
 #
 # Usage:
 #   bash scripts/smoke_test.sh

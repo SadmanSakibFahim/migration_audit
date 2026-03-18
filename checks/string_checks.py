@@ -1,7 +1,4 @@
 # checks/string_checks.py
-# Sheldon Cooper, Sr. SWE: "Silent string truncation is the most insidious form of data loss.
-# I've documented this with the precision of a theoretical physicist."
-# Leonard Hofstadter: Implemented the actual logic.
 
 from typing import List, Optional
 

@@ -1,6 +1,4 @@
 # tests/test_enum_checks.py
-# Leslie Knope: "If your enum values are not strictly defined, I have prepared
-# a 47-page document on why that is unacceptable. Please read it. All of it."
 
 import pandas as pd
 import pytest

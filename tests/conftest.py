@@ -1,6 +1,5 @@
 """Shared pytest fixtures for the Migration Audit test suite.
 
-Created by: Ron Swanson (QA Lead)
 Provides reusable test data and helpers across all QA test modules.
 """
 
