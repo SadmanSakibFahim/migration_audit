@@ -384,7 +384,6 @@ def main():
     # Create directories
     os.makedirs(os.path.join(base_out, "source"), exist_ok=True)
     os.makedirs(os.path.join(base_out, "target"), exist_ok=True)
-    os.makedirs(os.path.join(base_out, "config"), exist_ok=True)
 
     print("Generating comprehensive test data...")
 
@@ -414,7 +413,7 @@ def main():
 
     # Generate comprehensive config
     config = generate_audit_config()
-    config_path = os.path.join(base_out, "config", "audit.yaml")
+    config_path = os.path.join(base_out, "audit.yaml")
     with open(config_path, "w") as f:
         yaml.dump(config, f, default_flow_style=False, sort_keys=False)
     print(f"✓ Generated config at {config_path}")

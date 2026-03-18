@@ -59,6 +59,13 @@ def build_parser():
         help="When used with --ci, also exit non-zero on GO WITH WARNINGS verdict.",
     )
 
+    run_parser.add_argument(
+        "--pro",
+        choices=["y", "n"],
+        default="n",
+        help="Use premium report builder (y) or basic (n)",
+    )
+
     return parser
 
 
@@ -79,10 +86,15 @@ def main():
         from core.audit.exceptions import AuditError
         from core.audit.logger import get_logger
         from core.audit.verdict import Verdict, final_verdict
-        try:
-            from albatross_pro.reports.premium_builder import build_report
-        except ImportError:
+        if getattr(args, "pro", "n") == "y":
+            try:
+                from albatross_pro.reports.premium_builder import build_report
+            except ImportError:
+                print("Warning: Premium package 'albatross_pro' not found. Falling back to basic report builder.")
+                from reports.report_builder import build_report
+        else:
             from reports.report_builder import build_report
+            
         from run_audit import run_audit
 
         logger = get_logger(__name__)

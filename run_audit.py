@@ -690,6 +690,7 @@ if __name__ == "__main__":
     parser.add_argument("--ignore-invalid-rows", action="store_true", help="Filter out bad rows before check")
     parser.add_argument("--no-auth", action="store_true", help="Skip authentication")
     parser.add_argument("--headless", action="store_true", help="Run in continuous integration/headless mode. Outputs JSON results.")
+    parser.add_argument("--pro", choices=["y", "n"], default="n", help="Use premium report builder (y) or basic (n)")
 
     args = parser.parse_args()
 
@@ -701,6 +702,26 @@ if __name__ == "__main__":
         no_auth=args.no_auth
     )
 
+    if not args.dry_run and results:
+        try:
+            client_name = os.environ.get("INPUT_CLIENT_NAME", "Client")
+            migration_desc = os.environ.get("INPUT_MIGRATION_DESC", "Source → Target")
+            if args.pro == "y":
+                try:
+                    from albatross_pro.reports.premium_builder import build_report
+                except ImportError:
+                    from reports.report_builder import build_report
+            else:
+                from reports.report_builder import build_report
+            
+            report_paths = build_report(
+                results, client=client_name, migration=migration_desc
+            )
+            import logging
+            logging.getLogger(__name__).info(f"Generated reports: {', '.join(report_paths.values())}")
+        except Exception as e:
+            pass
+            
     passes, fails, errors = 0, 0, 0
     from core.audit.enums import CheckStatus
     for r in results:
