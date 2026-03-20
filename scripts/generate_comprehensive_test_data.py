@@ -79,54 +79,65 @@ def generate_base_row(row_id: int, fail_rate: float = 0.3) -> Dict[str, Any]:
     return row
 
 
-def apply_random_failures(row: Dict[str, Any], fail_rate: float = 0.3) -> Dict[str, Any]:
+def apply_random_failures(row: Dict[str, Any], fail_rate: float = 0.3, allowed_errors: Optional[List[str]] = None) -> Dict[str, Any]:
     """Apply random data quality issues to a row."""
-    if random.random() > fail_rate:
-        return row  # No failure in this row
-    
-    # Apply one or more failures
-    num_failures = random.randint(1, 3)
-    for _ in range(num_failures):
-        failure_type = random.choice([
-            "truncate_string",
-            "corrupt_encoding",
-            "corrupt_whitespace",
-            "wrong_enum",
-            "bad_boolean",
-            "null_violation",
-            "precision_loss",
-            "volume_mismatch",
-            "missing_relationship_key",
-        ])
-        
-        if failure_type == "truncate_string" and "product_name" in row:
-            row["product_name"] = row["product_name"][:5] + "..."  # Simulate truncation
+    possible_types = []
+    if allowed_errors is None or "all" in allowed_errors:
+        possible_types = [
+            "truncate_string", "corrupt_encoding", "corrupt_whitespace",
+            "wrong_enum", "bad_boolean", "null_violation", "precision_loss",
+            "volume_mismatch", "missing_relationship_key"
+        ]
+    else:
+        if "strings" in allowed_errors:
+            possible_types.extend(["truncate_string", "corrupt_encoding", "corrupt_whitespace"])
+        if "enums" in allowed_errors:
+            possible_types.append("wrong_enum")
+        if "booleans" in allowed_errors:
+            possible_types.append("bad_boolean")
+        if "nulls" in allowed_errors:
+            possible_types.append("null_violation")
+        if "precision" in allowed_errors:
+            possible_types.append("precision_loss")
+        if "aggregates" in allowed_errors:
+            possible_types.append("volume_mismatch")
+        if "relationships" in allowed_errors:
+            possible_types.append("missing_relationship_key")
             
-        elif failure_type == "corrupt_encoding" and "product_name" in row:
-            row["product_name"] = row["product_name"].encode('utf-8', errors='replace').decode('utf-8')
-            
-        elif failure_type == "corrupt_whitespace" and "product_name" in row:
-            row["product_name"] = "  " + row["product_name"] + "  "  # Extra spaces
-            
-        elif failure_type == "wrong_enum" and "status" in row:
-            row["status"] = random.choice(["INVALID", "UNKNOWN", "PENDING", "LOST"])
-            
-        elif failure_type == "bad_boolean" and "is_premium" in row:
-            row["is_premium"] = random.choice(["maybe", "UNKNOWN", "2", ""])
-            
-        elif failure_type == "null_violation" and random.random() > 0.5:
-            col_to_null = random.choice(["customer_id", "created_at"])
-            if col_to_null in row:
-                row[col_to_null] = None
+    if not possible_types:
+        return row
+
+    # For each possible failure type, independently roll against fail_rate
+    for failure_type in possible_types:
+        if random.random() < fail_rate:
+            if failure_type == "truncate_string" and "product_name" in row:
+                row["product_name"] = row["product_name"][:5] + "..."  
                 
-        elif failure_type == "precision_loss" and "discount_rate" in row and row["discount_rate"] is not None:
-            row["discount_rate"] = round(row["discount_rate"], 1)  # Lose precision
-            
-        elif failure_type == "volume_mismatch" and "quantity" in row:
-            row["quantity"] = random.randint(101, 200)  # Different from source
-            
-        elif failure_type == "missing_relationship_key" and "customer_id" in row:
-            row["customer_id"] = random.randint(1000, 2000)  # Non-existent customer
+            elif failure_type == "corrupt_encoding" and "product_name" in row:
+                row["product_name"] = row["product_name"].encode('utf-8', errors='replace').decode('utf-8')
+                
+            elif failure_type == "corrupt_whitespace" and "product_name" in row:
+                row["product_name"] = "  " + row["product_name"] + "  "  
+                
+            elif failure_type == "wrong_enum" and "status" in row:
+                row["status"] = random.choice(["INVALID", "UNKNOWN", "PENDING", "LOST"])
+                
+            elif failure_type == "bad_boolean" and "is_premium" in row:
+                row["is_premium"] = random.choice(["maybe", "UNKNOWN", "2", ""])
+                
+            elif failure_type == "null_violation" and random.random() > 0.5:
+                col_to_null = random.choice(["customer_id", "created_at"])
+                if col_to_null in row:
+                    row[col_to_null] = None
+                    
+            elif failure_type == "precision_loss" and "discount_rate" in row and row["discount_rate"] is not None:
+                row["discount_rate"] = round(row["discount_rate"], 1)  
+                
+            elif failure_type == "volume_mismatch" and "quantity" in row:
+                row["quantity"] = random.randint(101, 200)  
+                
+            elif failure_type == "missing_relationship_key" and "customer_id" in row:
+                row["customer_id"] = random.randint(1000, 2000)  
     
     return row
 
@@ -142,12 +153,19 @@ def generate_source_data(num_rows: int = 100, fail_rate: float = 0.2) -> pd.Data
     return df
 
 
-def generate_target_data(num_rows: int = 100, fail_rate: float = 0.3) -> pd.DataFrame:
+def generate_target_data(num_rows: int = 100, fail_rate: float = 0.3, allowed_errors: Optional[List[str]] = None) -> pd.DataFrame:
     """Generate target data with random failures."""
     rows = []
-    for i in range(1, num_rows + 1):
+    target_num_rows = num_rows
+    
+    # Calculate volume mismatch magnitude reliably using fail_rate
+    if allowed_errors is None or "all" in allowed_errors or "volume" in allowed_errors:
+        variance = max(1, int(num_rows * fail_rate))
+        target_num_rows += random.choice([-variance, variance])
+                
+    for i in range(1, target_num_rows + 1):
         row = generate_base_row(i, fail_rate=0)
-        row = apply_random_failures(row, fail_rate=fail_rate)
+        row = apply_random_failures(row, fail_rate=fail_rate, allowed_errors=allowed_errors)
         rows.append(row)
     
     df = pd.DataFrame(rows)
@@ -295,76 +313,65 @@ def generate_reference_tables(num_rows: int = 100):
     return customers_df, warehouses_df
 
 
-def display_expected_errors(fail_rate: float = 0.35, num_rows: int = 150):
+def display_expected_errors(fail_rate: float = 0.35, num_rows: int = 150, allowed_errors: Optional[List[str]] = None):
     """Display what data quality errors will be generated in the test dataset."""
     print("\n" + "="*80)
     print("EXPECTED DATA QUALITY ERRORS TO BE GENERATED")
     print("="*80)
     
     num_failing_rows = int(num_rows * fail_rate)
-    avg_errors_per_row = 2  # Since we apply 1-3 random failures per failing row
-    total_expected_errors = num_failing_rows * avg_errors_per_row
     
     print(f"\nGeneration Configuration:")
     print(f"  • Total rows: {num_rows}")
     print(f"  • Failure rate: {fail_rate*100:.0f}%")
-    print(f"  • Expected failing rows: ~{num_failing_rows} rows")
-    print(f"  • Avg errors per row: 1-3 (expect ~{total_expected_errors} total errors)")
+    print(f"  • Allowed Errors: {allowed_errors if allowed_errors else 'all'}")
     
-    print(f"\nError Types That Will Appear:")
-    print(f"  1. [STRING TRUNCATION] product_name truncated to 8 chars + '...'")
-    print(f"     → Fails: String Truncation Check")
-    print(f"     → Expected in ~{int(num_failing_rows/9)} rows")
+    print(f"\nError Types That May Appear:")
+    i = 1
     
-    print(f"\n  2. [ENCODING CORRUPTION] product_name with UTF-8 replacement chars")
-    print(f"     → Fails: Encoding Corruption Check")
-    print(f"     → Expected in ~{int(num_failing_rows/9)} rows")
+    is_all = allowed_errors is None or "all" in allowed_errors
     
-    print(f"\n  3. [WHITESPACE CORRUPTION] product_name with extra leading/trailing spaces")
-    print(f"     → Fails: Whitespace Corruption Check")
-    print(f"     → Expected in ~{int(num_failing_rows/9)} rows")
-    
-    print(f"\n  4. [WRONG ENUM] status changed to invalid values (INVALID|UNKNOWN|PENDING|LOST)")
-    print(f"     → Fails: Enum Equivalence Check, Mapping Check")
-    print(f"     → Expected in ~{int(num_failing_rows/9)} rows")
-    
-    print(f"\n  5. [BAD BOOLEAN] is_premium set to non-boolean values (maybe|UNKNOWN|2|'')")
-    print(f"     → Fails: Boolean Normalization Check")
-    print(f"     → Expected in ~{int(num_failing_rows/9)} rows")
-    
-    print(f"\n  6. [NULL VIOLATION] customer_id or created_at set to NULL")
-    print(f"     → Fails: Data Constraint Check (NOT NULL), Identity Check (NULL PKs)")
-    print(f"     → Expected in ~{int(num_failing_rows/18)} rows")
-    
-    print(f"\n  7. [PRECISION LOSS] discount_rate rounded from .xxxx to .x (e.g., 0.1234 → 0.1)")
-    print(f"     → Fails: Numeric Precision Check")
-    print(f"     → Expected in ~{int(num_failing_rows/9)} rows")
-    
-    print(f"\n  8. [VOLUME MISMATCH] quantity increased from 1-100 to 101-200 on target")
-    print(f"     → Fails: Volume Check, Aggregate Check (SUM/AVG)")
-    print(f"     → Expected in ~{int(num_failing_rows/9)} rows")
-    
-    print(f"\n  9. [MISSING RELATIONSHIP] customer_id set to non-existent IDs (1000-2000)")
-    print(f"     → Fails: Relationship Check (Foreign Key)")
-    print(f"     → Expected in ~{int(num_failing_rows/9)} rows")
-    
-    print(f"\nAdditional Issues to Expect:")
-    print(f"  • Null/Sentinel Check: customer_notes has '', 'N/A', '-', 'null', 'NO DATA'")
-    print(f"  • Categorical Distribution: status distribution may vary >5% (35% target failures)")
-    print(f"  • Uniqueness Check: transaction_hash should be unique (but may collide rarely)")
-    print(f"  • Aggregate Issues: subtotal = quantity × price_usd (may be incorrect due to mismatches)")
-    print(f"  • Datetime Checks: created_at & updated_at present but timezone may be inconsistent")
-    
+    if is_all or "strings" in allowed_errors:
+        print(f"  {i}. [STRING CORRUPTIONS] product_name truncated, moji-baked, and padded with whitespace")
+        print(f"     → Expected in ~{num_failing_rows} rows each")
+        i += 1
+        
+    if is_all or "enums" in allowed_errors:
+        print(f"\n  {i}. [WRONG ENUM] status changed to invalid values (INVALID|UNKNOWN|PENDING|LOST)")
+        print(f"     → Expected in ~{num_failing_rows} rows")
+        i += 1
+        
+    if is_all or "booleans" in allowed_errors:
+        print(f"\n  {i}. [BAD BOOLEAN] is_premium set to non-boolean values (maybe|UNKNOWN|2|'')")
+        print(f"     → Expected in ~{num_failing_rows} rows")
+        i += 1
+        
+    if is_all or "nulls" in allowed_errors:
+        print(f"\n  {i}. [NULL VIOLATION] customer_id or created_at set to NULL")
+        print(f"     → Expected in ~{num_failing_rows} rows")
+        i += 1
+        
+    if is_all or "precision" in allowed_errors:
+        print(f"\n  {i}. [PRECISION LOSS] discount_rate rounded from .xxxx to .x (e.g., 0.1234 → 0.1)")
+        print(f"     → Expected in ~{num_failing_rows} rows")
+        i += 1
+        
+    if is_all or "aggregates" in allowed_errors:
+        print(f"\n  {i}. [AGGREGATE MISMATCH] quantity artificially boosted")
+        print(f"     → Expected in ~{num_failing_rows} rows")
+        i += 1
+        
+    if is_all or "volume" in allowed_errors:
+        print(f"\n  {i}. [VOLUME MISMATCH] target row count physically increased/decreased by {max(1, int(num_rows * fail_rate))}")
+        print(f"     → Always triggers exactly once")
+        i += 1
+        
+    if is_all or "relationships" in allowed_errors:
+        print(f"\n  {i}. [MISSING RELATIONSHIP] customer_id set to non-existent IDs (1000-2000)")
+        print(f"     → Expected in ~{num_failing_rows} rows")
+        i += 1
+        
     print(f"\nWhen You Run: python run_audit.py --no-auth --headless")
-    print(f"Expected Report Sections With Failures:")
-    print(f"  ✗ String Data Quality Checks (~{int(num_failing_rows/3)} findings)")
-    print(f"  ✗ Enum & Categorical Checks (~{int(num_failing_rows/4.5)} findings)")
-    print(f"  ✗ Numeric Precision Checks (~{int(num_failing_rows/9)} findings)")
-    print(f"  ✗ Data Constraint Checks (~{int(num_failing_rows/9)} findings)")
-    print(f"  ✗ Relationship Checks (~{int(num_failing_rows/9)} findings)")
-    print(f"  ✓ Identity Checks (should PASS unless NULL PKs generated)")
-    print(f"  ✓ Volume Checks (source & target have same row count)")
-    print(f"  ✓ Boolean Normalization (may vary depending on random failures)")
     
     print("\n" + "="*80 + "\n")
 
@@ -373,10 +380,13 @@ def main():
     """Main: Generate all test data and config."""
     parser = argparse.ArgumentParser(description="Generate comprehensive test data for the audit engine.")
     parser.add_argument("--seed", type=int, default=RANDOM_SEED, help="Optional random seed (omit for nondeterministic output).")
-    parser.add_argument("--rows", type=int, default=150, help="Number of rows to generate for source/target tables.")
-    parser.add_argument("--fail-rate", type=float, default=0.35, help="Fraction of rows to inject failures into (0-1).")
+    parser.add_argument("--rows", type=int, default=10000, help="Number of rows to generate for source tables.")
+    parser.add_argument("--fail-rate", type=float, default=0.15, help="Fraction of rows to inject failures into (0-1).")
     parser.add_argument("--out-dir", type=str, default="random_data", help="Output base directory for generated files.")
+    parser.add_argument("--errors", type=str, default="all", help="Comma-separated list of error types to include: volume, enums, aggregates, strings, booleans, nulls, precision, relationships, all")
     args = parser.parse_args()
+    
+    allowed_errors = [e.strip().lower() for e in args.errors.split(",")]
 
     set_seed(args.seed)
 
@@ -390,11 +400,11 @@ def main():
     # Show expected errors before generation
     NUM_ROWS = args.rows
     FAIL_RATE = args.fail_rate
-    display_expected_errors(fail_rate=FAIL_RATE, num_rows=NUM_ROWS)
+    display_expected_errors(fail_rate=FAIL_RATE, num_rows=NUM_ROWS, allowed_errors=allowed_errors)
 
     # Generate main test data
     source_df = generate_source_data(num_rows=NUM_ROWS, fail_rate=0)
-    target_df = generate_target_data(num_rows=NUM_ROWS, fail_rate=FAIL_RATE)
+    target_df = generate_target_data(num_rows=NUM_ROWS, fail_rate=FAIL_RATE, allowed_errors=allowed_errors)
 
     # Save main tables
     source_df.to_csv(os.path.join(base_out, "source", "orders.csv"), index=False)
