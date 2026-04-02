@@ -12,6 +12,8 @@ venv.bak/
 *.py[cod]
 *$py.class
 
+*.zip
+
 # Albatross pro caches (nested repo)
 albatross_pro/.git/
 albatross_pro/__pycache__/
@@ -105,6 +107,7 @@ rendered_dashboard.html
 rendered_*.html
 
 # Data
+random/
 random_data/
 data/
 data/users.csv

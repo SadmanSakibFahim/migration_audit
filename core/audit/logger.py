@@ -2,6 +2,7 @@
 import json
 import logging
 import os
+import re
 from datetime import datetime, timezone
 from typing import Any
 
@@ -9,6 +10,21 @@ from typing import Any
 LOG_DIR = "logs"
 os.makedirs(LOG_DIR, exist_ok=True)
 
+# Sensistive data patterns (Passwords, Tokens, Keys)
+SENSITIVE_PATTERNS = [
+    re.compile(r"(password|secret|token|key|pwd)\s*[:=]\s*['\"]?([^'\"\s]+)['\"]?", re.IGNORECASE),
+]
+
+def mask_sensitive_data(message: str) -> str:
+    """Replaces sensitive patterns with [REDACTED]."""
+    if not isinstance(message, str):
+        return message
+        
+    masked = message
+    for pattern in SENSITIVE_PATTERNS:
+        # Replace the value group (group 2) with [REDACTED]
+        masked = pattern.sub(r"\1: [REDACTED]", masked)
+    return masked
 
 class JsonFormatter(logging.Formatter):
     """Formats log records as JSON objects for SIEM ingestion."""
@@ -29,6 +45,11 @@ class JsonFormatter(logging.Formatter):
             log_entry["action"] = record.action
         if hasattr(record, "ip_address"):
             log_entry["ip_address"] = record.ip_address
+            
+        # Mask all string fields in the final output
+        for key, value in log_entry.items():
+            if isinstance(value, str):
+                log_entry[key] = mask_sensitive_data(value)
 
         return json.dumps(log_entry)
 
@@ -76,8 +97,10 @@ def log_audit_event(
     db: Any = None, 
 ) -> None:
     """Helper to log structured audit events and optionally persist to Db."""
+    # Mask details before logging
+    masked_details = mask_sensitive_data(details)
     extra = {"user_id": user_id, "action": action, "ip_address": ip_address}
-    audit_logger.info(details, extra=extra)
+    audit_logger.info(masked_details, extra=extra)
 
     # Persist database event if active session was mapped
     if db:
