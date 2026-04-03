@@ -3,7 +3,8 @@ services:
     name: albatross-pro
     runtime: python
     buildCommand: |
-      git config --global url."https://${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
+      git submodule set-url albatross_docs https://x-access-token:${GITHUB_TOKEN}@github.com/SadmanSakibFahim/albatross_pro.git
+      git submodule set-url albatross_pro https://x-access-token:${GITHUB_TOKEN}@github.com/SadmanSakibFahim/albatross_pro.git
       git submodule update --init --recursive
       pip install -r requirements.txt
     startCommand: "gunicorn -c gunicorn.conf.py albatross_pro.web.app:app"
