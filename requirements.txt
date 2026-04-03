@@ -10,10 +10,11 @@ python-dotenv
 sqlalchemy
 
 # Web Framework (T001 — Dashboard)
-fastapi
+fastapi==0.109.2
+starlette==0.36.3
 uvicorn
 python-multipart
-jinja2
+jinja2==3.1.2
 itsdangerous
 httpx
 
