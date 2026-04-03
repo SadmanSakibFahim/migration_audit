@@ -30,3 +30,7 @@ xhtml2pdf
 pytest
 pytest-cov
 PyJWT>=2.8.0
+
+# PostgreSQL Driver
+psycopg2-binary>=2.9.9
+gunicorn>=21.2.0

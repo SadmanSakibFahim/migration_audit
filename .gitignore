@@ -135,9 +135,9 @@ run_dashboard.py
 
 
 # AI Agent and IDE folders
-.agent/
-.antigravity/
-.cursor/
+.agent
+.antigravity
+.cursor
 
 # Documentation
 docs/
