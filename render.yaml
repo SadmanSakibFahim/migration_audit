@@ -2,8 +2,11 @@ services:
   - type: web
     name: albatross-pro
     runtime: python
-    buildCommand: "pip install -r requirements.txt"
-    startCommand: "PYTHONPATH=. gunicorn albatross_pro.web.app:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT"
+    buildCommand: |
+      git config --global url."https://${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
+      git submodule update --init --recursive
+      pip install -r requirements.txt
+    startCommand: "gunicorn -c gunicorn.conf.py albatross_pro.web.app:app"
     envVars:
       - key: SECRET_KEY
         sync: false
