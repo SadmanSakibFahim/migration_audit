@@ -1,6 +1,6 @@
 [submodule "albatross_pro"]
 	path = albatross_pro
-	url = ../albatross_pro.git
+	url = https://github.com/SadmanSakibFahim/albatross_pro.git
 [submodule "albatross_docs"]
 	path = albatross_docs
-	url = ../albatross_pro.git
+	url = https://github.com/SadmanSakibFahim/albatross_docs.git
